@@ -22,15 +22,20 @@ class GoldDashboardDataTest(unittest.TestCase):
                 "inflation_expectation",
                 "official_reserves",
                 "positioning_technical",
+                "price_trend",
+                "epu",
+                "gpr",
             },
         )
 
-        self.assertEqual(layers["real_rate"]["latest"]["date"], "2026-06-24")
-        self.assertAlmostEqual(layers["real_rate"]["latest"]["value"], 2.23)
-        self.assertEqual(layers["real_rate"]["data_quality"], "fresh")
+        self.assertIn("DFII10", layers["real_rate"]["source"])
+        self.assertIsNotNone(layers["real_rate"]["latest"]["value"])
+        self.assertIn(layers["real_rate"]["data_quality"], {"fresh", "stale", "very-stale"})
 
-        self.assertEqual(layers["dollar"]["latest"]["date"], "2026-06-24")
-        self.assertAlmostEqual(layers["dollar"]["latest"]["value"], 101.5745)
+        self.assertIn("USDX.FX", layers["dollar"]["source"])
+        self.assertIsNotNone(layers["dollar"]["latest"]["value"])
+        self.assertIn("lag_days", layers["dollar"])
+        self.assertIn(layers["dollar"]["data_quality"], {"fresh", "stale", "very-stale"})
 
         self.assertEqual(layers["official_reserves"]["latest"]["date"], "2026-06-30")
         self.assertAlmostEqual(
@@ -47,6 +52,8 @@ class GoldDashboardDataTest(unittest.TestCase):
         self.assertIn("CFTC", positioning["source"])
         self.assertIsNotNone(positioning["latest"]["managed_money_net"])
         self.assertIsNotNone(positioning["latest"]["managed_money_net_percentile"])
+
+        self.assertTrue({"price_trend", "epu", "gpr"} <= set(layers))
 
     def test_html_is_data_driven_and_excludes_opinion_summary_text(self):
         dashboard = build_site.read_dashboard_data()
@@ -80,6 +87,9 @@ class GoldDashboardDataTest(unittest.TestCase):
                 "dollar",
                 "inflation_expectation",
                 "positioning_technical",
+                "price_trend",
+                "epu",
+                "gpr",
             },
         )
 

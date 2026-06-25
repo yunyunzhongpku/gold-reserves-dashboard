@@ -11,12 +11,16 @@ COT_FILE = MARKET_DIR / "cftc_gold_cot.csv"
 SITE_DIR = ROOT / "site"
 OUTPUT_FILE = SITE_DIR / "index.html"
 
+WIND_DAILY_FILE = MARKET_DIR / "wind_daily.csv"
+DFII10_FILE = MARKET_DIR / "fred_dfii10.csv"
 SHEET_REAL_RATE = "实际利率与金价"
 SHEET_DOLLAR = "美元指数"
 SHEET_VOLATILITY = "隐含波动率"
 SHEET_ETF = "黄金ETF持有量&期现基差"
 SHEET_RESERVES = "官方黄金储备"
 SHEET_VALUATION = "中长期估值指标"
+SHEET_EPU = "经济政策不确定性"
+SHEET_GPR = "地缘政治风险"
 
 STATE_LABELS = {
     "supportive": "支持",
@@ -491,7 +495,8 @@ def make_real_rate_layer(rows):
     return {
         "id": "real_rate",
         "name": "实际利率",
-        "source": "Excel: 实际利率与金价",
+        "source": "FRED: DFII10 (10Y TIPS real yield)",
+        "frequency": "daily",
         "data_quality": "fresh",
         "state": state,
         "latest": {
@@ -522,7 +527,8 @@ def make_dollar_layer(rows):
     return {
         "id": "dollar",
         "name": "美元",
-        "source": "Excel: 美元指数",
+        "source": "Wind: USDX.FX",
+        "frequency": "daily",
         "data_quality": "fresh",
         "state": state,
         "latest": {
@@ -550,6 +556,7 @@ def make_missing_inflation_layer():
         "id": "inflation_expectation",
         "name": "通胀预期",
         "source": "FRED: T10YIE (10-Year Breakeven Inflation Rate)",
+        "frequency": "daily",
         "data_quality": "missing",
         "state": "missing",
         "latest": {"date": None, "value": None},
@@ -577,6 +584,7 @@ def make_inflation_layer(rows):
         "id": "inflation_expectation",
         "name": "通胀预期",
         "source": "FRED: T10YIE (10-Year Breakeven Inflation Rate)",
+        "frequency": "daily",
         "data_quality": "fresh",
         "state": state,
         "latest": {
@@ -632,6 +640,7 @@ def make_reserve_layer(rows):
         "id": "official_reserves",
         "name": "央行购金",
         "source": "Excel: 官方黄金储备",
+        "frequency": "monthly",
         "data_quality": "fresh",
         "state": state,
         "latest": {
@@ -661,7 +670,8 @@ def make_reserve_layer(rows):
     }
 
 
-def make_positioning_layer(etf_rows, vol_rows, gold_rows, cot_rows):
+def make_positioning_layer(etf_rows, vol_rows, gold_rows, cot_rows, today=None):
+    today = today or date.today()
     for row in etf_rows:
         if row.get("spdr_holdings") is not None and row.get("ishares_holdings") is not None:
             row["etf_total"] = row["spdr_holdings"] + row["ishares_holdings"]
@@ -673,6 +683,9 @@ def make_positioning_layer(etf_rows, vol_rows, gold_rows, cot_rows):
     latest_vol = latest_with_value(vol_rows, "gvz")
     latest_gold = latest_with_value(gold_rows, "gold_price")
     gold_delta, _ = change_over_observations(gold_rows, "gold_price", 60)
+
+    gvz_date = latest_vol["date"] if latest_vol else None
+    gvz_quality, gvz_lag = classify_staleness(gvz_date, today, "daily")
 
     etf_state = state_from_delta(etf_delta, supportive_when="up", threshold=3.0)
     gold_state = state_from_delta(gold_delta, supportive_when="up", threshold=0.0)
@@ -706,11 +719,12 @@ def make_positioning_layer(etf_rows, vol_rows, gold_rows, cot_rows):
     else:
         state = "neutral"
 
-    gvz_percentile = latest_vol.get("gvz_3y_percentile") if latest_vol else None
+    gvz_percentile = percentile_rank(vol_rows, "gvz", 756) if latest_vol else None
     return {
         "id": "positioning_technical",
         "name": "仓位与技术",
-        "source": "Excel: 黄金ETF持有量&期现基差、隐含波动率、实际利率与金价；CFTC: Disaggregated COT Gold",
+        "source": "Wind: ETF(SPDR/iShares)、GVZ；CFTC: Disaggregated COT Gold",
+        "frequency": "daily",
         "data_quality": "fresh" if latest_cot else "partial",
         "state": state,
         "latest": {
@@ -722,6 +736,9 @@ def make_positioning_layer(etf_rows, vol_rows, gold_rows, cot_rows):
             "etf_change": etf_delta,
             "gvz": latest_vol["gvz"] if latest_vol else None,
             "gvz_percentile": gvz_percentile,
+            "gvz_date": gvz_date,
+            "gvz_quality": gvz_quality,
+            "gvz_lag": gvz_lag,
             "gold_price": latest_gold["gold_price"] if latest_gold else None,
             "gold_change_60": gold_delta,
             "cot_date": latest_cot["date"] if latest_cot else None,
@@ -741,6 +758,7 @@ def make_positioning_layer(etf_rows, vol_rows, gold_rows, cot_rows):
             f"GVZ {fmt_number(latest_vol['gvz'] if latest_vol else None)}，"
             f"三年分位 {fmt_number((gvz_percentile or 0) * 100)}%。"
             f"{cot_sentence}"
+            f"GVZ 数据 {gvz_date or '—'}({QUALITY_LABELS.get(gvz_quality, gvz_quality)},滞后 {gvz_lag if gvz_lag is not None else '—'} 天)。"
         ),
         "wrong_if": "ETF 持有量持续流出、价格跌破中期趋势，且 Managed Money 净多回落或拥挤度过高。",
         "next_trigger": "每周更新 CFTC COT，观察 ETF 流量与 Managed Money 净多是否同向。",
@@ -1197,94 +1215,77 @@ def make_positioning_relationship(etf_rows, cot_rows, vol_rows, gold_rows):
     }
 
 
-def make_relationships(reserve_rows, real_rate_rows, dollar_rows, breakeven_rows, etf_rows, cot_rows, vol_rows):
+def make_relationships(
+    reserve_rows, real_rate_rows, dollar_rows, breakeven_rows,
+    etf_rows, cot_rows, vol_rows, gold_rows, epu_rows, gpr_rows,
+):
     return [
-        make_central_bank_relationship(reserve_rows, real_rate_rows),
+        make_central_bank_relationship(reserve_rows, gold_rows),
         make_real_rate_relationship(real_rate_rows),
         make_dollar_relationship(dollar_rows),
-        make_inflation_relationship(breakeven_rows, real_rate_rows),
-        make_positioning_relationship(etf_rows, cot_rows, vol_rows, real_rate_rows),
+        make_inflation_relationship(breakeven_rows, gold_rows),
+        make_positioning_relationship(etf_rows, cot_rows, vol_rows, gold_rows),
+        make_trend_relationship(gold_rows),
+        make_monthly_factor_relationship("epu", "经济政策不确定性",
+            "EPU 3个月变化 vs 黄金3个月收益", epu_rows, "epu", gold_rows, expected="positive"),
+        make_monthly_factor_relationship("gpr", "地缘政治风险",
+            "GPR 3个月变化 vs 黄金3个月收益", gpr_rows, "gpr", gold_rows, expected="positive"),
     ]
 
 
 def read_dashboard_data():
     workbook = load_workbook()
     try:
-        real_rate_rows = read_sheet_rows(
-            workbook,
-            SHEET_REAL_RATE,
-            {"real_rate": 1, "gold_price": 2, "rolling_corr": 3},
-        )
-        dollar_rows = read_sheet_rows(
-            workbook,
-            SHEET_DOLLAR,
-            {"dollar_index": 1, "gold_price": 2},
-        )
-        reserve_rows = read_sheet_rows(
-            workbook,
-            SHEET_RESERVES,
-            {"china_reserves": 1, "global_reserves": 2},
-        )
-        etf_rows = read_sheet_rows(
-            workbook,
-            SHEET_ETF,
-            {"spdr_holdings": 1, "ishares_holdings": 2},
-        )
-        vol_rows = read_sheet_rows(
-            workbook,
-            SHEET_VOLATILITY,
-            {"gvz": 1, "gold_price": 2, "gvz_percentile": 3, "gvz_3y_percentile": 4},
-        )
-        valuation_rows = read_sheet_rows(
-            workbook,
-            SHEET_VALUATION,
-            {"gold_price": 7, "gold_to_m2": 9, "valuation_percentile": 10},
-        )
+        reserve_rows = read_sheet_rows(workbook, SHEET_RESERVES, {"china_reserves": 1, "global_reserves": 2})
+        etf_rows = read_sheet_rows(workbook, SHEET_ETF, {"spdr_holdings": 1, "ishares_holdings": 2})
+        valuation_rows = read_sheet_rows(workbook, SHEET_VALUATION, {"gold_price": 7, "gold_to_m2": 9, "valuation_percentile": 10})
+        epu_rows = read_sheet_rows(workbook, SHEET_EPU, {"epu": 1})
+        gpr_rows = read_sheet_rows(workbook, SHEET_GPR, {"gpr": 1})
     finally:
         workbook.close()
 
+    wind_rows = read_csv_rows(WIND_DAILY_FILE, ["gold_price", "dollar_index", "gvz"])
+    # 稀疏宽表 → 派生每指标的稠密子集,使行号 lookback == 有效观测 lookback
+    gold_rows = [row for row in wind_rows if row.get("gold_price") is not None]
+    dollar_rows = [row for row in wind_rows if row.get("dollar_index") is not None]
+    vol_rows = [row for row in wind_rows if row.get("gvz") is not None]
+    real_rate_rows = attach_gold_price(read_csv_rows(DFII10_FILE, ["real_rate"]), gold_rows)
     breakeven_rows = read_csv_rows(BREAKEVEN_FILE, ["breakeven_10y"])
-    cot_rows = read_csv_rows(
-        COT_FILE,
-        [
-            "open_interest",
-            "managed_money_long",
-            "managed_money_short",
-            "managed_money_spread",
-            "managed_money_net",
-            "managed_money_net_to_oi",
-        ],
-    )
+    cot_rows = read_csv_rows(COT_FILE, [
+        "open_interest", "managed_money_long", "managed_money_short",
+        "managed_money_spread", "managed_money_net", "managed_money_net_to_oi",
+    ])
 
+    today = date.today()
     layers = [
         make_real_rate_layer(real_rate_rows),
         make_dollar_layer(dollar_rows),
         make_inflation_layer(breakeven_rows),
         make_reserve_layer(reserve_rows),
-        make_positioning_layer(etf_rows, vol_rows, real_rate_rows, cot_rows),
+        make_positioning_layer(etf_rows, vol_rows, gold_rows, cot_rows, today),
+        make_price_trend_layer(gold_rows),
+        make_epu_layer(epu_rows, gold_rows),
+        make_gpr_layer(gpr_rows, gold_rows),
     ]
+
+    for layer in layers:
+        quality, lag = classify_staleness(layer["latest"].get("date"), today, layer["frequency"])
+        layer["data_quality"] = quality
+        layer["lag_days"] = lag
+
     score, posture, posture_state, tendency, active_layers = score_layers(layers)
 
     return {
         "title": "黄金数据驱动跟踪",
         "source_file": str(DATA_FILE.relative_to(ROOT)),
-        "score": score,
-        "posture": posture,
-        "posture_state": posture_state,
-        "tendency": tendency,
-        "active_layers": active_layers,
+        "score": score, "tendency": tendency, "active_layers": active_layers,
+        "posture": posture, "posture_state": posture_state,
         "layers": layers,
         "valuation": make_valuation_snapshot(valuation_rows),
         "reserve_rows": layers[3]["chart_rows"],
         "relationships": make_relationships(
-            reserve_rows,
-            real_rate_rows,
-            dollar_rows,
-            breakeven_rows,
-            etf_rows,
-            cot_rows,
-            vol_rows,
-        ),
+            reserve_rows, real_rate_rows, dollar_rows, breakeven_rows,
+            etf_rows, cot_rows, vol_rows, gold_rows, epu_rows, gpr_rows),
         "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     }
 
@@ -1606,9 +1607,9 @@ def make_central_bank_relationship_card(relationship):
         {tone_badge(relationship['latest_tone'])}
       </div>
       <div class="metric-strip">
-        <div><span>什么时候开始显著推动</span><strong>{escape(relationship['start_month'] or '—')}</strong></div>
+        <div><span>起始显著推动</span><strong>{escape(relationship.get('start_month') or '—')}</strong></div>
         <div><span>当前滚动相关</span><strong>{fmt_corr(relationship['latest_corr'])}</strong></div>
-        <div><span>最近 3 个月</span><strong>{fmt_signed(relationship['latest']['factor_change'], suffix=' 吨')}</strong></div>
+        <div><span>最近 3 个月</span><strong>{fmt_signed(relationship['latest']['factor_change'])}</strong></div>
       </div>
       <p class="relationship-read">{escape(relationship['read'])} 什么时候不好用：{escape(weak_text)}。</p>
       <h4>双轴走势</h4>
@@ -1783,9 +1784,9 @@ def make_positioning_relationship_card(relationship):
 def make_relationship_section(relationships):
     cards = []
     for relationship in relationships:
-        if relationship["id"] == "central_bank_purchases":
+        if relationship["id"] in {"central_bank_purchases", "epu", "gpr"}:
             cards.append(make_central_bank_relationship_card(relationship))
-        elif relationship["id"] in {"real_rate", "dollar", "inflation_expectation"}:
+        elif relationship["id"] in {"real_rate", "dollar", "inflation_expectation", "price_trend"}:
             cards.append(make_horizon_relationship_card(relationship))
         elif relationship["id"] == "positioning_technical":
             cards.append(make_positioning_relationship_card(relationship))
@@ -1862,6 +1863,7 @@ def build_html(dashboard):
         <tr>
           <td>{escape(layer['name'])}</td>
           <td>{escape(quality_badge(layer['data_quality']))}</td>
+          <td>{'—' if layer.get('lag_days') is None else str(layer['lag_days']) + ' 天'}</td>
           <td>{escape(layer['latest']['date'] or '—')}</td>
           <td>{escape(layer['source'])}</td>
         </tr>
@@ -2344,6 +2346,7 @@ def build_html(dashboard):
         <tr>
           <th>层级</th>
           <th>状态</th>
+          <th>滞后</th>
           <th>数据日期</th>
           <th>来源</th>
         </tr>
