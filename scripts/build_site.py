@@ -28,10 +28,31 @@ STATE_LABELS = {
 
 QUALITY_LABELS = {
     "fresh": "fresh",
+    "stale": "stale",
+    "very-stale": "very-stale",
     "planned": "planned",
     "missing": "missing",
     "partial": "partial",
 }
+
+FREQUENCY_THRESHOLDS = {
+    "daily": (4, 14),
+    "weekly": (10, 21),
+    "monthly": (45, 75),
+}
+
+
+def classify_staleness(latest_date, today, frequency):
+    if not latest_date:
+        return "missing", None
+    latest = datetime.strptime(latest_date, "%Y-%m-%d").date()
+    lag = max(0, (today - latest).days)   # 月末前瞻日期(如储备盖到月末)不显示负滞后
+    fresh_max, stale_max = FREQUENCY_THRESHOLDS[frequency]
+    if lag <= fresh_max:
+        return "fresh", lag
+    if lag <= stale_max:
+        return "stale", lag
+    return "very-stale", lag
 
 
 def format_date(value):

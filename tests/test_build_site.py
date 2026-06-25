@@ -141,5 +141,26 @@ class GoldDashboardDataTest(unittest.TestCase):
         self.assertIn("滚动相关", html)
 
 
+from datetime import date as _date
+
+
+class StalenessTest(unittest.TestCase):
+    def test_daily_boundaries(self):
+        today = _date(2026, 6, 25)
+        self.assertEqual(build_site.classify_staleness("2026-06-23", today, "daily"), ("fresh", 2))
+        self.assertEqual(build_site.classify_staleness("2026-06-15", today, "daily"), ("stale", 10))
+        self.assertEqual(build_site.classify_staleness("2026-05-29", today, "daily"), ("very-stale", 27))
+
+    def test_monthly_and_missing(self):
+        today = _date(2026, 6, 25)
+        self.assertEqual(build_site.classify_staleness("2026-05-31", today, "monthly")[0], "fresh")
+        self.assertEqual(build_site.classify_staleness(None, today, "monthly"), ("missing", None))
+
+    def test_future_dated_is_clamped_to_zero(self):
+        # 月频常盖到月末(未来日期),滞后不应为负
+        self.assertEqual(
+            build_site.classify_staleness("2026-06-30", _date(2026, 6, 25), "monthly"), ("fresh", 0))
+
+
 if __name__ == "__main__":
     unittest.main()
