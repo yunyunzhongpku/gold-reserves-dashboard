@@ -214,6 +214,27 @@ def pct_return(current, previous):
     return current / previous - 1
 
 
+def trailing_return(rows, key, lookback):
+    valid = [row[key] for row in rows if row.get(key) is not None]
+    if len(valid) <= lookback:
+        return None
+    return pct_return(valid[-1], valid[-1 - lookback])
+
+
+def attach_rolling_ma(rows, key, window, out_key):
+    prices = []
+    output = []
+    for row in rows:
+        value = row.get(key)
+        if value is None:
+            output.append({**row, out_key: None})
+            continue
+        prices.append(value)
+        ma = sum(prices[-window:]) / window if len(prices) >= window else None
+        output.append({**row, out_key: ma})
+    return output
+
+
 def correlation(values):
     pairs = [(x, y) for x, y in values if x is not None and y is not None]
     if len(pairs) < 6:
@@ -729,6 +750,47 @@ def make_positioning_layer(etf_rows, vol_rows, gold_rows, cot_rows):
     }
 
 
+def make_price_trend_layer(gold_rows):
+    latest = latest_with_value(gold_rows, "gold_price")
+    prices = [row["gold_price"] for row in gold_rows if row.get("gold_price") is not None]
+    ma200 = sum(prices[-200:]) / 200 if len(prices) >= 200 else None
+    momentum_3m = trailing_return(gold_rows, "gold_price", 63)
+    peak = max(prices[-252:]) if prices else None
+    drawdown = pct_return(latest["gold_price"], peak) if peak else None
+    above = ma200 is not None and latest["gold_price"] > ma200
+
+    if above and (momentum_3m or 0) > 0:
+        state = "supportive"
+    elif ma200 is not None and not above and (momentum_3m or 0) < 0:
+        state = "headwind"
+    else:
+        state = "neutral"
+
+    gap = pct_return(latest["gold_price"], ma200) if ma200 else None
+    return {
+        "id": "price_trend",
+        "name": "价格与趋势",
+        "source": "Wind: SPTAUUSDOZ.IDC(派生 200日均线/动量)",
+        "frequency": "daily",
+        "data_quality": "fresh",
+        "state": state,
+        "latest": {"date": latest["date"], "value": latest["gold_price"], "gold_price": latest["gold_price"]},
+        "change": momentum_3m,
+        "change_since": None,
+        "value_label": f"{fmt_number(latest['gold_price'])}",
+        "change_label": fmt_pct(momentum_3m),
+        "read": (
+            f"金价 {fmt_number(latest['gold_price'])},"
+            f"{'高于' if above else '低于'} 200日均线 {fmt_number(ma200)}({fmt_pct(gap)});"
+            f"近3个月动量 {fmt_pct(momentum_3m)},距1年高点回撤 {fmt_pct(drawdown)}。"
+        ),
+        "wrong_if": "金价跌破 200日均线且 3个月动量转负,趋势支撑失效。",
+        "next_trigger": "跟踪金价与 200日均线关系、动量与回撤是否同向恶化。",
+        "chart_key": "gold_price",
+        "chart_rows": gold_rows,
+    }
+
+
 def make_valuation_snapshot(rows):
     latest = rows[-1] if rows else None
     if latest is None:
@@ -881,6 +943,69 @@ def make_two_horizon_relationship(
         "read": (
             f"短期滚动相关 {fmt_corr(short_latest)}，中期滚动相关 {fmt_corr(medium_latest)}；"
             f"{read_suffix}"
+        ),
+    }
+
+
+def build_trend_forward_pairs(gold_rows, ma_window, horizon):
+    points = [
+        (row["date"], row["_date"], row["gold_price"])
+        for row in gold_rows if row.get("gold_price") is not None
+    ]
+    pairs = []
+    for i in range(ma_window - 1, len(points) - horizon):
+        ma = sum(p[2] for p in points[i - ma_window + 1:i + 1]) / ma_window
+        signal = points[i][2] / ma - 1                       # t 时点趋势缺口
+        forward = points[i + horizon][2] / points[i][2] - 1   # 未来 horizon 收益
+        pairs.append({"date": points[i][0], "_date": points[i][1],
+                      "factor_change": signal, "gold_return": forward})
+    return pairs
+
+
+def make_trend_relationship(gold_rows):
+    short_pairs = build_trend_forward_pairs(gold_rows, 200, 21)
+    medium_pairs = build_trend_forward_pairs(gold_rows, 200, 63)
+    short_rolling = rolling_corr(short_pairs, "factor_change", "gold_return", 126)
+    medium_rolling = rolling_corr(medium_pairs, "factor_change", "gold_return", 252)
+    short_latest = short_rolling[-1]["corr"] if short_rolling else None
+    medium_latest = medium_rolling[-1]["corr"] if medium_rolling else None
+
+    phase_defs = [
+        ("2012-2018", date(2012, 1, 1), date(2018, 12, 31)),
+        ("2019-2021", date(2019, 1, 1), date(2021, 12, 31)),
+        ("2022-2024", date(2022, 1, 1), date(2024, 12, 31)),
+        ("2025-至今", date(2025, 1, 1), None),
+    ]
+    phases = []
+    for label, start, end in phase_defs:
+        short_corr, short_obs = corr_for_range(short_pairs, "factor_change", "gold_return", start, end)
+        medium_corr, medium_obs = corr_for_range(medium_pairs, "factor_change", "gold_return", start, end)
+        phases.append({
+            "label": label, "short_corr": short_corr, "medium_corr": medium_corr,
+            "short_tone": corr_tone(short_corr, expected="positive"),
+            "medium_tone": corr_tone(medium_corr, expected="positive"),
+            "observations": min(short_obs, medium_obs),
+            "gold_return": phase_gold_return(gold_rows, start, end),
+        })
+
+    return {
+        "id": "price_trend", "name": "价格与趋势",
+        "metric": "200日趋势缺口(t) vs 未来黄金收益(前瞻,防自证)", "expected": "positive",
+        "short_term": {"label": "趋势→未来1月", "window": "200日缺口 vs 未来21日收益,126日滚动",
+                       "latest_corr": short_latest, "tone": corr_tone(short_latest, expected="positive"),
+                       "rolling_corr": short_rolling},
+        "medium_term": {"label": "趋势→未来3月", "window": "200日缺口 vs 未来63日收益,252日滚动",
+                        "latest_corr": medium_latest, "tone": corr_tone(medium_latest, expected="positive"),
+                        "rolling_corr": medium_rolling},
+        "latest_corr": medium_latest, "latest_tone": corr_tone(medium_latest, expected="positive"),
+        "rolling_corr": medium_rolling,
+        "trend_rows": attach_rolling_ma(
+            [row for row in gold_rows if row.get("gold_price") is not None], "gold_price", 200, "ma200"),
+        "factor_key": "ma200", "factor_label": "200日均线", "gold_key": "gold_price",
+        "phases": phases, "weak_periods": weak_periods_from_rolling(medium_rolling),
+        "read": (
+            f"前瞻相关 短 {fmt_corr(short_latest)} / 中 {fmt_corr(medium_latest)};"
+            f"正值表示趋势对未来收益有跟随效应。检验用未来收益,避免与同期金价自证。"
         ),
     }
 

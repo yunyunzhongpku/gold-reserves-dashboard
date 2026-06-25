@@ -144,6 +144,27 @@ class GoldDashboardDataTest(unittest.TestCase):
 from datetime import date as _date
 
 
+class PriceTrendTest(unittest.TestCase):
+    def _rising(self, n=700, start=1000.0, step=5.0):  # 需 > 200(MA)+63(前瞻)+252(滚动) 才有非空相关
+        from datetime import date, timedelta
+        d0 = date(2025, 1, 1)
+        return [{"date": (d0 + timedelta(days=i)).strftime("%Y-%m-%d"),
+                 "_date": d0 + timedelta(days=i),
+                 "gold_price": start + step * i} for i in range(n)]
+
+    def test_uptrend_is_supportive(self):
+        layer = build_site.make_price_trend_layer(self._rising())
+        self.assertEqual(layer["id"], "price_trend")
+        self.assertEqual(layer["frequency"], "daily")
+        self.assertEqual(layer["state"], "supportive")
+
+    def test_trend_relationship_uses_forward_returns(self):
+        rel = build_site.make_trend_relationship(self._rising())
+        self.assertIn("short_term", rel)
+        self.assertIn("medium_term", rel)
+        self.assertGreater(rel["short_term"]["latest_corr"], 0)
+
+
 class StalenessTest(unittest.TestCase):
     def test_daily_boundaries(self):
         today = _date(2026, 6, 25)
