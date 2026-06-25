@@ -826,10 +826,25 @@ def score_layers(layers):
     return score, posture, posture_state, tendency, active
 ```
 
+更新 `score_layers` 的唯一调用方,使整套测试在本任务后仍绿(否则 read_dashboard_data 仍按 3 元解包会崩):
+
+- In `read_dashboard_data`(当前 5 层版),把
+  `    score, posture, posture_state = score_layers(layers)`
+  改为
+  `    score, posture, posture_state, tendency, active_layers = score_layers(layers)`;
+  并在其 return 字典(`"score": score,` 附近)加入 `"tendency": tendency,` 与 `"active_layers": active_layers,`。
+- In `build_html`,把 hero 的
+  `      <div class="score">score {dashboard['score']:+d}</div>`
+  改为
+  `      <div class="score">score {dashboard['score']:+d} / {dashboard['active_layers']} · tendency {dashboard['tendency']:+.2f}</div>`。
+
+(Task 7 整体重写 read_dashboard_data 为 8 层版时已含这两键;hero 不在 Task 7 重复改。)
+
 - [ ] **Step 4: 跑测试确认通过**
 
-Run: `PYTHONPYCACHEPREFIX=/private/tmp/gold-dashboard-pycache python3 -m unittest tests.test_build_site.PostureTest -v`
+Run(PostureTest): `PYTHONPYCACHEPREFIX=/private/tmp/gold-dashboard-pycache python3 -m unittest tests.test_build_site.PostureTest -v`
 Expected: PASS(2 tests)。
+再跑全量回归(read_dashboard_data/build_html 已改):`PYTHONPYCACHEPREFIX=/private/tmp/gold-dashboard-pycache python3 -m unittest tests.test_build_site -v` —— 应全绿。
 
 - [ ] **Step 5: 提交**
 
@@ -1030,15 +1045,9 @@ def read_dashboard_data():
     }
 ```
 
-- [ ] **Step 8: hero 显示 tendency + 质量表加滞后列**
+- [ ] **Step 8: 质量表加滞后列**(hero 的 tendency 显示已在 Task 6 完成,本步不再改 hero)
 
-In `build_html`,hero `.score` 行改为:
-
-```python
-      <div class="score">score {dashboard['score']:+d} / {dashboard['active_layers']} · tendency {dashboard['tendency']:+.2f}</div>
-```
-
-`quality_rows` 改为含滞后,并在 `<thead>` 的 `状态` 与 `数据日期` 之间加 `<th>滞后</th>`:
+In `build_html`,`quality_rows` 改为含滞后,并在 `<thead>` 的 `状态` 与 `数据日期` 之间加 `<th>滞后</th>`:
 
 ```python
     quality_rows = "".join(
@@ -1104,7 +1113,7 @@ Expected: 全部 PASS(含既有"排除观点文字"守护测试)。
 
 Run: `python scripts/build_site.py`
 Expected: 打印 `Wrote .../site/index.html`。
-人工核对浏览器打开 `site/index.html`:8 张层卡;波动率显示 `very-stale` 与滞后天数;hero 显示 `score .. / 8 · tendency ..`;EPU/地缘卡片文案克制、含关系检验。
+人工核对浏览器打开 `site/index.html`:8 张层卡;数据质量表每层显示真实滞后天数与质量(自动化后多为 fresh),仓位卡含 GVZ 组件 staleness 文案;hero 显示 `score .. / 8 · tendency ..`;EPU/地缘卡片文案克制、含关系检验。
 
 - [ ] **Step 4: 提交**
 
