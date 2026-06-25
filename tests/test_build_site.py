@@ -164,6 +164,19 @@ class PriceTrendTest(unittest.TestCase):
         self.assertIn("medium_term", rel)
         self.assertGreater(rel["short_term"]["latest_corr"], 0)
 
+    def test_forward_pairs_use_future_return_not_past(self):
+        # 信号锚在 t,收益必须取 t→t+horizon(未来);若误用同期/过去收益,符号会相反。
+        from datetime import date, timedelta
+        d0 = date(2025, 1, 1)
+        prices = [10.0, 10.0, 5.0, 5.0, 20.0]
+        rows = [{"date": (d0 + timedelta(days=i)).strftime("%Y-%m-%d"),
+                 "_date": d0 + timedelta(days=i), "gold_price": p}
+                for i, p in enumerate(prices)]
+        pairs = build_site.build_trend_forward_pairs(rows, ma_window=2, horizon=2)
+        # 最后一对锚在 i=2(price=5):未来收益 = 20/5 - 1 = +3.0;若误用过去收益会是 5/10 - 1 = -0.5
+        self.assertEqual(pairs[-1]["_date"], d0 + timedelta(days=2))
+        self.assertAlmostEqual(pairs[-1]["gold_return"], 3.0)
+
 
 class StalenessTest(unittest.TestCase):
     def test_daily_boundaries(self):
