@@ -12,9 +12,11 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 MARKET_DIR = ROOT / "data" / "market"
 BREAKEVEN_FILE = MARKET_DIR / "fred_t10yie.csv"
+DFII10_FILE = MARKET_DIR / "fred_dfii10.csv"
 COT_FILE = MARKET_DIR / "cftc_gold_cot.csv"
 
 FRED_T10YIE_URL = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=T10YIE"
+FRED_DFII10_URL = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DFII10"
 CFTC_CURRENT_URL = "https://www.cftc.gov/dea/newcot/f_disagg.txt"
 CFTC_HISTORY_URL = "https://www.cftc.gov/files/dea/history/fut_disagg_txt_{year}.zip"
 CFTC_GOLD_MARKET = "GOLD - COMMODITY EXCHANGE INC."
@@ -30,7 +32,7 @@ def fetch_bytes(url, user_agent=True):
 
 def parse_number(value):
     value = value.strip()
-    if value == "":
+    if value in ("", "."):
         return None
     return float(value)
 
@@ -53,6 +55,17 @@ def read_fred_t10yie():
             "date": row["observation_date"],
             "breakeven_10y": value,
         })
+    return rows
+
+
+def read_fred_dfii10():
+    text = fetch_bytes(FRED_DFII10_URL, user_agent=False).decode("utf-8")
+    rows = []
+    for row in csv.DictReader(io.StringIO(text)):
+        value = parse_number(row["DFII10"])
+        if value is None:
+            continue
+        rows.append({"date": row["observation_date"], "real_rate": value})
     return rows
 
 
@@ -112,6 +125,9 @@ def refresh(start_year=None, end_year=None):
     breakeven_rows = read_fred_t10yie()
     write_csv(BREAKEVEN_FILE, breakeven_rows, ["date", "breakeven_10y"])
 
+    real_rate_rows = read_fred_dfii10()
+    write_csv(DFII10_FILE, real_rate_rows, ["date", "real_rate"])
+
     current_year = date.today().year
     start_year = start_year or current_year - 5
     end_year = end_year or current_year
@@ -137,7 +153,7 @@ def refresh(start_year=None, end_year=None):
             "managed_money_net_to_oi",
         ],
     )
-    return breakeven_rows, cot_rows
+    return breakeven_rows, real_rate_rows, cot_rows
 
 
 def main():
@@ -146,8 +162,9 @@ def main():
     parser.add_argument("--end-year", type=int, default=None)
     args = parser.parse_args()
 
-    breakeven_rows, cot_rows = refresh(start_year=args.start_year, end_year=args.end_year)
+    breakeven_rows, real_rate_rows, cot_rows = refresh(start_year=args.start_year, end_year=args.end_year)
     print(f"Wrote {BREAKEVEN_FILE} ({len(breakeven_rows)} rows)")
+    print(f"Wrote {DFII10_FILE} ({len(real_rate_rows)} rows)")
     print(f"Wrote {COT_FILE} ({len(cot_rows)} rows)")
 
 
