@@ -196,5 +196,31 @@ class StalenessTest(unittest.TestCase):
             build_site.classify_staleness("2026-06-30", _date(2026, 6, 25), "monthly"), ("fresh", 0))
 
 
+class MacroRiskLayerTest(unittest.TestCase):
+    def _monthly(self, values):
+        from datetime import date
+        rows = []
+        for i, v in enumerate(values):
+            y, m = 2025 + (i // 12), (i % 12) + 1
+            rows.append({"date": f"{y}-{m:02d}-28", "_date": date(y, m, 28), "epu": v, "gpr": v})
+        return rows
+
+    def test_rising_uncertainty_is_supportive(self):
+        rows = self._monthly([100, 110, 130, 170, 240, 360])
+        gold = [{"date": r["date"], "_date": r["_date"], "gold_price": 1000 + 10 * i}
+                for i, r in enumerate(rows)]
+        epu = build_site.make_epu_layer(rows, gold)
+        self.assertEqual(epu["id"], "epu")
+        self.assertEqual(epu["frequency"], "monthly")
+        self.assertEqual(epu["state"], "supportive")
+
+    def test_gpr_layer_shape(self):
+        rows = self._monthly([100, 105, 110, 108, 112, 109])
+        gold = [{"date": r["date"], "_date": r["_date"], "gold_price": 1000.0} for r in rows]
+        layer = build_site.make_gpr_layer(rows, gold)
+        self.assertEqual(layer["id"], "gpr")
+        self.assertIn(layer["state"], {"supportive", "neutral", "headwind"})
+
+
 if __name__ == "__main__":
     unittest.main()

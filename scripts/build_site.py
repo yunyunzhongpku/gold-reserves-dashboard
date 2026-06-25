@@ -791,6 +791,38 @@ def make_price_trend_layer(gold_rows):
     }
 
 
+def make_monthly_state_layer(layer_id, name, source, rows, key, gold_rows, unit=""):
+    latest = latest_with_value(rows, key)
+    delta, since = change_over_observations(rows, key, 3)        # 近3个月变化
+    threshold = abs(latest[key]) * 0.05 if latest else 0.0       # 5% 显著阈值,抗噪
+    state = state_from_delta(delta, supportive_when="up", threshold=threshold)
+    return {
+        "id": layer_id, "name": name, "source": source, "frequency": "monthly",
+        "data_quality": "fresh", "state": state,
+        "latest": {"date": latest["date"], "value": latest[key]},
+        "change": delta, "change_since": since,
+        "value_label": f"{fmt_number(latest[key])}{unit}",
+        "change_label": fmt_signed(delta, suffix=unit),
+        "read": (
+            f"{name} 最新 {fmt_number(latest[key])}{unit},近3个月 {fmt_signed(delta, suffix=unit)}。"
+            f"作为风险偏好/避险代理观察,非稳定因果驱动,详见关系检验。"
+        ),
+        "wrong_if": f"{name} 回落且金价同向走弱,避险溢价消退。",
+        "next_trigger": f"更新 {name},观察其与金价的滚动相关是否有效。",
+        "chart_key": key, "chart_rows": rows,
+    }
+
+
+def make_epu_layer(epu_rows, gold_rows):
+    return make_monthly_state_layer(
+        "epu", "经济政策不确定性", "Excel: 经济政策不确定性(下轮转 Wind)", epu_rows, "epu", gold_rows)
+
+
+def make_gpr_layer(gpr_rows, gold_rows):
+    return make_monthly_state_layer(
+        "gpr", "地缘政治风险", "Excel: 地缘政治风险(下轮转 Wind)", gpr_rows, "gpr", gold_rows)
+
+
 def make_valuation_snapshot(rows):
     latest = rows[-1] if rows else None
     if latest is None:
@@ -800,6 +832,51 @@ def make_valuation_snapshot(rows):
         "gold_price": latest.get("gold_price"),
         "gold_to_m2": latest.get("gold_to_m2"),
         "valuation_percentile": latest.get("valuation_percentile"),
+    }
+
+
+def make_monthly_factor_relationship(rel_id, name, metric, rows, factor_key, gold_rows, expected="positive"):
+    paired = attach_gold_price([r for r in rows if r.get(factor_key) is not None], gold_rows)
+    enriched = []
+    for i in range(3, len(paired)):
+        factor_3m = paired[i][factor_key] - paired[i - 3][factor_key]
+        gold_3m = pct_return(paired[i]["gold_price"], paired[i - 3]["gold_price"])
+        if gold_3m is None:
+            continue
+        enriched.append({
+            "date": paired[i]["date"], "_date": paired[i]["_date"],
+            "factor_3m_change": factor_3m, "gold_return_3m": gold_3m,
+            factor_key: paired[i][factor_key], "gold_price": paired[i]["gold_price"],
+        })
+    rolling = rolling_corr(enriched, "factor_3m_change", "gold_return_3m", 24)
+    latest_corr = rolling[-1]["corr"] if rolling else None
+
+    phase_defs = [
+        ("2018-2020", date(2018, 1, 1), date(2020, 12, 31)),
+        ("2021-2022", date(2021, 1, 1), date(2022, 12, 31)),
+        ("2023-2024H1", date(2023, 1, 1), date(2024, 6, 30)),
+        ("2024H2-至今", date(2024, 7, 1), None),
+    ]
+    phases = []
+    for label, start, end in phase_defs:
+        corr, obs = corr_for_range(enriched, "factor_3m_change", "gold_return_3m", start, end)
+        phases.append({"label": label, "corr": corr, "tone": corr_tone(corr, expected=expected),
+                       "observations": obs, "gold_return": phase_gold_return(gold_rows, start, end)})
+
+    latest_row = enriched[-1] if enriched else {}
+    return {
+        "id": rel_id, "name": name, "metric": metric, "expected": expected,
+        "latest_corr": latest_corr, "latest_tone": corr_tone(latest_corr, expected=expected),
+        "start_month": None, "weak_periods": weak_periods_from_rolling(rolling),
+        "trend_rows": enriched, "factor_key": factor_key, "factor_label": name,
+        "gold_key": "gold_price", "rolling_corr": rolling, "phases": phases,
+        "latest": {"date": latest_row.get("date"),
+                   "factor_change": latest_row.get("factor_3m_change"),
+                   "gold_return": latest_row.get("gold_return_3m")},
+        "read": (
+            f"{name} 与金价的 3个月滚动相关 {fmt_corr(latest_corr)};"
+            f"作为避险/风险偏好代理,关系常间歇有效,勿当稳定因果。"
+        ),
     }
 
 
