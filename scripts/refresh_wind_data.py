@@ -99,11 +99,11 @@ def refresh(begin=START_DATE, end=None, reconcile=True):
     series = fetch_wind_series(WIND_SERIES, begin, end)
     if reconcile:
         excel = load_excel_anchor_series()
-        failures = {
-            key: compare_series(series[key], excel.get(key, {}))[:5]
+        mismatches = {
+            key: compare_series(series[key], excel.get(key, {}))
             for key in WIND_SERIES
-            if compare_series(series[key], excel.get(key, {}))
         }
+        failures = {key: found[:5] for key, found in mismatches.items() if found}
         if failures:
             raise SystemExit(f"Reconciliation failed vs Excel: {failures}")
     rows = build_wind_daily_rows(series)
