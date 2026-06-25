@@ -1101,7 +1101,7 @@ In `test_relationships_explain_factor_usefulness_by_phase` 末尾(HTML 段)加:
 
 ```python
         self.assertIn("趋势→未来1月", html)
-        self.assertIn("EPU 3个月变化 vs 黄金3个月收益", html)
+        self.assertIn("勿当稳定因果", html)   # EPU/GPR 关系卡的克制文案(relationship.metric 字符串不渲染,改测已渲染的 read)
 ```
 
 - [ ] **Step 2: 跑全量测试**
