@@ -469,19 +469,18 @@ def state_badge(state):
 
 
 def score_layers(layers):
-    weights = {"supportive": 1, "headwind": -1, "neutral": 0, "planned": 0, "missing": 0}
-    scored = [weights[layer["state"]] for layer in layers if layer["state"] != "planned"]
+    weights = {"supportive": 1, "headwind": -1, "neutral": 0}
+    scored = [weights[layer["state"]] for layer in layers if layer["state"] in weights]
+    active = len(scored)
     score = sum(scored)
-    if score >= 2:
-        posture = "偏多"
-        posture_state = "supportive"
-    elif score <= -2:
-        posture = "承压"
-        posture_state = "headwind"
+    tendency = score / active if active else 0.0
+    if tendency >= 0.25:
+        posture, posture_state = "偏多", "supportive"
+    elif tendency <= -0.25:
+        posture, posture_state = "承压", "headwind"
     else:
-        posture = "中性"
-        posture_state = "neutral"
-    return score, posture, posture_state
+        posture, posture_state = "中性", "neutral"
+    return score, posture, posture_state, tendency, active
 
 
 def make_real_rate_layer(rows):
@@ -1264,7 +1263,7 @@ def read_dashboard_data():
         make_reserve_layer(reserve_rows),
         make_positioning_layer(etf_rows, vol_rows, real_rate_rows, cot_rows),
     ]
-    score, posture, posture_state = score_layers(layers)
+    score, posture, posture_state, tendency, active_layers = score_layers(layers)
 
     return {
         "title": "黄金数据驱动跟踪",
@@ -1272,6 +1271,8 @@ def read_dashboard_data():
         "score": score,
         "posture": posture,
         "posture_state": posture_state,
+        "tendency": tendency,
+        "active_layers": active_layers,
         "layers": layers,
         "valuation": make_valuation_snapshot(valuation_rows),
         "reserve_rows": layers[3]["chart_rows"],
@@ -2297,7 +2298,7 @@ def build_html(dashboard):
     <aside class="posture state-{dashboard['posture_state']}">
       <div class="label">当前姿态</div>
       <div class="value">{escape(dashboard['posture'])}</div>
-      <div class="score">score {dashboard['score']:+d}</div>
+      <div class="score">score {dashboard['score']:+d} / {dashboard['active_layers']} · tendency {dashboard['tendency']:+.2f}</div>
     </aside>
   </section>
 

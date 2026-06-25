@@ -222,5 +222,22 @@ class MacroRiskLayerTest(unittest.TestCase):
         self.assertIn(layer["state"], {"supportive", "neutral", "headwind"})
 
 
+class PostureTest(unittest.TestCase):
+    def _layers(self, states):
+        return [{"state": s} for s in states]
+
+    def test_tendency_normalizes_by_active_layers(self):
+        score, posture, state, tendency, active = build_site.score_layers(
+            self._layers(["supportive"] * 3 + ["neutral"] * 5))
+        self.assertEqual(active, 8)
+        self.assertAlmostEqual(tendency, 3 / 8)
+        self.assertEqual(posture, "偏多")
+
+    def test_neutral_band(self):
+        score, posture, state, tendency, active = build_site.score_layers(
+            self._layers(["supportive", "headwind", "neutral"]))
+        self.assertEqual(posture, "中性")
+
+
 if __name__ == "__main__":
     unittest.main()
