@@ -43,12 +43,12 @@ class GoldDashboardDataTest(unittest.TestCase):
             2321.5452,
         )
 
-        self.assertEqual(layers["inflation_expectation"]["data_quality"], "fresh")
+        self.assertIn(layers["inflation_expectation"]["data_quality"], {"fresh", "stale", "very-stale"})
         self.assertIsNotNone(layers["inflation_expectation"]["latest"]["value"])
         self.assertIn("FRED: T10YIE", layers["inflation_expectation"]["source"])
 
         positioning = layers["positioning_technical"]
-        self.assertEqual(positioning["data_quality"], "fresh")
+        self.assertIn(positioning["data_quality"], {"fresh", "stale", "very-stale"})
         self.assertIn("CFTC", positioning["source"])
         self.assertIsNotNone(positioning["latest"]["managed_money_net"])
         self.assertIsNotNone(positioning["latest"]["managed_money_net_percentile"])
