@@ -852,7 +852,9 @@ git commit -m "feat: normalize posture to tendency over active layers"
 
 - [ ] **Step 1: 写失败测试(既有断言迁到新源)**
 
-In `tests/test_build_site.py`,`test_reads_refreshed_workbook_into_driver_layers` 内**实际利率**三行替换为:
+In `tests/test_build_site.py`,`test_reads_refreshed_workbook_into_driver_layers` 做如下改动(实际利率改自 FRED、美元改自 Wind,刷新时间会变 —— 改测行为,不钉易变的精确日期/值):
+
+(a) **实际利率**三行(原 `date=="2026-06-24"`、`value≈2.23`、`data_quality=="fresh"`)替换为:
 
 ```python
         self.assertIn("DFII10", layers["real_rate"]["source"])
@@ -860,14 +862,22 @@ In `tests/test_build_site.py`,`test_reads_refreshed_workbook_into_driver_layers`
         self.assertIn(layers["real_rate"]["data_quality"], {"fresh", "stale", "very-stale"})
 ```
 
-并在该测试末尾追加:
+(b) **美元**两行(原 `assertEqual(layers["dollar"]["latest"]["date"], "2026-06-24")` 与 `assertAlmostEqual(...value, 101.5745)`)替换为(Wind 最新日期随刷新变动,已观测到 06-25):
 
 ```python
-        self.assertEqual(set(layers) >= {"price_trend", "epu", "gpr"}, True)
+        self.assertIn("USDX.FX", layers["dollar"]["source"])
+        self.assertIsNotNone(layers["dollar"]["latest"]["value"])
         self.assertIn("lag_days", layers["dollar"])
-        self.assertEqual(layers["dollar"]["latest"]["date"], "2026-06-24")
-        self.assertAlmostEqual(layers["dollar"]["latest"]["value"], 101.5745)
+        self.assertIn(layers["dollar"]["data_quality"], {"fresh", "stale", "very-stale"})
 ```
+
+(c) 该测试末尾追加(新层存在):
+
+```python
+        self.assertTrue({"price_trend", "epu", "gpr"} <= set(layers))
+```
+
+(reserves 的 `date=="2026-06-30"`、`china≈2321.5452` 来自已提交 Excel,稳定,保留不动。)
 
 In `test_relationships_explain_factor_usefulness_by_phase`,把 `set(relationships)` 期望集合加入 `"price_trend"`、`"epu"`、`"gpr"`。
 
@@ -1075,7 +1085,7 @@ In `test_html_is_data_driven_and_excludes_opinion_summary_text` 末尾加:
         self.assertIn("地缘政治风险", html)
         self.assertIn("滞后", html)
         self.assertIn("tendency", html)
-        self.assertIn("very-stale", html)   # GVZ 组件停在 5/29,须如实暴露(非被 ETF fresh 掩盖)
+        self.assertIn("GVZ 数据", html)      # 仓位层 GVZ 组件 staleness 被显式呈现(不依赖具体新鲜度;自动化后 GVZ 已刷新到最新)
 ```
 
 In `test_relationships_explain_factor_usefulness_by_phase` 末尾(HTML 段)加:
