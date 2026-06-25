@@ -1,0 +1,145 @@
+import sys
+import unittest
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from scripts import build_site
+
+
+class GoldDashboardDataTest(unittest.TestCase):
+    def test_reads_refreshed_workbook_into_driver_layers(self):
+        dashboard = build_site.read_dashboard_data()
+        layers = {layer["id"]: layer for layer in dashboard["layers"]}
+
+        self.assertEqual(
+            set(layers),
+            {
+                "real_rate",
+                "dollar",
+                "inflation_expectation",
+                "official_reserves",
+                "positioning_technical",
+            },
+        )
+
+        self.assertEqual(layers["real_rate"]["latest"]["date"], "2026-06-24")
+        self.assertAlmostEqual(layers["real_rate"]["latest"]["value"], 2.23)
+        self.assertEqual(layers["real_rate"]["data_quality"], "fresh")
+
+        self.assertEqual(layers["dollar"]["latest"]["date"], "2026-06-24")
+        self.assertAlmostEqual(layers["dollar"]["latest"]["value"], 101.5745)
+
+        self.assertEqual(layers["official_reserves"]["latest"]["date"], "2026-06-30")
+        self.assertAlmostEqual(
+            layers["official_reserves"]["latest"]["china_reserves"],
+            2321.5452,
+        )
+
+        self.assertEqual(layers["inflation_expectation"]["data_quality"], "fresh")
+        self.assertIsNotNone(layers["inflation_expectation"]["latest"]["value"])
+        self.assertIn("FRED: T10YIE", layers["inflation_expectation"]["source"])
+
+        positioning = layers["positioning_technical"]
+        self.assertEqual(positioning["data_quality"], "fresh")
+        self.assertIn("CFTC", positioning["source"])
+        self.assertIsNotNone(positioning["latest"]["managed_money_net"])
+        self.assertIsNotNone(positioning["latest"]["managed_money_net_percentile"])
+
+    def test_html_is_data_driven_and_excludes_opinion_summary_text(self):
+        dashboard = build_site.read_dashboard_data()
+        html = build_site.build_html(dashboard)
+
+        self.assertIn("黄金数据驱动跟踪", html)
+        self.assertIn("实际利率", html)
+        self.assertIn("美元", html)
+        self.assertIn("通胀预期", html)
+        self.assertIn("央行购金", html)
+        self.assertIn("仓位与技术", html)
+        self.assertIn("Managed Money", html)
+        self.assertIn("失效条件", html)
+        self.assertIn("下一观察点", html)
+        self.assertIn("数据质量", html)
+        self.assertNotIn("后续接入", html)
+
+        self.assertNotIn("观点汇总", html)
+        self.assertNotIn("短期金价仍偏向震荡行情", html)
+        self.assertNotIn("整体偏谨慎", html)
+
+    def test_relationships_explain_factor_usefulness_by_phase(self):
+        dashboard = build_site.read_dashboard_data()
+        relationships = {item["id"]: item for item in dashboard["relationships"]}
+
+        self.assertEqual(
+            set(relationships),
+            {
+                "central_bank_purchases",
+                "real_rate",
+                "dollar",
+                "inflation_expectation",
+                "positioning_technical",
+            },
+        )
+
+        central_bank = relationships["central_bank_purchases"]
+        self.assertIsNotNone(central_bank["start_month"])
+        self.assertGreaterEqual(len(central_bank["phases"]), 3)
+        self.assertIsNotNone(central_bank["latest_corr"])
+        self.assertTrue(central_bank["rolling_corr"])
+
+        real_rate = relationships["real_rate"]
+        self.assertIn("short_term", real_rate)
+        self.assertIn("medium_term", real_rate)
+        self.assertIsNotNone(real_rate["short_term"]["latest_corr"])
+        self.assertIsNotNone(real_rate["medium_term"]["latest_corr"])
+        self.assertGreaterEqual(len(real_rate["phases"]), 3)
+
+        for relationship_id in ["dollar", "inflation_expectation"]:
+            relationship = relationships[relationship_id]
+            self.assertIn("short_term", relationship)
+            self.assertIn("medium_term", relationship)
+            self.assertIsNotNone(relationship["short_term"]["latest_corr"])
+            self.assertIsNotNone(relationship["medium_term"]["latest_corr"])
+            self.assertGreaterEqual(len(relationship["phases"]), 3)
+
+        positioning = relationships["positioning_technical"]
+        sub_metrics = {item["id"]: item for item in positioning["sub_metrics"]}
+        self.assertEqual(set(sub_metrics), {"etf_holdings", "managed_money", "gvz"})
+        for sub_metric in sub_metrics.values():
+            self.assertIsNotNone(sub_metric["latest_corr"])
+            self.assertTrue(sub_metric["rolling_corr"])
+            self.assertGreaterEqual(len(sub_metric["phases"]), 3)
+
+        html = build_site.build_html(dashboard)
+        self.assertIn("因子关系检验", html)
+        self.assertIn("什么时候开始显著推动", html)
+        self.assertIn("滚动相关", html)
+        self.assertIn("阶段表现", html)
+        self.assertIn("实际利率短期", html)
+        self.assertIn("实际利率中期", html)
+        self.assertIn("美元短期", html)
+        self.assertIn("通胀预期短期", html)
+        self.assertIn("ETF 持仓", html)
+        self.assertIn("Managed Money 净多", html)
+        self.assertIn("GVZ 波动率", html)
+
+    def test_charts_show_axes_and_underlying_series(self):
+        dashboard = build_site.read_dashboard_data()
+        html = build_site.build_html(dashboard)
+
+        self.assertIn('class="y-axis"', html)
+        self.assertIn('class="x-axis"', html)
+        self.assertIn('aria-label="央行购金环比柱状图"', html)
+        self.assertIn('class="mini-bar-chart"', html)
+
+        self.assertIn("双轴走势", html)
+        self.assertIn('class="dual-axis-chart"', html)
+        self.assertIn('class="right-axis"', html)
+        self.assertIn("黄金价格", html)
+        self.assertIn("滚动相关", html)
+
+
+if __name__ == "__main__":
+    unittest.main()
