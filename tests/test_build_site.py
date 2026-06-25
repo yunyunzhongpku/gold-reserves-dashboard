@@ -71,6 +71,13 @@ class GoldDashboardDataTest(unittest.TestCase):
         self.assertIn("数据质量", html)
         self.assertNotIn("后续接入", html)
 
+        self.assertIn("价格与趋势", html)
+        self.assertIn("经济政策不确定性", html)
+        self.assertIn("地缘政治风险", html)
+        self.assertIn("滞后", html)
+        self.assertIn("tendency", html)
+        self.assertIn("GVZ 数据", html)      # 仓位层 GVZ 组件 staleness 被显式呈现
+
         self.assertNotIn("观点汇总", html)
         self.assertNotIn("短期金价仍偏向震荡行情", html)
         self.assertNotIn("整体偏谨慎", html)
@@ -134,6 +141,8 @@ class GoldDashboardDataTest(unittest.TestCase):
         self.assertIn("ETF 持仓", html)
         self.assertIn("Managed Money 净多", html)
         self.assertIn("GVZ 波动率", html)
+        self.assertIn("趋势→未来1月", html)
+        self.assertIn("勿当稳定因果", html)   # EPU/GPR 关系卡的克制文案
 
     def test_charts_show_axes_and_underlying_series(self):
         dashboard = build_site.read_dashboard_data()
