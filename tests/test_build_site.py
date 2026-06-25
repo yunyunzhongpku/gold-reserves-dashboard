@@ -238,6 +238,22 @@ class PostureTest(unittest.TestCase):
             self._layers(["supportive", "headwind", "neutral"]))
         self.assertEqual(posture, "中性")
 
+    def test_boundary_headwind(self):
+        # 1 headwind + 3 neutral → tendency = -0.25(承压含 -0.25 边界)
+        score, posture, state, tendency, active = build_site.score_layers(
+            self._layers(["headwind"] + ["neutral"] * 3))
+        self.assertEqual(active, 4)
+        self.assertAlmostEqual(tendency, -0.25)
+        self.assertEqual(posture, "承压")
+
+    def test_boundary_supportive(self):
+        # 1 supportive + 3 neutral → tendency = +0.25(偏多含 +0.25 边界)
+        score, posture, state, tendency, active = build_site.score_layers(
+            self._layers(["supportive"] + ["neutral"] * 3))
+        self.assertEqual(active, 4)
+        self.assertAlmostEqual(tendency, 0.25)
+        self.assertEqual(posture, "偏多")
+
 
 if __name__ == "__main__":
     unittest.main()
