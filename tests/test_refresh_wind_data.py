@@ -1,4 +1,5 @@
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -6,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from scripts import refresh_wind_data as rwd
+from scripts import refresh_market_data as rmd
 
 
 class BuildWindDailyRowsTest(unittest.TestCase):
@@ -29,6 +31,24 @@ class CompareSeriesTest(unittest.TestCase):
 
     def test_ignores_blank_excel_values(self):
         self.assertEqual(rwd.compare_series({"2026-06-24": 3991.7}, {"2026-06-24": ""}), [])
+
+
+class CsvWriterTest(unittest.TestCase):
+    def test_wind_writer_uses_lf_line_endings(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "wind_daily.csv"
+            rwd.write_csv(
+                path,
+                [{"date": "2026-07-03", "gold_price": 4174.189, "dollar_index": 100.8749, "gvz": 26.0}],
+                rwd.FIELDNAMES,
+            )
+            self.assertNotIn(b"\r", path.read_bytes())
+
+    def test_market_writer_uses_lf_line_endings(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "fred_t10yie.csv"
+            rmd.write_csv(path, [{"date": "2026-07-02", "breakeven_10y": 2.23}], ["date", "breakeven_10y"])
+            self.assertNotIn(b"\r", path.read_bytes())
 
 
 if __name__ == "__main__":
