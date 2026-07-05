@@ -28,6 +28,12 @@ class UpdateDataAndCommitSafetyTest(unittest.TestCase):
         entries = updater.tracked_status_entries("?? docs/pantheon_research_dashboard_notes.md\n")
         self.assertEqual(entries, [])
 
+    def test_push_uses_ssh_remote_and_current_branch(self):
+        self.assertEqual(
+            updater.git_push_command("main"),
+            ["git", "push", updater.PUSH_REMOTE, "main"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -17,6 +17,8 @@ ALLOWED_UPDATE_PATHS = [
     "site/index.html",
 ]
 
+PUSH_REMOTE = "git@github.com:yunyunzhongpku/gold-reserves-dashboard.git"
+
 TEST_COMMAND = [
     sys.executable,
     "-m",
@@ -59,6 +61,10 @@ def unexpected_paths(entries, allowed_paths=None):
 
 def git_add_command():
     return ["git", "add", "--", *ALLOWED_UPDATE_PATHS]
+
+
+def git_push_command(branch):
+    return ["git", "push", PUSH_REMOTE, branch]
 
 
 def tracked_status(paths=None):
@@ -116,9 +122,24 @@ def commit_allowed_changes():
     return True
 
 
+def current_branch():
+    result = run_command(["git", "branch", "--show-current"], capture_output=True)
+    branch = result.stdout.strip()
+    if not branch:
+        raise SystemExit("Cannot push from detached HEAD.")
+    return branch
+
+
+def push_current_branch():
+    branch = current_branch()
+    run_command(git_push_command(branch))
+    return branch
+
+
 def main():
     parser = argparse.ArgumentParser(description="Refresh dashboard data locally and optionally commit generated outputs.")
     parser.add_argument("--no-commit", action="store_true", help="Run refresh, build, and checks without creating a commit.")
+    parser.add_argument("--no-push", action="store_true", help="Create a local commit without pushing to GitHub.")
     args = parser.parse_args()
 
     require_clean_tracked_worktree()
@@ -126,7 +147,15 @@ def main():
     if args.no_commit:
         print("Refresh completed; commit skipped by --no-commit.")
         return
-    commit_allowed_changes()
+    committed = commit_allowed_changes()
+    if args.no_push:
+        print("Push skipped by --no-push.")
+        return
+    if committed:
+        branch = push_current_branch()
+        print(f"Pushed refreshed data commit to {PUSH_REMOTE} {branch}.")
+    else:
+        print("No new data commit; push skipped.")
 
 
 if __name__ == "__main__":
