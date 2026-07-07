@@ -21,7 +21,8 @@ class GoldDashboardDataTest(unittest.TestCase):
         finally:
             build_site.DATA_FILE = original_data_file
 
-        self.assertEqual(dashboard["source_file"], "data/招商证券：黄金图表整理2607.xlsx")
+        self.assertIn("data/招商证券：黄金图表整理2607.xlsx", dashboard["source_file"])
+        self.assertIn("data/market/official_reserves_manual.csv", dashboard["source_file"])
         layers = {layer["id"]: layer for layer in dashboard["layers"]}
 
         for layer_id in ["official_reserves", "epu", "gpr"]:
@@ -33,9 +34,24 @@ class GoldDashboardDataTest(unittest.TestCase):
         self.assertEqual(layers["gpr"]["latest"]["date"], "2026-06-30")
         self.assertEqual(layers["positioning_technical"]["latest"]["date"], "2026-07-06")
 
+    def test_official_reserves_use_manual_china_update_without_future_excel_rows(self):
+        dashboard = build_site.read_dashboard_data(today=self.TODAY)
+        layer = {layer["id"]: layer for layer in dashboard["layers"]}["official_reserves"]
+
+        self.assertEqual(layer["latest"]["date"], "2026-06-30")
+        self.assertAlmostEqual(layer["latest"]["china_reserves"], 2346.446)
+        self.assertAlmostEqual(layer["latest"]["china_change"], 14.93, places=2)
+        self.assertIsNone(layer["latest"]["global_reserves"])
+        self.assertIn("Wind 通讯社", layer["source"])
+
+        html = build_site.build_html(dashboard)
+        self.assertIn("中国官方黄金储备 2346.45 吨", html)
+        self.assertIn("全球官方黄金储备本期未更新", html)
+        self.assertNotIn("2026-07-31", html)
+
     def test_reads_refreshed_workbook_into_driver_layers(self):
         dashboard = build_site.read_dashboard_data(today=self.TODAY)
-        self.assertEqual(dashboard["source_file"], "data/招商证券：黄金图表整理2607.xlsx")
+        self.assertIn("data/招商证券：黄金图表整理2607.xlsx", dashboard["source_file"])
         layers = {layer["id"]: layer for layer in dashboard["layers"]}
 
         self.assertEqual(
@@ -62,10 +78,7 @@ class GoldDashboardDataTest(unittest.TestCase):
         self.assertIn(layers["dollar"]["data_quality"], {"fresh", "stale", "very-stale"})
 
         self.assertEqual(layers["official_reserves"]["latest"]["date"], "2026-06-30")
-        self.assertAlmostEqual(
-            layers["official_reserves"]["latest"]["china_reserves"],
-            2321.5452,
-        )
+        self.assertAlmostEqual(layers["official_reserves"]["latest"]["china_reserves"], 2346.446)
 
         self.assertIn(layers["inflation_expectation"]["data_quality"], {"fresh", "stale", "very-stale"})
         self.assertIsNotNone(layers["inflation_expectation"]["latest"]["value"])

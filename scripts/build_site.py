@@ -8,6 +8,7 @@ DATA_FILE = ROOT / "data" / "招商证券：黄金图表整理2607.xlsx"
 MARKET_DIR = ROOT / "data" / "market"
 BREAKEVEN_FILE = MARKET_DIR / "fred_t10yie.csv"
 COT_FILE = MARKET_DIR / "cftc_gold_cot.csv"
+OFFICIAL_RESERVES_MANUAL_FILE = MARKET_DIR / "official_reserves_manual.csv"
 SITE_DIR = ROOT / "site"
 OUTPUT_FILE = SITE_DIR / "index.html"
 
@@ -179,6 +180,25 @@ def latest_with_value(rows, key):
         if row.get(key) is not None:
             return row
     return None
+
+
+def merge_override_rows(base_rows, override_rows):
+    if not override_rows:
+        return base_rows
+
+    first_override_date = override_rows[0]["_date"]
+    rows = [row for row in base_rows if row["_date"] < first_override_date]
+    rows.extend(override_rows)
+    rows.sort(key=lambda row: row["_date"])
+    return rows
+
+
+def optional_change(current, previous, key):
+    if current is None or previous is None:
+        return None
+    if current.get(key) is None or previous.get(key) is None:
+        return None
+    return current[key] - previous[key]
 
 
 def change_over_observations(rows, key, lookback):
@@ -384,18 +404,20 @@ def build_reserve_relationship_rows(reserve_rows, gold_rows):
             china_change = None
             global_change = None
         else:
-            china_change = row["china_reserves"] - reserve_rows[i - 1]["china_reserves"]
-            global_change = row["global_reserves"] - reserve_rows[i - 1]["global_reserves"]
+            china_change = optional_change(row, reserve_rows[i - 1], "china_reserves")
+            global_change = optional_change(row, reserve_rows[i - 1], "global_reserves")
         changes.append((china_change, global_change))
 
         if i < 3:
             continue
-        china_3m = sum(change[0] for change in changes[i - 2:i + 1] if change[0] is not None)
-        global_3m = sum(change[1] for change in changes[i - 2:i + 1] if change[1] is not None)
+        china_changes = [change[0] for change in changes[i - 2:i + 1] if change[0] is not None]
+        global_changes = [change[1] for change in changes[i - 2:i + 1] if change[1] is not None]
+        china_3m = sum(china_changes) if china_changes else None
+        global_3m = sum(global_changes) if global_changes else None
         gold_current = gold_price_asof(gold_rows, row["_date"])
         gold_previous = gold_price_asof(gold_rows, reserve_rows[i - 3]["_date"])
         gold_return_3m = pct_return(gold_current, gold_previous)
-        if gold_return_3m is None:
+        if china_3m is None or gold_return_3m is None:
             continue
         rows.append({
             "date": row["date"],
@@ -611,8 +633,8 @@ def make_inflation_layer(rows):
 def make_reserve_layer(rows):
     latest = rows[-1]
     previous = rows[-2] if len(rows) >= 2 else None
-    china_change = None if previous is None else latest["china_reserves"] - previous["china_reserves"]
-    global_change = None if previous is None else latest["global_reserves"] - previous["global_reserves"]
+    china_change = optional_change(latest, previous, "china_reserves")
+    global_change = optional_change(latest, previous, "global_reserves")
 
     if china_change is not None and global_change is not None:
         if china_change > 0 and global_change > 0:
@@ -621,6 +643,8 @@ def make_reserve_layer(rows):
             state = "headwind"
         else:
             state = "neutral"
+    elif china_change is not None:
+        state = state_from_delta(china_change, supportive_when="up", threshold=0.0)
     else:
         state = "neutral"
 
@@ -630,18 +654,26 @@ def make_reserve_layer(rows):
             china_mom_change = None
             global_mom_change = None
         else:
-            china_mom_change = row["china_reserves"] - rows[i - 1]["china_reserves"]
-            global_mom_change = row["global_reserves"] - rows[i - 1]["global_reserves"]
+            china_mom_change = optional_change(row, rows[i - 1], "china_reserves")
+            global_mom_change = optional_change(row, rows[i - 1], "global_reserves")
         chart_rows.append({
             **row,
             "china_mom_change": china_mom_change,
             "global_mom_change": global_mom_change,
         })
 
+    if latest.get("global_reserves") is None or global_change is None:
+        global_read = "全球官方黄金储备本期未更新。"
+    else:
+        global_read = (
+            f"全球官方黄金储备 {fmt_number(latest['global_reserves'])} 吨，"
+            f"环比 {fmt_signed(global_change, suffix=' 吨')}。"
+        )
+
     return {
         "id": "official_reserves",
         "name": "央行购金",
-        "source": "Excel: 官方黄金储备",
+        "source": latest.get("source") or "Excel: 官方黄金储备",
         "frequency": "monthly",
         "data_quality": "fresh",
         "state": state,
@@ -660,8 +692,7 @@ def make_reserve_layer(rows):
         "read": (
             f"中国官方黄金储备 {fmt_number(latest['china_reserves'])} 吨，"
             f"环比 {fmt_signed(china_change, suffix=' 吨')}；"
-            f"全球官方黄金储备 {fmt_number(latest['global_reserves'])} 吨，"
-            f"环比 {fmt_signed(global_change, suffix=' 吨')}。"
+            f"{global_read}"
         ),
         "wrong_if": "中国与全球官方储备同时转为持续净卖出，慢变量支撑减弱。",
         "next_trigger": "等待下一期官方储备数据，重点看中国与全球是否同向增加。",
@@ -1247,6 +1278,12 @@ def read_dashboard_data(today=None):
     finally:
         workbook.close()
 
+    manual_reserve_rows = read_csv_rows(OFFICIAL_RESERVES_MANUAL_FILE, ["china_reserves", "global_reserves"])
+    reserve_rows = merge_override_rows(reserve_rows, manual_reserve_rows)
+    source_files = [str(DATA_FILE.relative_to(ROOT))]
+    if manual_reserve_rows:
+        source_files.append(str(OFFICIAL_RESERVES_MANUAL_FILE.relative_to(ROOT)))
+
     wind_rows = read_csv_rows(WIND_DAILY_FILE, ["gold_price", "dollar_index", "gvz"])
     # 稀疏宽表 → 派生每指标的稠密子集,使行号 lookback == 有效观测 lookback
     gold_rows = [row for row in wind_rows if row.get("gold_price") is not None]
@@ -1279,7 +1316,7 @@ def read_dashboard_data(today=None):
 
     return {
         "title": "黄金数据驱动跟踪",
-        "source_file": str(DATA_FILE.relative_to(ROOT)),
+        "source_file": " + ".join(source_files),
         "score": score, "tendency": tendency, "active_layers": active_layers,
         "posture": posture, "posture_state": posture_state,
         "layers": layers,

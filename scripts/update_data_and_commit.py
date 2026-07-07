@@ -14,6 +14,7 @@ ALLOWED_UPDATE_PATHS = [
     "data/market/fred_t10yie.csv",
     "data/market/fred_dfii10.csv",
     "data/market/cftc_gold_cot.csv",
+    "data/market/official_reserves_manual.csv",
     "site/index.html",
 ]
 
