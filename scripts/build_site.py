@@ -4,7 +4,7 @@ from datetime import date, datetime
 from html import escape
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA_FILE = ROOT / "data" / "招商证券：黄金图表整理2606.xlsx"
+DATA_FILE = ROOT / "data" / "招商证券：黄金图表整理2607.xlsx"
 MARKET_DIR = ROOT / "data" / "market"
 BREAKEVEN_FILE = MARKET_DIR / "fred_t10yie.csv"
 COT_FILE = MARKET_DIR / "cftc_gold_cot.csv"
@@ -117,7 +117,7 @@ def load_workbook():
     return open_workbook(DATA_FILE, read_only=True, data_only=True)
 
 
-def read_sheet_rows(workbook, sheet_name, columns):
+def read_sheet_rows(workbook, sheet_name, columns, max_date=None):
     if sheet_name not in workbook.sheetnames:
         raise ValueError(f"未找到工作表：{sheet_name}")
 
@@ -126,6 +126,8 @@ def read_sheet_rows(workbook, sheet_name, columns):
     for raw in sheet.iter_rows(values_only=True):
         row_date = as_date(raw[0] if raw else None)
         if row_date is None:
+            continue
+        if max_date is not None and row_date > max_date:
             continue
 
         item = {"date": format_date(row_date), "_date": row_date}
@@ -1233,14 +1235,15 @@ def make_relationships(
     ]
 
 
-def read_dashboard_data():
+def read_dashboard_data(today=None):
+    today = today or date.today()
     workbook = load_workbook()
     try:
-        reserve_rows = read_sheet_rows(workbook, SHEET_RESERVES, {"china_reserves": 1, "global_reserves": 2})
-        etf_rows = read_sheet_rows(workbook, SHEET_ETF, {"spdr_holdings": 1, "ishares_holdings": 2})
-        valuation_rows = read_sheet_rows(workbook, SHEET_VALUATION, {"gold_price": 7, "gold_to_m2": 9, "valuation_percentile": 10})
-        epu_rows = read_sheet_rows(workbook, SHEET_EPU, {"epu": 1})
-        gpr_rows = read_sheet_rows(workbook, SHEET_GPR, {"gpr": 1})
+        reserve_rows = read_sheet_rows(workbook, SHEET_RESERVES, {"china_reserves": 1, "global_reserves": 2}, max_date=today)
+        etf_rows = read_sheet_rows(workbook, SHEET_ETF, {"spdr_holdings": 1, "ishares_holdings": 2}, max_date=today)
+        valuation_rows = read_sheet_rows(workbook, SHEET_VALUATION, {"gold_price": 7, "gold_to_m2": 9, "valuation_percentile": 10}, max_date=today)
+        epu_rows = read_sheet_rows(workbook, SHEET_EPU, {"epu": 1}, max_date=today)
+        gpr_rows = read_sheet_rows(workbook, SHEET_GPR, {"gpr": 1}, max_date=today)
     finally:
         workbook.close()
 
@@ -1256,7 +1259,6 @@ def read_dashboard_data():
         "managed_money_spread", "managed_money_net", "managed_money_net_to_oi",
     ])
 
-    today = date.today()
     layers = [
         make_real_rate_layer(real_rate_rows),
         make_dollar_layer(dollar_rows),

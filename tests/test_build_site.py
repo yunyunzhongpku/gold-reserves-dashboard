@@ -1,5 +1,6 @@
 import sys
 import unittest
+from datetime import date as _date
 from pathlib import Path
 
 
@@ -10,8 +11,31 @@ from scripts import build_site
 
 
 class GoldDashboardDataTest(unittest.TestCase):
+    TODAY = _date(2026, 7, 7)
+
+    def test_uses_latest_workbook_but_excludes_future_dated_excel_rows(self):
+        original_data_file = build_site.DATA_FILE
+        build_site.DATA_FILE = ROOT / "data" / "招商证券：黄金图表整理2607.xlsx"
+        try:
+            dashboard = build_site.read_dashboard_data(today=self.TODAY)
+        finally:
+            build_site.DATA_FILE = original_data_file
+
+        self.assertEqual(dashboard["source_file"], "data/招商证券：黄金图表整理2607.xlsx")
+        layers = {layer["id"]: layer for layer in dashboard["layers"]}
+
+        for layer_id in ["official_reserves", "epu", "gpr"]:
+            latest_date = _date.fromisoformat(layers[layer_id]["latest"]["date"])
+            self.assertLessEqual(latest_date, self.TODAY)
+
+        self.assertEqual(layers["official_reserves"]["latest"]["date"], "2026-06-30")
+        self.assertEqual(layers["epu"]["latest"]["date"], "2026-06-30")
+        self.assertEqual(layers["gpr"]["latest"]["date"], "2026-06-30")
+        self.assertEqual(layers["positioning_technical"]["latest"]["date"], "2026-07-06")
+
     def test_reads_refreshed_workbook_into_driver_layers(self):
-        dashboard = build_site.read_dashboard_data()
+        dashboard = build_site.read_dashboard_data(today=self.TODAY)
+        self.assertEqual(dashboard["source_file"], "data/招商证券：黄金图表整理2607.xlsx")
         layers = {layer["id"]: layer for layer in dashboard["layers"]}
 
         self.assertEqual(
@@ -56,7 +80,7 @@ class GoldDashboardDataTest(unittest.TestCase):
         self.assertTrue({"price_trend", "epu", "gpr"} <= set(layers))
 
     def test_html_is_data_driven_and_excludes_opinion_summary_text(self):
-        dashboard = build_site.read_dashboard_data()
+        dashboard = build_site.read_dashboard_data(today=self.TODAY)
         html = build_site.build_html(dashboard)
 
         self.assertIn("黄金数据驱动跟踪", html)
@@ -83,7 +107,7 @@ class GoldDashboardDataTest(unittest.TestCase):
         self.assertNotIn("整体偏谨慎", html)
 
     def test_relationships_explain_factor_usefulness_by_phase(self):
-        dashboard = build_site.read_dashboard_data()
+        dashboard = build_site.read_dashboard_data(today=self.TODAY)
         relationships = {item["id"]: item for item in dashboard["relationships"]}
 
         self.assertEqual(
@@ -145,7 +169,7 @@ class GoldDashboardDataTest(unittest.TestCase):
         self.assertIn("勿当稳定因果", html)   # EPU/GPR 关系卡的克制文案
 
     def test_charts_show_axes_and_underlying_series(self):
-        dashboard = build_site.read_dashboard_data()
+        dashboard = build_site.read_dashboard_data(today=self.TODAY)
         html = build_site.build_html(dashboard)
 
         self.assertIn('class="y-axis"', html)
@@ -158,10 +182,6 @@ class GoldDashboardDataTest(unittest.TestCase):
         self.assertIn('class="right-axis"', html)
         self.assertIn("黄金价格", html)
         self.assertIn("滚动相关", html)
-
-
-from datetime import date as _date
-
 
 class PriceTrendTest(unittest.TestCase):
     def _rising(self, n=700, start=1000.0, step=5.0):  # 需 > 200(MA)+63(前瞻)+252(滚动) 才有非空相关

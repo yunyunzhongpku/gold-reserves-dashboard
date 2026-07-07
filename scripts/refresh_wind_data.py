@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import argparse
 import csv
-import glob
 from datetime import date, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MARKET_DIR = ROOT / "data" / "market"
 WIND_DAILY_FILE = MARKET_DIR / "wind_daily.csv"
+DATA_FILE = ROOT / "data" / "招商证券：黄金图表整理2607.xlsx"
 
 WIND_SERIES = {
     "gold_price": "SPTAUUSDOZ.IDC",
@@ -69,8 +69,7 @@ def fetch_wind_series(codes, begin, end):
 
 def load_excel_anchor_series():
     from openpyxl import load_workbook
-    path = glob.glob(str(ROOT / "data" / "*.xlsx"))[0]
-    workbook = load_workbook(path, read_only=True, data_only=True)
+    workbook = load_workbook(DATA_FILE, read_only=True, data_only=True)
     out = {}
     try:
         for key, (sheet, col) in EXCEL_ANCHORS.items():

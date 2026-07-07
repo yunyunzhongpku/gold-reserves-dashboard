@@ -24,6 +24,13 @@ class BuildWindDailyRowsTest(unittest.TestCase):
 
 
 class CompareSeriesTest(unittest.TestCase):
+    def test_excel_anchor_uses_latest_workbook(self):
+        self.assertEqual(rwd.DATA_FILE.name, "招商证券：黄金图表整理2607.xlsx")
+        anchors = rwd.load_excel_anchor_series()
+        self.assertAlmostEqual(anchors["gold_price"]["2026-07-06"], 4164.383)
+        self.assertAlmostEqual(anchors["dollar_index"]["2026-07-06"], 100.8721)
+        self.assertAlmostEqual(anchors["gvz"]["2026-07-06"], 25.33)
+
     def test_flags_only_real_mismatches_on_shared_dates(self):
         wind = {"2026-06-24": 3991.7, "2026-06-23": 4112.07}
         excel = {"2026-06-24": 3991.7, "2026-06-23": 4000.0, "2026-06-20": 4180.87}
