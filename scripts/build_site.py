@@ -12,6 +12,8 @@ OFFICIAL_RESERVES_MANUAL_FILE = MARKET_DIR / "official_reserves_manual.csv"
 SITE_DIR = ROOT / "site"
 OUTPUT_FILE = SITE_DIR / "index.html"
 
+TEN_THOUSAND_TROY_OZ_TO_TONNES = 0.311034768
+
 WIND_DAILY_FILE = MARKET_DIR / "wind_daily.csv"
 DFII10_FILE = MARKET_DIR / "fred_dfii10.csv"
 SHEET_REAL_RATE = "实际利率与金价"
@@ -173,6 +175,82 @@ def read_csv_rows(path, numeric_columns):
 
     rows.sort(key=lambda row: row["_date"])
     return rows
+
+
+def month_index(value):
+    return value.year * 12 + value.month
+
+
+def optional_csv_float(value):
+    return None if value in (None, "") else float(value)
+
+
+def read_official_reserve_rows(path, max_date=None):
+    if not path.exists():
+        return []
+
+    rows = []
+    seen_months = set()
+    previous_date = None
+    previous_month = None
+    with path.open(encoding="utf-8", newline="") as file:
+        for raw in csv.DictReader(file):
+            row_date = datetime.strptime(raw["date"], "%Y-%m-%d").date()
+            current_month = month_index(row_date)
+            if current_month in seen_months:
+                raise ValueError(f"官方储备月份重复：{raw['date']}")
+            if previous_date is not None and row_date <= previous_date:
+                raise ValueError("官方储备日期必须严格升序")
+            if previous_month is not None and current_month != previous_month + 1:
+                raise ValueError("官方储备月份必须连续")
+
+            ounces = float(raw["china_reserves_10k_oz"])
+            if ounces <= 0:
+                raise ValueError("中国官方黄金储备必须为正数")
+            source = (raw.get("source") or "").strip()
+            global_reserves = optional_csv_float(raw.get("global_reserves"))
+            rows.append({
+                "date": format_date(row_date),
+                "_date": row_date,
+                "china_reserves_10k_oz": ounces,
+                "china_reserves": ounces * TEN_THOUSAND_TROY_OZ_TO_TONNES,
+                "global_reserves": global_reserves,
+                "china_source": source,
+                "global_source": source if global_reserves is not None else None,
+            })
+            seen_months.add(current_month)
+            previous_date = row_date
+            previous_month = current_month
+
+    return [row for row in rows if max_date is None or row["_date"] <= max_date]
+
+
+def merge_reserve_rows(base_rows, override_rows):
+    merged = {}
+    for row in base_rows:
+        item = {
+            **row,
+            "china_source": row.get("china_source") or "Excel: 官方黄金储备",
+            "global_source": row.get("global_source") or "Excel: 官方黄金储备",
+        }
+        merged[(row["_date"].year, row["_date"].month)] = item
+
+    for row in override_rows:
+        key = (row["_date"].year, row["_date"].month)
+        item = merged.get(key, {
+            "date": row["date"], "_date": row["_date"],
+            "china_reserves": None, "global_reserves": None,
+            "china_source": None, "global_source": None,
+        })
+        item["china_reserves_10k_oz"] = row["china_reserves_10k_oz"]
+        item["china_reserves"] = row["china_reserves"]
+        item["china_source"] = row["china_source"]
+        if row["global_reserves"] is not None:
+            item["global_reserves"] = row["global_reserves"]
+            item["global_source"] = row["global_source"]
+        merged[key] = item
+
+    return sorted(merged.values(), key=lambda row: row["_date"])
 
 
 def latest_with_value(rows, key):
@@ -636,17 +714,7 @@ def make_reserve_layer(rows):
     china_change = optional_change(latest, previous, "china_reserves")
     global_change = optional_change(latest, previous, "global_reserves")
 
-    if china_change is not None and global_change is not None:
-        if china_change > 0 and global_change > 0:
-            state = "supportive"
-        elif china_change < 0 and global_change < 0:
-            state = "headwind"
-        else:
-            state = "neutral"
-    elif china_change is not None:
-        state = state_from_delta(china_change, supportive_when="up", threshold=0.0)
-    else:
-        state = "neutral"
+    state = state_from_delta(china_change, supportive_when="up", threshold=0.0)
 
     chart_rows = []
     for i, row in enumerate(rows):
@@ -673,7 +741,7 @@ def make_reserve_layer(rows):
     return {
         "id": "official_reserves",
         "name": "央行购金",
-        "source": latest.get("source") or "Excel: 官方黄金储备",
+        "source": latest.get("china_source") or "Excel: 官方黄金储备",
         "frequency": "monthly",
         "data_quality": "fresh",
         "state": state,
@@ -684,6 +752,10 @@ def make_reserve_layer(rows):
             "global_reserves": latest["global_reserves"],
             "china_change": china_change,
             "global_change": global_change,
+            "china_source": latest.get("china_source") or "Excel: 官方黄金储备",
+            "global_source": (
+                latest.get("global_source")
+                if latest.get("global_reserves") is not None else None),
         },
         "change": china_change,
         "change_since": previous["date"] if previous else None,
@@ -1278,8 +1350,9 @@ def read_dashboard_data(today=None):
     finally:
         workbook.close()
 
-    manual_reserve_rows = read_csv_rows(OFFICIAL_RESERVES_MANUAL_FILE, ["china_reserves", "global_reserves"])
-    reserve_rows = merge_override_rows(reserve_rows, manual_reserve_rows)
+    manual_reserve_rows = read_official_reserve_rows(
+        OFFICIAL_RESERVES_MANUAL_FILE, max_date=today)
+    reserve_rows = merge_reserve_rows(reserve_rows, manual_reserve_rows)
     source_files = [str(DATA_FILE.relative_to(ROOT))]
     if manual_reserve_rows:
         source_files.append(str(OFFICIAL_RESERVES_MANUAL_FILE.relative_to(ROOT)))

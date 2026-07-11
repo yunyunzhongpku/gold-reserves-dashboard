@@ -1,4 +1,5 @@
 import sys
+import tempfile
 import unittest
 from datetime import date as _date
 from pathlib import Path
@@ -8,6 +9,75 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from scripts import build_site
+
+
+class OfficialReserveOverrideTest(unittest.TestCase):
+    def setUp(self):
+        self.tempdir = tempfile.TemporaryDirectory()
+        self.path = Path(self.tempdir.name) / "official.csv"
+
+    def tearDown(self):
+        self.tempdir.cleanup()
+
+    def write_csv(self, rows):
+        header = "date,china_reserves_10k_oz,global_reserves,source\n"
+        self.path.write_text(header + "\n".join(rows) + "\n", encoding="utf-8")
+        return self.path
+
+    def test_reads_complete_safe_series_and_converts_tonnes(self):
+        path = self.write_csv([
+            "2025-12-31,7415,,SAFE: 官方储备资产（2025）",
+            "2026-01-31,7419,,SAFE: 官方储备资产（2026）",
+            "2026-02-28,7422,,SAFE: 官方储备资产（2026）",
+            "2026-03-31,7438,,SAFE: 官方储备资产（2026）",
+            "2026-04-30,7464,,SAFE: 官方储备资产（2026）",
+            "2026-05-31,7496,,SAFE: 官方储备资产（2026）",
+            "2026-06-30,7544,,SAFE: 官方储备资产（2026）",
+        ])
+        rows = build_site.read_official_reserve_rows(path, max_date=_date(2026, 7, 7))
+        self.assertEqual(rows[0]["date"], "2025-12-31")
+        self.assertAlmostEqual(rows[-2]["china_reserves"], 2331.517, places=3)
+        self.assertAlmostEqual(rows[-1]["china_reserves"], 2346.446, places=3)
+        self.assertAlmostEqual(
+            rows[-1]["china_reserves"] - rows[-2]["china_reserves"], 14.930, places=3)
+
+    def test_rejects_duplicate_gap_out_of_order_and_non_positive_values(self):
+        cases = {
+            "重复": ["2026-01-15,7419,,SAFE", "2026-01-31,7422,,SAFE"],
+            "连续": ["2025-12-31,7415,,SAFE", "2026-02-28,7422,,SAFE"],
+            "升序": ["2026-02-28,7422,,SAFE", "2026-01-31,7419,,SAFE"],
+            "正数": ["2026-01-31,0,,SAFE"],
+        }
+        for message, rows in cases.items():
+            with self.subTest(message=message):
+                path = self.write_csv(rows)
+                with self.assertRaisesRegex(ValueError, message):
+                    build_site.read_official_reserve_rows(path)
+
+    def test_future_month_is_validated_but_excluded_from_dashboard_cutoff(self):
+        path = self.write_csv([
+            "2026-05-31,7496,,SAFE",
+            "2026-06-30,7544,,SAFE",
+            "2026-07-31,7550,,SAFE",
+        ])
+        rows = build_site.read_official_reserve_rows(path, max_date=_date(2026, 7, 7))
+        self.assertEqual([row["date"] for row in rows], ["2026-05-31", "2026-06-30"])
+
+    def test_field_level_merge_preserves_global_reserve(self):
+        base = [{
+            "date": "2026-06-30", "_date": _date(2026, 6, 30),
+            "china_reserves": 2321.5452, "global_reserves": 36558.5405,
+        }]
+        override = [{
+            "date": "2026-06-30", "_date": _date(2026, 6, 30),
+            "china_reserves_10k_oz": 7544.0, "china_reserves": 2346.446,
+            "global_reserves": None, "china_source": "SAFE", "global_source": None,
+        }]
+        row = build_site.merge_reserve_rows(base, override)[0]
+        self.assertAlmostEqual(row["china_reserves"], 2346.446)
+        self.assertAlmostEqual(row["global_reserves"], 36558.5405)
+        self.assertEqual(row["china_source"], "SAFE")
+        self.assertIn("Excel", row["global_source"])
 
 
 class GoldDashboardDataTest(unittest.TestCase):
@@ -39,14 +109,19 @@ class GoldDashboardDataTest(unittest.TestCase):
         layer = {layer["id"]: layer for layer in dashboard["layers"]}["official_reserves"]
 
         self.assertEqual(layer["latest"]["date"], "2026-06-30")
-        self.assertAlmostEqual(layer["latest"]["china_reserves"], 2346.446)
+        self.assertAlmostEqual(layer["latest"]["china_reserves"], 2346.446, places=3)
         self.assertAlmostEqual(layer["latest"]["china_change"], 14.93, places=2)
-        self.assertIsNone(layer["latest"]["global_reserves"])
-        self.assertIn("Wind 通讯社", layer["source"])
+        self.assertAlmostEqual(layer["latest"]["global_reserves"], 36558.5405)
+        self.assertIn("SAFE", layer["source"])
+        self.assertIn("SAFE", layer["latest"]["china_source"])
+        self.assertIn("Excel", layer["latest"]["global_source"])
+        self.assertEqual(layer["state"], "supportive")
 
         html = build_site.build_html(dashboard)
         self.assertIn("中国官方黄金储备 2346.45 吨", html)
-        self.assertIn("全球官方黄金储备本期未更新", html)
+        self.assertIn("全球官方黄金储备 36558.54 吨", html)
+        self.assertNotIn("全球官方黄金储备本期未更新", html)
+        self.assertNotIn("Wind 通讯社", html)
         self.assertNotIn("2026-07-31", html)
 
     def test_reads_refreshed_workbook_into_driver_layers(self):
@@ -78,7 +153,8 @@ class GoldDashboardDataTest(unittest.TestCase):
         self.assertIn(layers["dollar"]["data_quality"], {"fresh", "stale", "very-stale"})
 
         self.assertEqual(layers["official_reserves"]["latest"]["date"], "2026-06-30")
-        self.assertAlmostEqual(layers["official_reserves"]["latest"]["china_reserves"], 2346.446)
+        self.assertAlmostEqual(
+            layers["official_reserves"]["latest"]["china_reserves"], 2346.446, places=3)
 
         self.assertIn(layers["inflation_expectation"]["data_quality"], {"fresh", "stale", "very-stale"})
         self.assertIsNotNone(layers["inflation_expectation"]["latest"]["value"])
