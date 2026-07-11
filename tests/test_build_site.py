@@ -337,9 +337,14 @@ class InteractiveGoldChartTest(unittest.TestCase):
         self.assertIn("showValues(points[points.length - 1]);", script)
         self.assertIn("renderLatest(activeSvg);", script)
         self.assertIn(
-            'svg.addEventListener("pointerleave", () => renderLatest(svg));',
+            'svg.addEventListener("pointerleave", (event) => {',
             script,
         )
+        self.assertIn(
+            'if (event.pointerType === "touch" || event.pointerType === "pen") return;',
+            script,
+        )
+        self.assertIn("renderLatest(svg);", script)
 
     def test_disables_ma_controls_without_enough_history(self):
         from datetime import timedelta

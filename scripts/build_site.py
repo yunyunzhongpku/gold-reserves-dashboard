@@ -179,7 +179,10 @@ GOLD_CHART_SCRIPT = r"""(() => {
   charts.forEach((svg) => {
     svg.addEventListener("pointermove", (event) => showPoint(svg, event));
     svg.addEventListener("pointerdown", (event) => showPoint(svg, event));
-    svg.addEventListener("pointerleave", () => renderLatest(svg));
+    svg.addEventListener("pointerleave", (event) => {
+      if (event.pointerType === "touch" || event.pointerType === "pen") return;
+      renderLatest(svg);
+    });
   });
 
   activateRange("1y");
