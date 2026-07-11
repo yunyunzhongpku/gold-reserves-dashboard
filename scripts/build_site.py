@@ -37,12 +37,12 @@ STATE_LABELS = {
 }
 
 QUALITY_LABELS = {
-    "fresh": "fresh",
-    "stale": "stale",
-    "very-stale": "very-stale",
-    "planned": "planned",
-    "missing": "missing",
-    "partial": "partial",
+    "fresh": "新鲜",
+    "stale": "滞后",
+    "very-stale": "严重滞后",
+    "planned": "待接入",
+    "missing": "缺失",
+    "partial": "部分可用",
 }
 
 FREQUENCY_THRESHOLDS = {
@@ -2277,33 +2277,90 @@ def make_change_list(layers):
     return items[:5]
 
 
-def build_html(dashboard):
-    layers = dashboard["layers"]
-    cards = "\n".join(layer_card(layer) for layer in layers)
-    relationship_section = make_relationship_section(dashboard["relationships"])
-    changes = "".join(f"<li>{escape(item)}</li>" for item in make_change_list(layers))
-    wrong_if = "".join(f"<li>{escape(layer['wrong_if'])}</li>" for layer in layers)
-    next_triggers = "".join(f"<li>{escape(layer['next_trigger'])}</li>" for layer in layers)
-    quality_rows = "".join(
+def make_price_summary_section(technical_layer):
+    latest = technical_layer["latest"]
+    technical = technical_layer["technical"]
+    chart = make_sparkline(
+        technical_layer["chart_rows"],
+        "gold_price",
+        color="#b88728",
+        width=720,
+        height=240,
+        limit=252,
+    )
+    return f"""
+    <section id="gold-price-section" class="price-stage">
+      <div class="price-panel">
+        <div class="section-eyebrow">黄金现货 · 美元/盎司</div>
+        <div class="price-value">{fmt_number(latest['gold_price'])}</div>
+        <div class="price-move">近 5 个有效观测日 {fmt_pct(latest.get('return_5d'))}</div>
+        {chart}
+        <p class="chart-caption">数据日期 {escape(latest.get('date') or '—')} · 来源 {escape(technical_layer['source'])}</p>
+      </div>
+      <aside class="technical-panel state-{escape(technical_layer['state'])}">
+        <div class="section-eyebrow">技术状态</div>
+        <h2>{escape(technical['medium_term'])} · {escape(technical['short_term'])}</h2>
+        <p>{escape(technical['alignment'])}</p>
+        <dl class="ma-summary">
+          <div><dt>MA20</dt><dd>{fmt_number(latest.get('ma20'))} · {fmt_pct(latest.get('gap_ma20'))}</dd></div>
+          <div><dt>MA60</dt><dd>{fmt_number(latest.get('ma60'))} · {fmt_pct(latest.get('gap_ma60'))}</dd></div>
+          <div><dt>MA200</dt><dd>{fmt_number(latest.get('ma200'))} · {fmt_pct(latest.get('gap_ma200'))}</dd></div>
+        </dl>
+        <p class="technical-trigger"><strong>判断改变条件：</strong>{escape(technical['trigger'])}</p>
+      </aside>
+    </section>
+    """
+
+
+def make_driver_section(rows):
+    body = "".join(
         f"""
-        <tr>
-          <td>{escape(layer['name'])}</td>
-          <td>{escape(quality_badge(layer['data_quality']))}</td>
-          <td>{'—' if layer.get('lag_days') is None else str(layer['lag_days']) + ' 天'}</td>
-          <td>{escape(layer['latest']['date'] or '—')}</td>
-          <td>{escape(layer['source'])}</td>
-        </tr>
+      <div class="driver-row" data-driver-id="{escape(row['id'])}">
+        <span class="driver-state state-{escape(row['state'])}">{escape(state_badge(row['state']))}</span>
+        <div><strong>{escape(row['name'])}</strong><small>{escape(row['category'])}</small></div>
+        <strong>{escape(row['value'])}</strong>
+        <span>{escape(row['change'])}</span>
+        <span>{escape(row['read'])}</span>
+        <span class="quality">{escape(quality_badge(row['quality']))}</span>
+      </div>
         """
-        for layer in layers
+        for row in rows
     )
+    return f"""
+    <section class="driver-panel">
+      <div class="section-heading"><h2>当前主要驱动</h2><span>按决策相关性排序</span></div>
+      <div class="driver-head" aria-hidden="true">
+        <span>状态</span><span>驱动</span><span>当前值</span><span>近期变化</span><span>解读</span><span>质量</span>
+      </div>
+      <div id="driver-table" class="driver-table">{body}</div>
+    </section>
+    """
 
-    valuation = dashboard["valuation"] or {}
-    valuation_text = (
-        f"长期估值：金价/M2 {fmt_number(valuation.get('gold_to_m2'), 3)}，"
-        f"估值分位 {fmt_number((valuation.get('valuation_percentile') or 0) * 100)}%，"
-        f"数据日期 {valuation.get('date', '—')}。"
+
+def make_recent_changes_section(changes):
+    cards = "".join(
+        f"""
+      <article class="recent-change tone-{escape(item['tone'])}">
+        <div class="change-meta">
+          <small>{escape(item['label'])}</small>
+          <span class="change-state state-{escape(item['tone'])}">{escape(state_badge(item['tone']))}</span>
+        </div>
+        <h3>{escape(item['headline'])}</h3>
+        <p>{escape(item['detail'])}</p>
+      </article>
+        """
+        for item in changes
     )
+    return f"""
+    <aside id="recent-changes" class="recent-panel">
+      <h2>最近发生了什么</h2>
+      {cards}
+    </aside>
+    """
 
+
+def make_research_details(dashboard):
+    relationship_section = make_relationship_section(dashboard["relationships"])
     china_chart = make_bar_chart(
         dashboard["reserve_rows"],
         "china_mom_change",
@@ -2316,6 +2373,79 @@ def build_html(dashboard):
         "全球央行黄金储备环比变化柱状图",
         "global-bar",
     )
+    reserve_layer = next(
+        layer for layer in dashboard["layers"] if layer["id"] == "official_reserves")
+    positioning_layer = next(
+        layer
+        for layer in dashboard["layers"]
+        if layer["id"] == "positioning_technical"
+    )
+    reserve_sources = (
+        f"中国：{reserve_layer['latest'].get('china_source') or '—'}；"
+        f"全球：{reserve_layer['latest'].get('global_source') or '—'}"
+    )
+    quality_rows = "".join(
+        f"""
+      <tr>
+        <td>{escape(layer['name'])}</td>
+        <td>{escape(quality_badge(layer['data_quality']))}</td>
+        <td>{'—' if layer.get('lag_days') is None else str(layer['lag_days']) + ' 天'}</td>
+        <td>{escape(layer['latest'].get('date') or '—')}</td>
+        <td>{escape(layer['source'])}</td>
+      </tr>
+        """
+        for layer in dashboard["layers"]
+    )
+    valuation = dashboard["valuation"] or {}
+    valuation_text = (
+        f"长期估值：金价/M2 {fmt_number(valuation.get('gold_to_m2'), 3)}，"
+        f"估值分位 {fmt_number((valuation.get('valuation_percentile') or 0) * 100)}%，"
+        f"数据日期 {valuation.get('date', '—')}。"
+    )
+    return f"""
+    <details class="research-evidence">
+      <summary><strong>研究依据</strong><span>关系检验 · 历史阶段 · 数据来源与方法</span></summary>
+      {relationship_section}
+      <section class="wide">
+        <h2>央行购金历史</h2>
+        <p class="research-intro">{escape(reserve_layer['read'])}</p>
+        <div class="chart-pair">
+          <div class="chart-box"><h3>中国央行黄金储备环比（吨）</h3>{china_chart}</div>
+          <div class="chart-box"><h3>全球官方黄金储备环比（吨）</h3>{global_chart}</div>
+        </div>
+        <p class="method">数据日期 {escape(reserve_layer['latest'].get('date') or '—')} · 来源 {escape(reserve_sources)}</p>
+      </section>
+      <section class="wide">
+        <h2>数据质量与来源</h2>
+        <table>
+          <thead><tr><th>层级</th><th>质量</th><th>滞后</th><th>数据日期</th><th>来源</th></tr></thead>
+          <tbody>{quality_rows}</tbody>
+        </table>
+        <p class="method">仓位数据说明：{escape(positioning_layer['read'])}</p>
+        <p class="method">{escape(valuation_text)}</p>
+        <p class="method">生成时间：{escape(dashboard['updated_at'])} · 数据文件：{escape(dashboard['source_file'])}</p>
+      </section>
+    </details>
+    """
+
+
+def build_html(dashboard):
+    scored_states = [
+        layer["state"]
+        for layer in dashboard["driver_layers"]
+        if layer["state"] in {"supportive", "neutral", "headwind"}
+        and layer.get("data_quality") != "very-stale"
+    ]
+    summary = (
+        f"{scored_states.count('headwind')} 项压力 · "
+        f"{scored_states.count('supportive')} 项支持 · "
+        f"{scored_states.count('neutral')} 项中性"
+    )
+    updated = f"主要市场数据截至 {dashboard['technical_layer']['latest']['date']}"
+    price_section = make_price_summary_section(dashboard["technical_layer"])
+    driver_section = make_driver_section(dashboard["driver_rows"])
+    recent_changes_section = make_recent_changes_section(dashboard["recent_changes"])
+    research_details = make_research_details(dashboard)
 
     return f"""<!doctype html>
 <html lang="zh-CN">
@@ -2713,75 +2843,182 @@ def build_html(dashboard):
       h1 {{ font-size: 28px; }}
       .cards {{ grid-template-columns: 1fr; }}
     }}
+    .decision-header {{
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 220px;
+      gap: 20px;
+      align-items: end;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 18px;
+    }}
+    .decision-header .kicker {{
+      font-size: 13px;
+      text-transform: none;
+    }}
+    .decision-header p {{
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 14px;
+    }}
+    .posture {{
+      border-radius: 14px;
+      padding: 16px;
+      border-left: 4px solid var(--neutral);
+    }}
+    .posture.state-supportive {{ border-left-color: var(--support); }}
+    .posture.state-headwind {{ border-left-color: var(--headwind); }}
+    .posture span, .posture strong, .posture small {{ display: block; }}
+    .posture span {{ color: var(--muted); font-size: 13px; }}
+    .posture strong {{ font-size: 28px; line-height: 1.2; margin: 3px 0 5px; }}
+    .posture small {{ color: var(--muted); font-size: 12px; }}
+    .price-stage {{
+      display: grid;
+      grid-template-columns: minmax(0, 1.8fr) minmax(270px, .8fr);
+      gap: 16px;
+      margin-top: 18px;
+    }}
+    .price-panel, .technical-panel, .driver-panel, .recent-panel, .research-evidence {{
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+    }}
+    .price-panel, .technical-panel, .driver-panel, .recent-panel {{ padding: 18px; }}
+    .section-eyebrow {{
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .06em;
+    }}
+    .price-value {{ font-size: 36px; font-weight: 800; letter-spacing: -.03em; }}
+    .price-move {{ color: var(--muted); margin: 2px 0 10px; font-size: 14px; }}
+    .chart-caption {{ color: var(--muted); margin-top: 9px; font-size: 12px; }}
+    .technical-panel {{ border-left: 4px solid var(--neutral); }}
+    .technical-panel.state-supportive {{ border-left-color: var(--support); }}
+    .technical-panel.state-headwind {{ border-left-color: var(--headwind); }}
+    .technical-panel h2 {{ margin-top: 6px; font-size: 21px; line-height: 1.3; }}
+    .technical-panel > p {{ margin-top: 7px; color: #334036; }}
+    .ma-summary {{ display: grid; gap: 8px; margin: 16px 0 0; }}
+    .ma-summary div {{
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border-top: 1px solid var(--line);
+      padding-top: 8px;
+    }}
+    .technical-trigger {{ font-size: 13px; }}
+    .decision-grid {{
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(290px, .8fr);
+      gap: 16px;
+      margin-top: 16px;
+    }}
+    .section-heading {{
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }}
+    .section-heading h2, .recent-panel > h2 {{ font-size: 19px; }}
+    .section-heading span {{ color: var(--muted); font-size: 13px; }}
+    .driver-head, .driver-row {{
+      display: grid;
+      grid-template-columns: 62px minmax(110px, 1fr) 100px 110px minmax(150px, 1.2fr) 70px;
+      gap: 10px;
+      align-items: center;
+    }}
+    .driver-head {{
+      color: var(--muted);
+      font-size: 12px;
+      padding: 5px 0 7px;
+      border-bottom: 1px solid var(--line);
+    }}
+    .driver-row {{ padding: 11px 0; border-top: 1px solid var(--line); font-size: 13px; }}
+    .driver-row:first-child {{ border-top: 0; }}
+    .driver-row small {{ display: block; color: var(--muted); font-size: 12px; }}
+    .driver-state, .change-state, .quality {{
+      display: inline-block;
+      width: fit-content;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 2px 8px;
+      color: var(--muted);
+      background: #f7f8f5;
+      font-size: 12px;
+      white-space: nowrap;
+    }}
+    .driver-state.state-supportive, .change-state.state-supportive {{ color: var(--support); background: #ecf6f0; }}
+    .driver-state.state-neutral, .change-state.state-neutral {{ color: var(--neutral); background: #faf6e6; }}
+    .driver-state.state-headwind, .change-state.state-headwind {{ color: var(--headwind); background: #fbeeee; }}
+    .recent-panel > h2 {{ margin-bottom: 12px; }}
+    .recent-change {{
+      padding: 12px;
+      border-left: 3px solid var(--neutral);
+      background: #f7f8f5;
+      border-radius: 9px;
+    }}
+    .recent-change + .recent-change {{ margin-top: 10px; }}
+    .recent-change.tone-supportive {{ border-left-color: var(--support); }}
+    .recent-change.tone-headwind {{ border-left-color: var(--headwind); }}
+    .change-meta {{ display: flex; align-items: center; justify-content: space-between; gap: 8px; }}
+    .change-meta small {{ color: var(--muted); font-size: 12px; }}
+    .recent-change h3 {{ font-size: 16px; margin-top: 7px; }}
+    .recent-change p {{ color: #334036; font-size: 13px; margin-top: 5px; }}
+    .research-evidence {{ margin-top: 16px; padding: 0 16px 16px; }}
+    .research-evidence > summary {{
+      cursor: pointer;
+      padding: 16px 0;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+    }}
+    .research-evidence > summary span {{ color: var(--muted); font-size: 13px; text-align: right; }}
+    .research-evidence[open] > summary {{ border-bottom: 1px solid var(--line); }}
+    .research-evidence .wide {{ margin-top: 16px; }}
+    .research-intro {{ color: #334036; margin-bottom: 12px; font-size: 13px; }}
+    @media (max-width: 900px) {{
+      .decision-header, .price-stage, .decision-grid, .chart-pair,
+      .relationship-grid, .dual-axis-grid {{ grid-template-columns: 1fr; }}
+      .posture {{ text-align: left; }}
+      .driver-head {{ display: none; }}
+      .driver-row {{ grid-template-columns: 54px minmax(120px, 1fr) minmax(90px, auto) minmax(90px, auto); }}
+      .driver-row > span:nth-last-child(-n+2) {{ grid-column: 2 / -1; }}
+      .chart-box {{ min-width: 0; }}
+    }}
+    @media (max-width: 560px) {{
+      main {{ padding: 18px 12px 32px; }}
+      h1 {{ font-size: 28px; }}
+      .price-value {{ font-size: 32px; }}
+      .driver-row {{ grid-template-columns: 48px minmax(0, 1fr); }}
+      .driver-row > strong, .driver-row > span:nth-child(n+3) {{ grid-column: 2 / -1; }}
+      .research-evidence {{ padding: 0 12px 12px; }}
+      .research-evidence > summary {{ flex-direction: column; }}
+      .research-evidence > summary span {{ text-align: left; }}
+      .metric-strip {{ grid-template-columns: 1fr; }}
+      .wide table {{ min-width: 680px; }}
+    }}
   </style>
 </head>
 <body>
 <main>
-  <section class="hero">
+  <header class="decision-header">
     <div>
-      <div class="kicker">Gold dashboard · data first</div>
+      <div class="kicker">黄金决策看板</div>
       <h1>{escape(dashboard['title'])}</h1>
-      <p class="subtitle">只使用本地数值数据生成状态判断；不读取任何文字观点或人工结论。当前版本覆盖实际利率、美元、FRED 通胀预期、央行购金、ETF/波动率与 CFTC 仓位。</p>
+      <p>{escape(updated)}</p>
     </div>
-    <aside class="posture state-{dashboard['posture_state']}">
-      <div class="label">当前姿态</div>
-      <div class="value">{escape(dashboard['posture'])}</div>
-      <div class="score">score {dashboard['score']:+d} / {dashboard['active_layers']} · tendency {dashboard['tendency']:+.2f}</div>
+    <aside class="posture state-{escape(dashboard['posture_state'])}">
+      <span>驱动合成</span>
+      <strong>{escape(dashboard['posture'])}</strong>
+      <small>{escape(summary)}</small>
     </aside>
+  </header>
+  {price_section}
+  <section class="decision-grid">
+    {driver_section}
+    {recent_changes_section}
   </section>
-
-  <section class="cards">
-    {cards}
-  </section>
-
-  <section class="section-grid">
-    <div class="panel">
-      <h2>What Changed</h2>
-      <ul>{changes}</ul>
-    </div>
-    <div class="panel">
-      <h2>失效条件</h2>
-      <ul>{wrong_if}</ul>
-    </div>
-    <div class="panel">
-      <h2>下一观察点</h2>
-      <ul>{next_triggers}</ul>
-    </div>
-  </section>
-
-  {relationship_section}
-
-  <section class="wide">
-    <h2>央行购金：最近 24 个月环比变化</h2>
-    <div class="chart-pair">
-      <div class="chart-box">
-        <h3>中国央行黄金储备环比（吨）</h3>
-        {china_chart}
-      </div>
-      <div class="chart-box">
-        <h3>全球官方黄金储备环比（吨）</h3>
-        {global_chart}
-      </div>
-    </div>
-  </section>
-
-  <section class="wide">
-    <h2>数据质量</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>层级</th>
-          <th>状态</th>
-          <th>滞后</th>
-          <th>数据日期</th>
-          <th>来源</th>
-        </tr>
-      </thead>
-      <tbody>{quality_rows}</tbody>
-    </table>
-    <p class="method">{escape(valuation_text)}</p>
-    <p class="method">Last built: {escape(dashboard['updated_at'])} · Source: {escape(dashboard['source_file'])}</p>
-  </section>
+  {research_details}
 </main>
 </body>
 </html>

@@ -234,27 +234,77 @@ class GoldDashboardDataTest(unittest.TestCase):
         html = build_site.build_html(dashboard)
 
         self.assertIn("黄金数据驱动跟踪", html)
+        self.assertIn("黄金决策看板", html)
+        self.assertIn("驱动合成", html)
+        self.assertIn(dashboard["posture"], html)
         self.assertIn("实际利率", html)
         self.assertIn("美元", html)
         self.assertIn("通胀预期", html)
         self.assertIn("央行购金", html)
         self.assertIn("仓位与技术", html)
         self.assertIn("Managed Money", html)
-        self.assertIn("失效条件", html)
-        self.assertIn("下一观察点", html)
-        self.assertIn("数据质量", html)
+        self.assertIn("数据质量与来源", html)
         self.assertNotIn("后续接入", html)
 
         self.assertIn("价格与趋势", html)
         self.assertIn("经济政策不确定性", html)
         self.assertIn("地缘政治风险", html)
         self.assertIn("滞后", html)
-        self.assertIn("tendency", html)
+        self.assertIn("新鲜", html)
+        self.assertNotIn(">fresh<", html)
         self.assertIn("GVZ 数据", html)      # 仓位层 GVZ 组件 staleness 被显式呈现
 
+        self.assertNotIn("Gold decision dashboard", html)
+        self.assertNotIn("tendency", html)
         self.assertNotIn("观点汇总", html)
         self.assertNotIn("短期金价仍偏向震荡行情", html)
         self.assertNotIn("整体偏谨慎", html)
+
+    def test_html_uses_decision_first_structure(self):
+        html = build_site.build_html(
+            build_site.read_dashboard_data(today=self.TODAY))
+
+        self.assertIn('id="gold-price-section"', html)
+        self.assertIn("近 5 个有效观测日", html)
+        self.assertIn("技术状态", html)
+        self.assertIn("MA20", html)
+        self.assertIn("MA60", html)
+        self.assertIn("MA200", html)
+        self.assertIn("判断改变条件", html)
+        self.assertIn('id="driver-table"', html)
+        self.assertEqual(html.count('class="driver-row"'), 6)
+        self.assertEqual(html.count('class="driver-state state-'), 6)
+        self.assertIn('id="recent-changes"', html)
+        self.assertEqual(html.count('class="recent-change '), 3)
+        self.assertEqual(html.count('class="change-state state-'), 3)
+        self.assertIn('<details class="research-evidence">', html)
+        self.assertIn("研究依据", html)
+        self.assertNotIn('<details class="research-evidence" open>', html)
+        self.assertNotIn('<section class="cards">', html)
+        self.assertNotIn("<h2>What Changed</h2>", html)
+        self.assertNotIn("<h2>失效条件</h2>", html)
+        self.assertNotIn("<h2>下一观察点</h2>", html)
+
+    def test_price_and_proxy_layers_remain_in_research_but_not_headline_score(self):
+        dashboard = build_site.read_dashboard_data(today=self.TODAY)
+        self.assertEqual(
+            [layer["id"] for layer in dashboard["driver_layers"]],
+            [
+                "real_rate",
+                "dollar",
+                "inflation_expectation",
+                "official_reserves",
+                "positioning_technical",
+            ],
+        )
+
+        html = build_site.build_html(dashboard)
+        self.assertIn("经济政策不确定性", html)
+        self.assertIn("地缘政治风险", html)
+        self.assertIn("因子关系检验", html)
+        self.assertIn("中国：SAFE", html)
+        self.assertIn("全球：Excel: 官方黄金储备", html)
+        self.assertIn("+14.93 吨", html)
 
     def test_relationships_explain_factor_usefulness_by_phase(self):
         dashboard = build_site.read_dashboard_data(today=self.TODAY)
@@ -324,8 +374,9 @@ class GoldDashboardDataTest(unittest.TestCase):
 
         self.assertIn('class="y-axis"', html)
         self.assertIn('class="x-axis"', html)
-        self.assertIn('aria-label="央行购金环比柱状图"', html)
-        self.assertIn('class="mini-bar-chart"', html)
+        self.assertIn('aria-label="中国央行黄金储备环比变化柱状图"', html)
+        self.assertIn('aria-label="全球央行黄金储备环比变化柱状图"', html)
+        self.assertIn('class="bar-chart"', html)
 
         self.assertIn("双轴走势", html)
         self.assertIn('class="dual-axis-chart"', html)
