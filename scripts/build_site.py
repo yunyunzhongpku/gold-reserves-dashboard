@@ -354,6 +354,47 @@ def attach_rolling_ma(rows, key, window, out_key):
     return output
 
 
+def attach_gold_technicals(rows):
+    output = attach_rolling_ma(rows, "gold_price", 20, "ma20")
+    output = attach_rolling_ma(output, "gold_price", 60, "ma60")
+    return attach_rolling_ma(output, "gold_price", 200, "ma200")
+
+
+def classify_technical_state(price, ma20, ma60, ma200, return_5d):
+    if ma20 is None or return_5d is None:
+        short_term = "样本不足"
+    elif price > ma20 and return_5d > 0:
+        short_term = "短期反弹"
+    elif price < ma20 and return_5d < 0:
+        short_term = "短期走弱"
+    else:
+        short_term = "短期震荡"
+
+    if ma60 is None or ma200 is None:
+        medium_term = "样本不足"
+    elif price > ma60 and price > ma200:
+        medium_term = "中期偏多"
+    elif price < ma60 and price < ma200:
+        medium_term = "中期偏空"
+    else:
+        medium_term = "中期修复"
+
+    if ma20 is None or ma60 is None or ma200 is None:
+        alignment = "样本不足"
+    elif price >= ma20 > ma60 > ma200:
+        alignment = "多头排列"
+    elif price <= ma20 < ma60 < ma200:
+        alignment = "空头排列"
+    else:
+        alignment = "未形成完整排列"
+
+    return {
+        "short_term": short_term,
+        "medium_term": medium_term,
+        "alignment": alignment,
+    }
+
+
 def correlation(values):
     pairs = [(x, y) for x, y in values if x is not None and y is not None]
     if len(pairs) < 6:
@@ -888,43 +929,72 @@ def make_positioning_layer(etf_rows, vol_rows, gold_rows, cot_rows, today=None):
 
 
 def make_price_trend_layer(gold_rows):
-    latest = latest_with_value(gold_rows, "gold_price")
-    prices = [row["gold_price"] for row in gold_rows if row.get("gold_price") is not None]
-    ma200 = sum(prices[-200:]) / 200 if len(prices) >= 200 else None
-    momentum_3m = trailing_return(gold_rows, "gold_price", 63)
+    chart_rows = attach_gold_technicals(gold_rows)
+    latest = latest_with_value(chart_rows, "gold_price")
+    return_5d = trailing_return(chart_rows, "gold_price", 5)
+    momentum_3m = trailing_return(chart_rows, "gold_price", 63)
+    prices = [row["gold_price"] for row in chart_rows if row.get("gold_price") is not None]
     peak = max(prices[-252:]) if prices else None
     drawdown = pct_return(latest["gold_price"], peak) if peak else None
-    above = ma200 is not None and latest["gold_price"] > ma200
-
-    if above and (momentum_3m or 0) > 0:
-        state = "supportive"
-    elif ma200 is not None and not above and (momentum_3m or 0) < 0:
-        state = "headwind"
+    technical = classify_technical_state(
+        latest["gold_price"],
+        latest.get("ma20"),
+        latest.get("ma60"),
+        latest.get("ma200"),
+        return_5d,
+    )
+    if technical["medium_term"] == "中期偏空":
+        trigger = (
+            f"重新站上 MA60 {fmt_number(latest.get('ma60'))} 与 "
+            f"MA200 {fmt_number(latest.get('ma200'))} 后，转为中期偏多。"
+        )
+    elif technical["medium_term"] == "中期偏多":
+        trigger = (
+            f"同时跌破 MA60 {fmt_number(latest.get('ma60'))} 与 "
+            f"MA200 {fmt_number(latest.get('ma200'))} 后，中期趋势转弱。"
+        )
     else:
-        state = "neutral"
+        trigger = "等待价格同时站上或跌破 MA60 与 MA200，确认中期方向。"
+    technical["trigger"] = trigger
+    state = {
+        "中期偏多": "supportive",
+        "中期偏空": "headwind",
+    }.get(technical["medium_term"], "neutral")
 
-    gap = pct_return(latest["gold_price"], ma200) if ma200 else None
     return {
         "id": "price_trend",
         "name": "价格与趋势",
-        "source": "Wind: SPTAUUSDOZ.IDC(派生 200日均线/动量)",
+        "source": "Wind: SPTAUUSDOZ.IDC（派生 MA20/MA60/MA200、动量）",
         "frequency": "daily",
         "data_quality": "fresh",
         "state": state,
-        "latest": {"date": latest["date"], "value": latest["gold_price"], "gold_price": latest["gold_price"]},
+        "latest": {
+            "date": latest["date"],
+            "value": latest["gold_price"],
+            "gold_price": latest["gold_price"],
+            "ma20": latest.get("ma20"),
+            "ma60": latest.get("ma60"),
+            "ma200": latest.get("ma200"),
+            "gap_ma20": pct_return(latest["gold_price"], latest.get("ma20")),
+            "gap_ma60": pct_return(latest["gold_price"], latest.get("ma60")),
+            "gap_ma200": pct_return(latest["gold_price"], latest.get("ma200")),
+            "return_5d": return_5d,
+            "momentum_3m": momentum_3m,
+            "drawdown": drawdown,
+        },
+        "technical": technical,
         "change": momentum_3m,
         "change_since": None,
-        "value_label": f"{fmt_number(latest['gold_price'])}",
+        "value_label": fmt_number(latest["gold_price"]),
         "change_label": fmt_pct(momentum_3m),
         "read": (
-            f"金价 {fmt_number(latest['gold_price'])},"
-            f"{'高于' if above else '低于'} 200日均线 {fmt_number(ma200)}({fmt_pct(gap)});"
-            f"近3个月动量 {fmt_pct(momentum_3m)},距1年高点回撤 {fmt_pct(drawdown)}。"
+            f"{technical['medium_term']}，{technical['short_term']}，"
+            f"{technical['alignment']}。"
         ),
-        "wrong_if": "金价跌破 200日均线且 3个月动量转负,趋势支撑失效。",
-        "next_trigger": "跟踪金价与 200日均线关系、动量与回撤是否同向恶化。",
+        "wrong_if": "价格重新站上或跌破中长期均线后，技术状态将按同一规则更新。",
+        "next_trigger": "跟踪价格与 MA20、MA60、MA200 的相对位置。",
         "chart_key": "gold_price",
-        "chart_rows": gold_rows,
+        "chart_rows": chart_rows,
     }
 
 

@@ -347,6 +347,50 @@ class PriceTrendTest(unittest.TestCase):
         self.assertEqual(layer["frequency"], "daily")
         self.assertEqual(layer["state"], "supportive")
 
+    def test_classifies_strict_bullish_and_bearish_alignment(self):
+        bullish = build_site.classify_technical_state(120, 115, 110, 100, 0.03)
+        bearish = build_site.classify_technical_state(80, 85, 90, 100, -0.03)
+        self.assertEqual(bullish, {
+            "short_term": "短期反弹", "medium_term": "中期偏多", "alignment": "多头排列"})
+        self.assertEqual(bearish, {
+            "short_term": "短期走弱", "medium_term": "中期偏空", "alignment": "空头排列"})
+
+    def test_does_not_call_mixed_mas_a_complete_alignment(self):
+        state = build_site.classify_technical_state(107, 106, 110, 105, 0.02)
+        self.assertEqual(state["short_term"], "短期反弹")
+        self.assertEqual(state["medium_term"], "中期修复")
+        self.assertEqual(state["alignment"], "未形成完整排列")
+
+    def test_alignment_allows_price_to_equal_ma20(self):
+        bullish = build_site.classify_technical_state(115, 115, 110, 100, 0.03)
+        bearish = build_site.classify_technical_state(85, 85, 90, 100, -0.03)
+        self.assertEqual(bullish["alignment"], "多头排列")
+        self.assertEqual(bearish["alignment"], "空头排列")
+
+    def test_equal_adjacent_mas_are_not_complete_alignment(self):
+        bullish_side = build_site.classify_technical_state(120, 110, 110, 100, 0.03)
+        bearish_side = build_site.classify_technical_state(80, 90, 90, 100, -0.03)
+        self.assertEqual(bullish_side["alignment"], "未形成完整排列")
+        self.assertEqual(bearish_side["alignment"], "未形成完整排列")
+
+    def test_reports_insufficient_history_without_inventing_a_trend(self):
+        state = build_site.classify_technical_state(101, None, None, None, None)
+        self.assertEqual(state, {
+            "short_term": "样本不足", "medium_term": "样本不足", "alignment": "样本不足"})
+
+    def test_layer_exposes_all_mas_and_current_contract(self):
+        layer = build_site.make_price_trend_layer(self._rising())
+        self.assertTrue({"ma20", "ma60", "ma200", "return_5d"} <= set(layer["latest"]))
+        self.assertEqual(layer["technical"]["alignment"], "多头排列")
+        self.assertEqual(layer["technical"]["medium_term"], "中期偏多")
+        self.assertTrue({"gap_ma20", "gap_ma60", "gap_ma200"} <= set(layer["latest"]))
+        self.assertIn("跌破", layer["technical"]["trigger"])
+
+    def test_bearish_trigger_matches_medium_term_transition(self):
+        layer = build_site.make_price_trend_layer(self._rising(start=5000.0, step=-5.0))
+        self.assertEqual(layer["technical"]["medium_term"], "中期偏空")
+        self.assertIn("转为中期偏多", layer["technical"]["trigger"])
+
     def test_trend_relationship_uses_forward_returns(self):
         rel = build_site.make_trend_relationship(self._rising())
         self.assertIn("short_term", rel)
