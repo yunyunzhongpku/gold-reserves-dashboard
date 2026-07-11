@@ -2706,6 +2706,12 @@ def make_research_details(dashboard):
         f"估值分位 {fmt_number((valuation.get('valuation_percentile') or 0) * 100)}%，"
         f"数据日期 {valuation.get('date', '—')}。"
     )
+    scoring_summary = (
+        f"驱动净分 {int(dashboard['score']):+d} / "
+        f"有效驱动 {dashboard['active_layers']} 组 · "
+        f"归一化倾向 {dashboard['tendency']:+.2f} · "
+        f"当前姿态 {dashboard['posture']}"
+    )
     return f"""
     <details class="research-evidence">
       <summary><strong>研究依据</strong><span>关系检验 · 历史阶段 · 数据来源与方法</span></summary>
@@ -2729,6 +2735,17 @@ def make_research_details(dashboard):
         <p class="method">{escape(valuation_text)}</p>
         <p class="method">生成时间：{escape(dashboard['updated_at'])} · 数据文件：{escape(dashboard['source_file'])}</p>
       </section>
+      <section class="wide">
+        <h2>计算方法与已知局限</h2>
+        <p class="method"><strong>当前计分：</strong>{escape(scoring_summary)}</p>
+        <ul>
+          <li>五组驱动为实际利率、美元、中国央行购金、通胀预期、资金与仓位；ETF 与 CFTC 合为一组，价格技术不参与驱动合成。</li>
+          <li>支持记 +1、中性记 0、压力记 -1；归一化倾向 +0.25 及以上为偏多，-0.25 及以下为承压，其余为中性。缺失和严重滞后不计分，滞后仍计分；有效驱动少于 3 组时显示数据不足。</li>
+          <li>技术状态独立判断；只有价格与 MA20、MA60、MA200 满足完整次序时，才称为严格多头或空头排列。</li>
+          <li>该姿态是等权启发式框架，实际利率、美元与通胀预期可能共线；关系检验只说明统计相关，相关性不代表因果，滚动相关使用重叠窗口。</li>
+          <li>EPU 与 GPR 只保留在研究依据，不参与首页姿态；SAFE 官方序列仍需手工维护。</li>
+        </ul>
+      </section>
     </details>
     """
 
@@ -2746,6 +2763,12 @@ def build_html(dashboard):
         f"{scored_states.count('neutral')} 项中性"
     )
     updated = f"主要市场数据截至 {dashboard['technical_layer']['latest']['date']}"
+    total_drivers = len(dashboard["driver_layers"])
+    excluded_drivers = total_drivers - dashboard["active_layers"]
+    availability = (
+        f"{dashboard['active_layers']} / {total_drivers} 组驱动可用 · "
+        f"{excluded_drivers} 组过期或缺失"
+    )
     price_section = make_price_summary_section(dashboard["technical_layer"])
     driver_section = make_driver_section(dashboard["driver_rows"])
     recent_changes_section = make_recent_changes_section(dashboard["recent_changes"])
@@ -3354,7 +3377,7 @@ def build_html(dashboard):
     <div>
       <div class="kicker">黄金决策看板</div>
       <h1>{escape(dashboard['title'])}</h1>
-      <p>{escape(updated)}</p>
+      <p>{escape(updated)} · {escape(availability)}</p>
     </div>
     <aside class="posture state-{escape(dashboard['posture_state'])}">
       <span>驱动合成</span>

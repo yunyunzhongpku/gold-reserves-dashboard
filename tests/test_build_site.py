@@ -461,6 +461,35 @@ class GoldDashboardDataTest(unittest.TestCase):
         ]
         self.assertEqual([], trailing_lines)
 
+    def test_research_details_include_scoring_method_and_limitations(self):
+        dashboard = build_site.read_dashboard_data(today=self.TODAY)
+        html = build_site.build_html(dashboard)
+
+        excluded = len(dashboard["driver_layers"]) - dashboard["active_layers"]
+        self.assertIn(
+            f"{dashboard['active_layers']} / {len(dashboard['driver_layers'])} 组驱动可用",
+            html,
+        )
+        self.assertIn(f"{excluded} 组过期或缺失", html)
+
+        self.assertIn("计算方法与已知局限", html)
+        self.assertIn(
+            f"驱动净分 {dashboard['score']:+d} / 有效驱动 {dashboard['active_layers']} 组",
+            html,
+        )
+        self.assertIn(f"归一化倾向 {dashboard['tendency']:+.2f}", html)
+        self.assertIn("+0.25 及以上为偏多", html)
+        self.assertIn("-0.25 及以下为承压", html)
+        self.assertIn("缺失和严重滞后不计分，滞后仍计分", html)
+        self.assertIn("少于 3 组时显示数据不足", html)
+        self.assertIn("ETF 与 CFTC 合为一组", html)
+        self.assertIn("严格多头或空头排列", html)
+        self.assertIn("等权启发式框架", html)
+        self.assertIn("相关性不代表因果", html)
+        self.assertIn("滚动相关使用重叠窗口", html)
+        self.assertIn("EPU 与 GPR 只保留在研究依据", html)
+        self.assertIn("SAFE 官方序列仍需手工维护", html)
+
     def test_price_and_proxy_layers_remain_in_research_but_not_headline_score(self):
         dashboard = build_site.read_dashboard_data(today=self.TODAY)
         self.assertEqual(
