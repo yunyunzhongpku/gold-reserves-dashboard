@@ -1,3 +1,5 @@
+import json
+import re
 import sys
 import tempfile
 import unittest
@@ -139,6 +141,169 @@ class OfficialReserveOverrideTest(unittest.TestCase):
         row = build_site.merge_reserve_rows(base, [])[0]
         self.assertIn("china_reserves_10k_oz", row)
         self.assertIsNone(row["china_reserves_10k_oz"])
+
+
+class InteractiveGoldChartTest(unittest.TestCase):
+    TODAY = _date(2026, 7, 7)
+
+    @classmethod
+    def setUpClass(cls):
+        cls.dashboard = build_site.read_dashboard_data(today=cls.TODAY)
+
+    def test_shift_months_clamps_to_calendar_month_end(self):
+        self.assertEqual(
+            build_site.shift_months(_date(2024, 3, 31), -1),
+            _date(2024, 2, 29),
+        )
+        self.assertEqual(
+            build_site.shift_months(_date(2026, 3, 31), -1),
+            _date(2026, 2, 28),
+        )
+
+    def test_calendar_ranges_end_at_latest_observation(self):
+        rows = self.dashboard["technical_layer"]["chart_rows"]
+        ranges = build_site.build_gold_chart_ranges(rows)
+
+        self.assertEqual(set(ranges), {"3m", "1y", "3y"})
+        self.assertEqual(ranges["1y"][-1]["date"], rows[-1]["date"])
+        self.assertGreaterEqual(ranges["3m"][0]["_date"], _date(2026, 4, 6))
+
+    def test_geometry_uses_one_scale_for_price_and_moving_averages(self):
+        rows = [
+            {
+                "date": "2026-01-01",
+                "_date": _date(2026, 1, 1),
+                "gold_price": 100.0,
+                "ma20": 100.0,
+                "ma60": 90.0,
+                "ma200": None,
+            },
+            {
+                "date": "2026-01-02",
+                "_date": _date(2026, 1, 2),
+                "gold_price": 110.0,
+                "ma20": 105.0,
+                "ma60": 95.0,
+                "ma200": 90.0,
+            },
+        ]
+
+        points = build_site.make_gold_chart_geometry(rows)
+
+        self.assertEqual(points[0]["gold_price_y"], points[0]["ma20_y"])
+        self.assertLess(points[1]["gold_price_y"], points[1]["ma20_y"])
+        self.assertEqual(points[0]["ma200_y"], None)
+
+    def test_empty_ranges_and_geometry_are_safe(self):
+        self.assertEqual(
+            build_site.build_gold_chart_ranges([]),
+            {"3m": [], "1y": [], "3y": []},
+        )
+        self.assertEqual(build_site.make_gold_chart_geometry([]), [])
+        svg = build_site.make_gold_chart_svg([], "1y", hidden=False)
+        self.assertIn('data-range="1y"', svg)
+        self.assertIn("暂无价格数据", svg)
+
+    def test_safe_json_escapes_script_breakout_and_remains_parseable(self):
+        value = {"label": "</script><b>黄金</b>"}
+
+        raw = build_site.safe_json(value)
+
+        self.assertNotIn("<", raw)
+        self.assertEqual(json.loads(raw), value)
+
+    def test_html_embeds_static_fallback_controls_and_safe_payload(self):
+        html = build_site.build_html(self.dashboard)
+
+        self.assertIn('data-chart-range="3m"', html)
+        self.assertIn('data-chart-range="1y" aria-pressed="true"', html)
+        self.assertIn('data-chart-range="3y"', html)
+        for series in ["ma20", "ma60", "ma200"]:
+            self.assertIn(f'data-chart-series="{series}"', html)
+            self.assertIn(f'class="chart-series series-{series}"', html)
+            self.assertIn(f'data-tooltip-{series}', html)
+
+        self.assertEqual(html.count('class="gold-chart"'), 3)
+        one_year_svg = re.search(
+            r'<svg class="gold-chart" data-range="1y"[^>]*>', html, re.S
+        ).group(0)
+        self.assertNotIn(" hidden", one_year_svg)
+        for range_id in ["3m", "3y"]:
+            svg = re.search(
+                rf'<svg class="gold-chart" data-range="{range_id}"[^>]*>',
+                html,
+                re.S,
+            ).group(0)
+            self.assertIn(" hidden", svg)
+
+        raw = re.search(
+            r'<script type="application/json" id="gold-chart-data">(.*?)</script>',
+            html,
+            re.S,
+        ).group(1)
+        self.assertNotIn("<", raw)
+        payload = json.loads(raw)
+        self.assertEqual(set(payload["ranges"]), {"3m", "1y", "3y"})
+        latest = payload["ranges"]["1y"][-1]
+        self.assertTrue(
+            {
+                "date",
+                "gold_price",
+                "ma20",
+                "ma60",
+                "ma200",
+                "x",
+                "gold_price_y",
+            }
+            <= set(latest)
+        )
+
+        self.assertIn("pointermove", html)
+        self.assertIn("pointerdown", html)
+        self.assertIn("touch-action: pan-y", html)
+        self.assertIn("stroke-dasharray", html)
+        self.assertNotIn("linearGradient", html)
+        self.assertNotIn("<script src=", html)
+        self.assertIn(build_site.GOLD_CHART_SCRIPT, html)
+        self.assertLess(html.rfind(build_site.GOLD_CHART_SCRIPT), html.rfind("</body>"))
+
+    def test_script_guards_missing_elements_and_empty_ranges(self):
+        script = build_site.GOLD_CHART_SCRIPT
+
+        self.assertIn("if (!root) return;", script)
+        self.assertIn("if (!payloadElement) return;", script)
+        self.assertIn("if (!points || !points.length) return;", script)
+        for field in ["date", "price", "ma20", "ma60", "ma200"]:
+            self.assertIn(f"[data-tooltip-{field}]", script)
+
+    def test_script_toggles_svg_hidden_attributes(self):
+        script = build_site.GOLD_CHART_SCRIPT
+
+        self.assertIn('svg.toggleAttribute("hidden"', script)
+        self.assertIn('line.removeAttribute("hidden")', script)
+        self.assertIn('marker.removeAttribute("hidden")', script)
+
+    def test_disables_ma_controls_without_enough_history(self):
+        from datetime import timedelta
+
+        start = _date(2026, 1, 1)
+        rows = [
+            {
+                "date": (start + timedelta(days=i)).isoformat(),
+                "_date": start + timedelta(days=i),
+                "gold_price": 100.0 + i,
+            }
+            for i in range(30)
+        ]
+
+        panel = build_site.make_gold_chart_panel(
+            build_site.make_price_trend_layer(rows))
+
+        self.assertIn('data-chart-series="ma20" aria-pressed="true"', panel)
+        self.assertIn(
+            'data-chart-series="ma60" aria-pressed="false" disabled', panel)
+        self.assertIn(
+            'data-chart-series="ma200" aria-pressed="false" disabled', panel)
 
 
 class GoldDashboardDataTest(unittest.TestCase):

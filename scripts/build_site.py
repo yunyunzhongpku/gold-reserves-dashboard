@@ -1,5 +1,7 @@
 from pathlib import Path
+import calendar
 import csv
+import json
 import math
 from datetime import date, datetime
 from html import escape
@@ -58,6 +60,116 @@ DRIVER_LAYER_IDS = (
     "official_reserves",
     "positioning_technical",
 )
+
+GOLD_CHART_RANGES = {"3m": 3, "1y": 12, "3y": 36}
+GOLD_CHART_KEYS = ("gold_price", "ma20", "ma60", "ma200")
+
+GOLD_CHART_SCRIPT = r"""(() => {
+  const root = document.querySelector("[data-gold-chart]");
+  if (!root) return;
+
+  const payloadElement = root.querySelector("#gold-chart-data");
+  if (!payloadElement) return;
+
+  let payload;
+  try {
+    payload = JSON.parse(payloadElement.textContent);
+  } catch (error) {
+    return;
+  }
+  if (!payload || !payload.ranges) return;
+
+  const rangeButtons = [...root.querySelectorAll("[data-chart-range]")];
+  const seriesButtons = [...root.querySelectorAll("[data-chart-series]")];
+  const charts = [...root.querySelectorAll(".gold-chart")];
+  let activeRange = "1y";
+
+  const setText = (selector, value, numeric = true) => {
+    const element = root.querySelector(selector);
+    if (!element) return;
+    element.textContent = value == null
+      ? "—"
+      : numeric
+        ? Number(value).toLocaleString("zh-CN", {maximumFractionDigits: 2})
+        : value;
+  };
+
+  const showValues = (point) => {
+    if (!point) return;
+    setText("[data-tooltip-date]", point.date, false);
+    setText("[data-tooltip-price]", point.gold_price);
+    setText("[data-tooltip-ma20]", point.ma20);
+    setText("[data-tooltip-ma60]", point.ma60);
+    setText("[data-tooltip-ma200]", point.ma200);
+  };
+
+  const showPoint = (svg, event) => {
+    const points = payload.ranges[activeRange];
+    if (!points || !points.length) return;
+    if (!svg || !event) return;
+
+    const rect = svg.getBoundingClientRect();
+    if (!rect.width) return;
+    const viewWidth = svg.viewBox.baseVal.width || 720;
+    const viewX = (event.clientX - rect.left) / rect.width * viewWidth;
+    const firstX = points[0].x;
+    const lastX = points[points.length - 1].x;
+    const span = lastX - firstX || 1;
+    const ratio = Math.max(0, Math.min(1, (viewX - firstX) / span));
+    const point = points[Math.round(ratio * (points.length - 1))];
+    if (!point) return;
+
+    const line = svg.querySelector("[data-hover-line]");
+    const marker = svg.querySelector("[data-hover-price]");
+    if (line) {
+      line.removeAttribute("hidden");
+      line.setAttribute("x1", point.x);
+      line.setAttribute("x2", point.x);
+    }
+    if (marker && point.gold_price_y != null) {
+      marker.removeAttribute("hidden");
+      marker.setAttribute("cx", point.x);
+      marker.setAttribute("cy", point.gold_price_y);
+    }
+    showValues(point);
+  };
+
+  const activateRange = (rangeId) => {
+    const points = payload.ranges[rangeId];
+    if (!points || !points.length) return;
+    activeRange = rangeId;
+    rangeButtons.forEach((button) => {
+      button.setAttribute(
+        "aria-pressed",
+        String(button.dataset.chartRange === activeRange)
+      );
+    });
+    charts.forEach((svg) => {
+      svg.toggleAttribute("hidden", svg.dataset.range !== activeRange);
+    });
+    showValues(points[points.length - 1]);
+  };
+
+  rangeButtons.forEach((button) => {
+    button.addEventListener("click", () => activateRange(button.dataset.chartRange));
+  });
+
+  seriesButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      if (button.disabled) return;
+      const next = button.getAttribute("aria-pressed") !== "true";
+      button.setAttribute("aria-pressed", String(next));
+      root.classList.toggle(`hide-${button.dataset.chartSeries}`, !next);
+    });
+  });
+
+  charts.forEach((svg) => {
+    svg.addEventListener("pointermove", (event) => showPoint(svg, event));
+    svg.addEventListener("pointerdown", (event) => showPoint(svg, event));
+  });
+
+  activateRange("1y");
+})();"""
 
 
 def classify_staleness(latest_date, today, frequency):
@@ -1716,6 +1828,205 @@ def read_dashboard_data(today=None):
     }
 
 
+def shift_months(value: date, months: int) -> date:
+    month_zero = value.year * 12 + value.month - 1 + months
+    year, month_zero = divmod(month_zero, 12)
+    month = month_zero + 1
+    day = min(value.day, calendar.monthrange(year, month)[1])
+    return date(year, month, day)
+
+
+def build_gold_chart_ranges(rows: list[dict]) -> dict[str, list[dict]]:
+    ranges = {range_id: [] for range_id in GOLD_CHART_RANGES}
+    valid_rows = sorted(
+        (
+            row
+            for row in rows
+            if row.get("_date") is not None and row.get("gold_price") is not None
+        ),
+        key=lambda row: row["_date"],
+    )
+    if not valid_rows:
+        return ranges
+
+    latest_date = valid_rows[-1]["_date"]
+    return {
+        range_id: [
+            row
+            for row in valid_rows
+            if row["_date"] >= shift_months(latest_date, -months)
+        ]
+        for range_id, months in GOLD_CHART_RANGES.items()
+    }
+
+
+def make_gold_chart_geometry(
+    rows: list[dict], width: int = 720, height: int = 280
+) -> list[dict]:
+    if not rows:
+        return []
+
+    left, right, top, bottom = 54, 18, 18, 34
+    plot_width = width - left - right
+    plot_height = height - top - bottom
+    values = [
+        row[key]
+        for row in rows
+        for key in GOLD_CHART_KEYS
+        if row.get(key) is not None
+    ]
+    low = min(values) if values else 0.0
+    high = max(values) if values else 0.0
+    span = high - low or 1.0
+    denominator = max(1, len(rows) - 1)
+    points = []
+    for index, row in enumerate(rows):
+        point = {
+            "date": row["date"],
+            "x": round(left + index / denominator * plot_width, 2),
+        }
+        for key in GOLD_CHART_KEYS:
+            value = row.get(key)
+            point[key] = value
+            point[f"{key}_y"] = (
+                None
+                if value is None
+                else round(top + (high - value) / span * plot_height, 2)
+            )
+        points.append(point)
+    return points
+
+
+def svg_series_path(points: list[dict], key: str) -> str:
+    commands = []
+    drawing = False
+    for point in points:
+        y = point.get(f"{key}_y")
+        if y is None:
+            drawing = False
+            continue
+        commands.append(f"{'L' if drawing else 'M'}{point['x']:.2f},{y:.2f}")
+        drawing = True
+    return " ".join(commands)
+
+
+def make_gold_chart_svg(
+    points: list[dict],
+    range_id: str,
+    hidden: bool = False,
+    width: int = 720,
+    height: int = 280,
+) -> str:
+    hidden_attr = " hidden" if hidden else ""
+    range_label = {"3m": "3个月", "1y": "1年", "3y": "3年"}.get(
+        range_id, range_id)
+    first_date = points[0]["date"] if points else "—"
+    last_date = points[-1]["date"] if points else "—"
+    aria_label = (
+        f"黄金价格与移动均线，{range_label}，美元每盎司，"
+        f"{first_date}至{last_date}"
+    )
+    if not points:
+        return f"""
+    <svg class="gold-chart" data-range="{escape(range_id)}" viewBox="0 0 {width} {height}"
+         role="img" aria-label="{escape(aria_label)}"{hidden_attr}>
+      <text x="{width / 2:.0f}" y="{height / 2:.0f}" text-anchor="middle" class="chart-empty">暂无价格数据</text>
+    </svg>
+        """
+
+    left, right, top, bottom = 54, 18, 18, 34
+    values = [
+        point[key]
+        for point in points
+        for key in GOLD_CHART_KEYS
+        if point.get(key) is not None
+    ]
+    low = min(values)
+    high = max(values)
+    paths = "".join(
+        f'<path class="chart-series series-{key}" '
+        f'd="{svg_series_path(points, key)}"></path>'
+        for key in GOLD_CHART_KEYS
+    )
+    return f"""
+    <svg class="gold-chart" data-range="{escape(range_id)}" viewBox="0 0 {width} {height}"
+         role="img" aria-label="{escape(aria_label)}"{hidden_attr}>
+      <title>{escape(aria_label)}</title>
+      <line x1="{left}" y1="{top}" x2="{left}" y2="{height - bottom}" class="y-axis"></line>
+      <line x1="{left}" y1="{height - bottom}" x2="{width - right}" y2="{height - bottom}" class="x-axis"></line>
+      <text x="4" y="{top + 4}" class="chart-label">{escape(fmt_axis_value(high))}</text>
+      <text x="4" y="{height - bottom}" class="chart-label">{escape(fmt_axis_value(low))}</text>
+      {paths}
+      <line data-hover-line x1="{left}" y1="{top}" x2="{left}" y2="{height - bottom}" class="hover-line" hidden></line>
+      <circle data-hover-price cx="{left}" cy="{top}" r="4" class="hover-price" hidden></circle>
+      <text x="{left}" y="{height - 8}" class="chart-label">{escape(first_date)}</text>
+      <text x="{width - right}" y="{height - 8}" text-anchor="end" class="chart-label">{escape(last_date)}</text>
+    </svg>
+    """
+
+
+def safe_json(value) -> str:
+    return json.dumps(
+        value, ensure_ascii=False, separators=(",", ":")
+    ).replace("<", "\\u003c")
+
+
+def make_gold_chart_panel(technical_layer: dict) -> str:
+    chart_rows = technical_layer.get("chart_rows") or []
+    ranges = build_gold_chart_ranges(chart_rows)
+    geometries = {
+        range_id: make_gold_chart_geometry(rows)
+        for range_id, rows in ranges.items()
+    }
+    charts = "".join(
+        make_gold_chart_svg(
+            geometries[range_id], range_id, hidden=(range_id != "1y"))
+        for range_id in GOLD_CHART_RANGES
+    )
+    payload = safe_json({"ranges": geometries})
+    latest = technical_layer.get("latest") or (
+        chart_rows[-1] if chart_rows else {})
+
+    def series_button(key: str, label: str) -> str:
+        available = latest.get(key) is not None
+        pressed = "true" if available else "false"
+        disabled = "" if available else " disabled"
+        return (
+            f'<button type="button" data-chart-series="{key}" '
+            f'aria-pressed="{pressed}"{disabled}>{escape(label)}</button>'
+        )
+
+    return f"""
+    <div class="gold-chart-panel" data-gold-chart>
+      <div class="chart-heading">
+        <strong>金价与移动均线</strong>
+        <span>美元/盎司 · 日期范围见横轴</span>
+      </div>
+      <div class="chart-controls" aria-label="黄金图表控制">
+        <div class="range-controls" aria-label="日期范围">
+          <button type="button" data-chart-range="3m" aria-pressed="false">3个月</button>
+          <button type="button" data-chart-range="1y" aria-pressed="true">1年</button>
+          <button type="button" data-chart-range="3y" aria-pressed="false">3年</button>
+        </div>
+        <div class="series-controls" aria-label="移动均线">
+          {series_button("ma20", "20日均线")}
+          {series_button("ma60", "60日均线")}
+          {series_button("ma200", "200日均线")}
+        </div>
+      </div>
+      <div class="chart-stack">{charts}</div>
+      <div class="chart-tooltip" aria-live="polite">
+        <strong data-tooltip-date>—</strong>
+        <span>金价 <b data-tooltip-price>—</b></span>
+        <span>MA20 <b data-tooltip-ma20>—</b></span>
+        <span>MA60 <b data-tooltip-ma60>—</b></span>
+        <span>MA200 <b data-tooltip-ma200>—</b></span>
+      </div>
+      <script type="application/json" id="gold-chart-data">{payload}</script>
+    </div>
+    """
+
+
 def make_sparkline(rows, key, color="#2563eb", width=360, height=96, limit=120):
     points = [(row["date"], row.get(key)) for row in rows if row.get(key) is not None][-limit:]
     if len(points) < 2:
@@ -2280,14 +2591,7 @@ def make_change_list(layers):
 def make_price_summary_section(technical_layer):
     latest = technical_layer["latest"]
     technical = technical_layer["technical"]
-    chart = make_sparkline(
-        technical_layer["chart_rows"],
-        "gold_price",
-        color="#b88728",
-        width=720,
-        height=240,
-        limit=252,
-    )
+    chart = make_gold_chart_panel(technical_layer)
     return f"""
     <section id="gold-price-section" class="price-stage">
       <div class="price-panel">
@@ -2892,6 +3196,51 @@ def build_html(dashboard):
     .price-value {{ font-size: 36px; font-weight: 800; letter-spacing: -.03em; }}
     .price-move {{ color: var(--muted); margin: 2px 0 10px; font-size: 14px; }}
     .chart-caption {{ color: var(--muted); margin-top: 9px; font-size: 12px; }}
+    .gold-chart-panel {{ margin-top: 12px; }}
+    .chart-heading, .chart-controls, .range-controls, .series-controls, .chart-tooltip {{
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }}
+    .chart-heading {{ justify-content: space-between; margin-bottom: 8px; }}
+    .chart-heading strong {{ font-size: 14px; }}
+    .chart-heading span {{ color: var(--muted); font-size: 12px; }}
+    .chart-controls {{ justify-content: space-between; gap: 10px; }}
+    .chart-controls button {{
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #f7f8f5;
+      color: var(--text);
+      padding: 5px 10px;
+      font: inherit;
+      font-size: 12px;
+      cursor: pointer;
+    }}
+    .chart-controls button[aria-pressed="true"] {{
+      background: #2f5e4c;
+      color: #fff;
+      border-color: #2f5e4c;
+    }}
+    .chart-controls button:focus-visible {{ outline: 2px solid var(--blue); outline-offset: 2px; }}
+    .chart-controls button:disabled {{ cursor: default; opacity: .45; }}
+    .chart-stack {{ margin-top: 8px; }}
+    .gold-chart {{ width: 100%; height: auto; display: block; touch-action: pan-y; }}
+    .gold-chart[hidden] {{ display: none; }}
+    .chart-series {{ fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; }}
+    .series-gold_price {{ stroke: var(--gold); stroke-width: 3; }}
+    .series-ma20 {{ stroke: var(--support); stroke-dasharray: 5 4; }}
+    .series-ma60 {{ stroke: var(--headwind); stroke-dasharray: 3 4; }}
+    .series-ma200 {{ stroke: var(--blue); stroke-dasharray: 7 4; }}
+    .hide-ma20 .series-ma20,
+    .hide-ma60 .series-ma60,
+    .hide-ma200 .series-ma200 {{ display: none; }}
+    .hover-line {{ stroke: var(--muted); stroke-dasharray: 2 3; }}
+    .hover-price {{ fill: var(--gold); stroke: #fff; stroke-width: 2; }}
+    .hover-line[hidden], .hover-price[hidden] {{ display: none; }}
+    .chart-empty {{ fill: var(--muted); font-size: 13px; }}
+    .chart-tooltip {{ color: var(--muted); font-size: 12px; min-height: 20px; }}
+    .chart-tooltip strong, .chart-tooltip b {{ color: var(--text); }}
     .technical-panel {{ border-left: 4px solid var(--neutral); }}
     .technical-panel.state-supportive {{ border-left-color: var(--support); }}
     .technical-panel.state-headwind {{ border-left-color: var(--headwind); }}
@@ -3020,6 +3369,9 @@ def build_html(dashboard):
   </section>
   {research_details}
 </main>
+<script>
+{GOLD_CHART_SCRIPT}
+</script>
 </body>
 </html>
 """
