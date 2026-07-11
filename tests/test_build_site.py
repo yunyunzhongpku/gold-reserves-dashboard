@@ -47,6 +47,15 @@ class OfficialReserveOverrideTest(unittest.TestCase):
                 two_months, max_date=_date(2026, 5, 31)
             )
 
+    def test_requires_full_safe_prefix_from_2025_december_anchor(self):
+        truncated = self.write_csv([
+            "2026-05-31,7496,,SAFE",
+            "2026-06-30,7544,,SAFE",
+        ])
+
+        with self.assertRaisesRegex(ValueError, "必须从 2025-12-31 锚点开始"):
+            build_site.read_official_reserve_rows(truncated)
+
     def test_rejects_missing_extra_or_reordered_headers(self):
         cases = [
             ("date,china_reserves_10k_oz,source", "2026-01-31,7419,SAFE"),
@@ -87,6 +96,26 @@ class OfficialReserveOverrideTest(unittest.TestCase):
         self.assertAlmostEqual(
             rows[-1]["china_reserves"] - rows[-2]["china_reserves"], 14.930, places=3)
 
+    def test_tracked_safe_file_keeps_verified_prefix(self):
+        rows = build_site.read_official_reserve_rows(
+            build_site.OFFICIAL_RESERVES_MANUAL_FILE
+        )
+        expected_dates = [
+            "2025-12-31", "2026-01-31", "2026-02-28", "2026-03-31",
+            "2026-04-30", "2026-05-31", "2026-06-30",
+        ]
+        expected_ounces = [7415, 7419, 7422, 7438, 7464, 7496, 7544]
+
+        self.assertGreaterEqual(len(rows), len(expected_dates))
+        self.assertEqual(
+            [row["date"] for row in rows[:len(expected_dates)]],
+            expected_dates,
+        )
+        self.assertEqual(
+            [row["china_reserves_10k_oz"] for row in rows[:len(expected_ounces)]],
+            expected_ounces,
+        )
+
     def test_rejects_duplicate_gap_out_of_order_and_non_positive_values(self):
         cases = {
             "重复": ["2026-01-15,7419,,SAFE", "2026-01-31,7422,,SAFE"],
@@ -123,15 +152,29 @@ class OfficialReserveOverrideTest(unittest.TestCase):
 
     def test_future_month_is_validated_but_excluded_from_dashboard_cutoff(self):
         path = self.write_csv([
+            "2025-12-31,7415,,SAFE",
+            "2026-01-31,7419,,SAFE",
+            "2026-02-28,7422,,SAFE",
+            "2026-03-31,7438,,SAFE",
+            "2026-04-30,7464,,SAFE",
             "2026-05-31,7496,,SAFE",
             "2026-06-30,7544,,SAFE",
             "2026-07-31,7550,,SAFE",
         ])
         rows = build_site.read_official_reserve_rows(path, max_date=_date(2026, 7, 7))
-        self.assertEqual([row["date"] for row in rows], ["2026-05-31", "2026-06-30"])
+        self.assertEqual(
+            [row["date"] for row in rows[-2:]],
+            ["2026-05-31", "2026-06-30"],
+        )
+        self.assertNotIn("2026-07-31", [row["date"] for row in rows])
 
     def test_invalid_future_month_is_rejected_before_dashboard_cutoff(self):
         path = self.write_csv([
+            "2025-12-31,7415,,SAFE",
+            "2026-01-31,7419,,SAFE",
+            "2026-02-28,7422,,SAFE",
+            "2026-03-31,7438,,SAFE",
+            "2026-04-30,7464,,SAFE",
             "2026-05-31,7496,,SAFE",
             "2026-06-30,7544,,SAFE",
             "2026-07-31,NaN,,SAFE",
@@ -559,6 +602,21 @@ class GoldDashboardDataTest(unittest.TestCase):
         self.assertIn("滚动相关使用重叠窗口", html)
         self.assertIn("EPU 与 GPR 只保留在研究依据", html)
         self.assertIn("SAFE 官方序列仍需手工维护", html)
+
+        threshold_contracts = [
+            "实际利率：21 个有效观测，阈值 ±0.05 个百分点；变化低于 -0.05 个百分点为支持，高于 +0.05 个百分点为压力，其余为中性。",
+            "美元：21 个有效观测，阈值 ±0.5；变化低于 -0.5 为支持，高于 +0.5 为压力，其余为中性。",
+            "通胀预期：21 个有效观测，阈值 ±0.05 个百分点；变化高于 +0.05 个百分点为支持，低于 -0.05 个百分点为压力，其余为中性。",
+            "中国购金：月度净增为支持、净减为压力、零变化为中性。",
+            "黄金 ETF：21 个有效观测，阈值 ±3 吨；变化高于 +3 吨为支持，低于 -3 吨为压力，其余为中性。",
+            "CFTC：近 4 周净多变化阈值 ±15,000 张；高于 +15,000 张为支持、低于 -15,000 张为压力；三年（156 周）分位高于 90% 时优先判为压力。",
+            "资金与仓位：ETF 与 CFTC 可用子信号分别投 +1 / 0 / -1，平均票阈值 ±0.5；不低于 +0.5 为支持、不高于 -0.5 为压力，其余为中性。",
+            "数据时效：日频 0–4 天新鲜、5–14 天滞后、超过 14 天严重滞后；周频 0–10 天新鲜、11–21 天滞后、超过 21 天严重滞后；月频 0–45 天新鲜、46–75 天滞后、超过 75 天严重滞后。",
+            "严格多头排列：价格 ≥ MA20 > MA60 > MA200；严格空头排列：价格 ≤ MA20 < MA60 < MA200。",
+        ]
+        for contract in threshold_contracts:
+            with self.subTest(contract=contract):
+                self.assertIn(build_site.escape(contract), html)
 
     def test_price_and_proxy_layers_remain_in_research_but_not_headline_score(self):
         dashboard = build_site.read_dashboard_data(today=self.TODAY)

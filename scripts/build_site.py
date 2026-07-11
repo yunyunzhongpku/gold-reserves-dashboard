@@ -16,6 +16,7 @@ SITE_DIR = ROOT / "site"
 OUTPUT_FILE = SITE_DIR / "index.html"
 
 TEN_THOUSAND_TROY_OZ_TO_TONNES = 0.311034768
+OFFICIAL_RESERVE_ANCHOR_DATE = date(2025, 12, 31)
 OFFICIAL_RESERVE_COLUMNS = [
     "date", "china_reserves_10k_oz", "global_reserves", "source"]
 
@@ -52,6 +53,18 @@ FREQUENCY_THRESHOLDS = {
     "weekly": (10, 21),
     "monthly": (45, 75),
 }
+
+DRIVER_DAILY_LOOKBACK = 21
+REAL_RATE_CHANGE_THRESHOLD = 0.05
+DOLLAR_CHANGE_THRESHOLD = 0.5
+INFLATION_CHANGE_THRESHOLD = 0.05
+OFFICIAL_PURCHASE_CHANGE_THRESHOLD = 0.0
+ETF_CHANGE_THRESHOLD_TONNES = 3.0
+COT_CHANGE_LOOKBACK_WEEKS = 4
+COT_CHANGE_THRESHOLD_CONTRACTS = 15_000
+COT_PERCENTILE_LOOKBACK_WEEKS = 156
+COT_CROWDING_PERCENTILE = 0.90
+POSITIONING_AVERAGE_VOTE_THRESHOLD = 0.5
 
 DRIVER_LAYER_IDS = (
     "real_rate",
@@ -382,6 +395,10 @@ def read_official_reserve_rows(path, max_date=None):
     if len(visible_rows) < 2:
         raise ValueError(
             "官方储备序列至少需要当前月和前一个月两个连续 SAFE 锚点"
+        )
+    if rows[0]["_date"] != OFFICIAL_RESERVE_ANCHOR_DATE:
+        raise ValueError(
+            "官方储备序列必须从 2025-12-31 锚点开始"
         )
     return visible_rows
 
@@ -804,9 +821,9 @@ def combine_subsignal_states(states):
     if not votes:
         return "missing"
     average = sum(votes) / len(votes)
-    if average >= 0.5:
+    if average >= POSITIONING_AVERAGE_VOTE_THRESHOLD:
         return "supportive"
-    if average <= -0.5:
+    if average <= -POSITIONING_AVERAGE_VOTE_THRESHOLD:
         return "headwind"
     return "neutral"
 
@@ -825,8 +842,10 @@ def score_driver_layers(layers):
 
 def make_real_rate_layer(rows):
     latest = latest_with_value(rows, "real_rate")
-    delta, since = change_over_observations(rows, "real_rate", 21)
-    state = state_from_delta(delta, supportive_when="down", threshold=0.05)
+    delta, since = change_over_observations(
+        rows, "real_rate", DRIVER_DAILY_LOOKBACK)
+    state = state_from_delta(
+        delta, supportive_when="down", threshold=REAL_RATE_CHANGE_THRESHOLD)
 
     return {
         "id": "real_rate",
@@ -857,8 +876,10 @@ def make_real_rate_layer(rows):
 
 def make_dollar_layer(rows):
     latest = latest_with_value(rows, "dollar_index")
-    delta, since = change_over_observations(rows, "dollar_index", 21)
-    state = state_from_delta(delta, supportive_when="down", threshold=0.5)
+    delta, since = change_over_observations(
+        rows, "dollar_index", DRIVER_DAILY_LOOKBACK)
+    state = state_from_delta(
+        delta, supportive_when="down", threshold=DOLLAR_CHANGE_THRESHOLD)
 
     return {
         "id": "dollar",
@@ -913,8 +934,10 @@ def make_inflation_layer(rows):
     if latest is None:
         return make_missing_inflation_layer()
 
-    delta, since = change_over_observations(rows, "breakeven_10y", 21)
-    state = state_from_delta(delta, supportive_when="up", threshold=0.05)
+    delta, since = change_over_observations(
+        rows, "breakeven_10y", DRIVER_DAILY_LOOKBACK)
+    state = state_from_delta(
+        delta, supportive_when="up", threshold=INFLATION_CHANGE_THRESHOLD)
 
     return {
         "id": "inflation_expectation",
@@ -948,7 +971,11 @@ def make_reserve_layer(rows):
     china_change = optional_change(latest, previous, "china_reserves")
     global_change = optional_change(latest, previous, "global_reserves")
 
-    state = state_from_delta(china_change, supportive_when="up", threshold=0.0)
+    state = state_from_delta(
+        china_change,
+        supportive_when="up",
+        threshold=OFFICIAL_PURCHASE_CHANGE_THRESHOLD,
+    )
 
     chart_rows = []
     for i, row in enumerate(rows):
@@ -1018,7 +1045,8 @@ def make_positioning_layer(etf_rows, vol_rows, gold_rows, cot_rows, today=None):
             row["etf_total"] = None
 
     latest_etf = latest_with_value(etf_rows, "etf_total")
-    etf_delta, etf_since = change_over_observations(etf_rows, "etf_total", 21)
+    etf_delta, etf_since = change_over_observations(
+        etf_rows, "etf_total", DRIVER_DAILY_LOOKBACK)
     latest_vol = latest_with_value(vol_rows, "gvz")
     latest_gold = latest_with_value(gold_rows, "gold_price")
     gold_delta, _ = change_over_observations(gold_rows, "gold_price", 60)
@@ -1029,26 +1057,41 @@ def make_positioning_layer(etf_rows, vol_rows, gold_rows, cot_rows, today=None):
     gvz_quality, gvz_lag = classify_staleness(gvz_date, today, "daily")
 
     etf_state = (
-        state_from_delta(etf_delta, supportive_when="up", threshold=3.0)
+        state_from_delta(
+            etf_delta,
+            supportive_when="up",
+            threshold=ETF_CHANGE_THRESHOLD_TONNES,
+        )
         if latest_etf else "missing"
     )
     if etf_quality == "very-stale":
         etf_state = "missing"
 
     latest_cot = latest_with_value(cot_rows, "managed_money_net")
-    cot_delta, _ = change_over_observations(cot_rows, "managed_money_net", 4)
-    cot_percentile = percentile_rank(cot_rows, "managed_money_net", 156)
+    cot_delta, _ = change_over_observations(
+        cot_rows, "managed_money_net", COT_CHANGE_LOOKBACK_WEEKS)
+    cot_percentile = percentile_rank(
+        cot_rows, "managed_money_net", COT_PERCENTILE_LOOKBACK_WEEKS)
     cot_date = latest_cot["date"] if latest_cot else None
     cot_quality, cot_lag = classify_staleness(cot_date, today, "weekly")
     if latest_cot is None:
         cot_state = "missing"
         cot_sentence = "CFTC Managed Money 数据缺失，仓位拥挤度暂不计入。"
     else:
-        if cot_percentile is not None and cot_percentile > 0.9:
+        if (
+            cot_percentile is not None
+            and cot_percentile > COT_CROWDING_PERCENTILE
+        ):
             cot_state = "headwind"
-        elif cot_delta is not None and cot_delta < -15000:
+        elif (
+            cot_delta is not None
+            and cot_delta < -COT_CHANGE_THRESHOLD_CONTRACTS
+        ):
             cot_state = "headwind"
-        elif cot_delta is not None and cot_delta > 15000:
+        elif (
+            cot_delta is not None
+            and cot_delta > COT_CHANGE_THRESHOLD_CONTRACTS
+        ):
             cot_state = "supportive"
         else:
             cot_state = "neutral"
@@ -2701,6 +2744,65 @@ def make_recent_changes_section(changes):
     """
 
 
+def make_driver_method_contracts():
+    daily_fresh, daily_stale = FREQUENCY_THRESHOLDS["daily"]
+    weekly_fresh, weekly_stale = FREQUENCY_THRESHOLDS["weekly"]
+    monthly_fresh, monthly_stale = FREQUENCY_THRESHOLDS["monthly"]
+    return [
+        (
+            f"实际利率：{DRIVER_DAILY_LOOKBACK} 个有效观测，"
+            f"阈值 ±{REAL_RATE_CHANGE_THRESHOLD:g} 个百分点；"
+            f"变化低于 -{REAL_RATE_CHANGE_THRESHOLD:g} 个百分点为支持，"
+            f"高于 +{REAL_RATE_CHANGE_THRESHOLD:g} 个百分点为压力，其余为中性。"
+        ),
+        (
+            f"美元：{DRIVER_DAILY_LOOKBACK} 个有效观测，"
+            f"阈值 ±{DOLLAR_CHANGE_THRESHOLD:g}；"
+            f"变化低于 -{DOLLAR_CHANGE_THRESHOLD:g} 为支持，"
+            f"高于 +{DOLLAR_CHANGE_THRESHOLD:g} 为压力，其余为中性。"
+        ),
+        (
+            f"通胀预期：{DRIVER_DAILY_LOOKBACK} 个有效观测，"
+            f"阈值 ±{INFLATION_CHANGE_THRESHOLD:g} 个百分点；"
+            f"变化高于 +{INFLATION_CHANGE_THRESHOLD:g} 个百分点为支持，"
+            f"低于 -{INFLATION_CHANGE_THRESHOLD:g} 个百分点为压力，其余为中性。"
+        ),
+        "中国购金：月度净增为支持、净减为压力、零变化为中性。",
+        (
+            f"黄金 ETF：{DRIVER_DAILY_LOOKBACK} 个有效观测，"
+            f"阈值 ±{ETF_CHANGE_THRESHOLD_TONNES:g} 吨；"
+            f"变化高于 +{ETF_CHANGE_THRESHOLD_TONNES:g} 吨为支持，"
+            f"低于 -{ETF_CHANGE_THRESHOLD_TONNES:g} 吨为压力，其余为中性。"
+        ),
+        (
+            f"CFTC：近 {COT_CHANGE_LOOKBACK_WEEKS} 周净多变化阈值 "
+            f"±{COT_CHANGE_THRESHOLD_CONTRACTS:,} 张；"
+            f"高于 +{COT_CHANGE_THRESHOLD_CONTRACTS:,} 张为支持、"
+            f"低于 -{COT_CHANGE_THRESHOLD_CONTRACTS:,} 张为压力；"
+            f"三年（{COT_PERCENTILE_LOOKBACK_WEEKS} 周）分位高于 "
+            f"{COT_CROWDING_PERCENTILE * 100:g}% 时优先判为压力。"
+        ),
+        (
+            "资金与仓位：ETF 与 CFTC 可用子信号分别投 +1 / 0 / -1，"
+            f"平均票阈值 ±{POSITIONING_AVERAGE_VOTE_THRESHOLD:g}；"
+            f"不低于 +{POSITIONING_AVERAGE_VOTE_THRESHOLD:g} 为支持、"
+            f"不高于 -{POSITIONING_AVERAGE_VOTE_THRESHOLD:g} 为压力，其余为中性。"
+        ),
+        (
+            f"数据时效：日频 0–{daily_fresh} 天新鲜、"
+            f"{daily_fresh + 1}–{daily_stale} 天滞后、超过 {daily_stale} 天严重滞后；"
+            f"周频 0–{weekly_fresh} 天新鲜、"
+            f"{weekly_fresh + 1}–{weekly_stale} 天滞后、超过 {weekly_stale} 天严重滞后；"
+            f"月频 0–{monthly_fresh} 天新鲜、"
+            f"{monthly_fresh + 1}–{monthly_stale} 天滞后、超过 {monthly_stale} 天严重滞后。"
+        ),
+        (
+            "严格多头排列：价格 ≥ MA20 > MA60 > MA200；"
+            "严格空头排列：价格 ≤ MA20 < MA60 < MA200。"
+        ),
+    ]
+
+
 def make_research_details(dashboard):
     relationship_section = make_relationship_section(dashboard["relationships"])
     china_chart = make_bar_chart(
@@ -2750,6 +2852,10 @@ def make_research_details(dashboard):
         f"归一化倾向 {dashboard['tendency']:+.2f} · "
         f"当前姿态 {dashboard['posture']}"
     )
+    method_contract_rows = "\n".join(
+        f"          <li>{escape(contract)}</li>"
+        for contract in make_driver_method_contracts()
+    )
     return f"""
     <details class="research-evidence">
       <summary><strong>研究依据</strong><span>关系检验 · 历史阶段 · 数据来源与方法</span></summary>
@@ -2779,7 +2885,8 @@ def make_research_details(dashboard):
         <ul>
           <li>五组驱动为实际利率、美元、中国央行购金、通胀预期、资金与仓位；ETF 与 CFTC 合为一组，价格技术不参与驱动合成。</li>
           <li>支持记 +1、中性记 0、压力记 -1；归一化倾向 +0.25 及以上为偏多，-0.25 及以下为承压，其余为中性。缺失和严重滞后不计分，滞后仍计分；有效驱动少于 3 组时显示数据不足。</li>
-          <li>技术状态独立判断；只有价格与 MA20、MA60、MA200 满足完整次序时，才称为严格多头或空头排列。</li>
+          <li>技术状态独立判断；严格多头或空头排列按下列精确合同判定。</li>
+{method_contract_rows}
           <li>该姿态是等权启发式框架，实际利率、美元与通胀预期可能共线；关系检验只说明统计相关，相关性不代表因果，滚动相关使用重叠窗口。</li>
           <li>EPU 与 GPR 只保留在研究依据，不参与首页姿态；SAFE 官方序列仍需手工维护。</li>
         </ul>
