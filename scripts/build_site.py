@@ -221,8 +221,8 @@ def read_official_reserve_rows(path, max_date=None):
             if not source:
                 raise ValueError("中国官方黄金储备来源不能为空")
             global_reserves = optional_csv_float(raw.get("global_reserves"))
-            if global_reserves is not None and not math.isfinite(global_reserves):
-                raise ValueError("全球官方黄金储备必须为有限数值")
+            if global_reserves is not None and (not math.isfinite(global_reserves) or global_reserves <= 0):
+                raise ValueError("全球官方黄金储备必须为有限正数")
             rows.append({
                 "date": format_date(row_date),
                 "_date": row_date,

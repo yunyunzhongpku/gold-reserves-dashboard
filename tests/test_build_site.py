@@ -87,7 +87,14 @@ class OfficialReserveOverrideTest(unittest.TestCase):
         for value in ["NaN", "inf", "-inf"]:
             with self.subTest(value=value):
                 path = self.write_csv([f"2026-01-31,7419,{value},SAFE"])
-                with self.assertRaisesRegex(ValueError, "全球官方黄金储备必须为有限数值"):
+                with self.assertRaisesRegex(ValueError, "全球官方黄金储备必须为有限正数"):
+                    build_site.read_official_reserve_rows(path)
+
+    def test_rejects_non_positive_global_values(self):
+        for value in ["0", "-1"]:
+            with self.subTest(value=value):
+                path = self.write_csv([f"2026-01-31,7419,{value},SAFE"])
+                with self.assertRaisesRegex(ValueError, "全球官方黄金储备必须为有限正数"):
                     build_site.read_official_reserve_rows(path)
 
     def test_future_month_is_validated_but_excluded_from_dashboard_cutoff(self):
