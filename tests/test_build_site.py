@@ -25,6 +25,28 @@ class OfficialReserveOverrideTest(unittest.TestCase):
         self.path.write_text(header + "\n" + "\n".join(rows) + "\n", encoding="utf-8")
         return self.path
 
+    def test_missing_safe_series_fails_closed(self):
+        missing = Path(self.tempdir.name) / "missing-official.csv"
+
+        with self.assertRaisesRegex(
+            FileNotFoundError, "SAFE 权威序列.*missing-official.csv"
+        ):
+            build_site.read_official_reserve_rows(missing)
+
+    def test_requires_current_and_previous_safe_anchor_after_cutoff(self):
+        single = self.write_csv(["2026-06-30,7544,,SAFE"])
+        with self.assertRaisesRegex(ValueError, "至少需要当前月和前一个月"):
+            build_site.read_official_reserve_rows(single)
+
+        two_months = self.write_csv([
+            "2026-05-31,7496,,SAFE",
+            "2026-06-30,7544,,SAFE",
+        ])
+        with self.assertRaisesRegex(ValueError, "至少需要当前月和前一个月"):
+            build_site.read_official_reserve_rows(
+                two_months, max_date=_date(2026, 5, 31)
+            )
+
     def test_rejects_missing_extra_or_reordered_headers(self):
         cases = [
             ("date,china_reserves_10k_oz,source", "2026-01-31,7419,SAFE"),
@@ -132,6 +154,29 @@ class OfficialReserveOverrideTest(unittest.TestCase):
         self.assertAlmostEqual(row["global_reserves"], 36558.5405)
         self.assertEqual(row["china_source"], "SAFE")
         self.assertIn("Excel", row["global_source"])
+
+    def test_manual_series_caps_later_excel_reserve_rows(self):
+        base = [
+            {
+                "date": "2026-06-30", "_date": _date(2026, 6, 30),
+                "china_reserves": 2321.5452, "global_reserves": 36558.5405,
+            },
+            {
+                "date": "2026-07-31", "_date": _date(2026, 7, 31),
+                "china_reserves": 2360.0, "global_reserves": 36580.0,
+            },
+        ]
+        override = [{
+            "date": "2026-06-30", "_date": _date(2026, 6, 30),
+            "china_reserves_10k_oz": 7544.0, "china_reserves": 2346.446,
+            "global_reserves": None, "china_source": "SAFE", "global_source": None,
+        }]
+
+        rows = build_site.merge_reserve_rows(base, override)
+
+        self.assertEqual([row["date"] for row in rows], ["2026-06-30"])
+        self.assertEqual(rows[0]["china_source"], "SAFE")
+        self.assertAlmostEqual(rows[0]["global_reserves"], 36558.5405)
 
     def test_excel_only_merge_row_marks_raw_china_ounces_unavailable(self):
         base = [{
@@ -282,6 +327,19 @@ class InteractiveGoldChartTest(unittest.TestCase):
         self.assertIn('svg.toggleAttribute("hidden"', script)
         self.assertIn('line.removeAttribute("hidden")', script)
         self.assertIn('marker.removeAttribute("hidden")', script)
+
+    def test_pointerleave_restores_latest_active_range_value(self):
+        script = build_site.GOLD_CHART_SCRIPT
+
+        self.assertIn("const renderLatest = (svg)", script)
+        self.assertIn('line.setAttribute("hidden", "")', script)
+        self.assertIn('marker.setAttribute("hidden", "")', script)
+        self.assertIn("showValues(points[points.length - 1]);", script)
+        self.assertIn("renderLatest(activeSvg);", script)
+        self.assertIn(
+            'svg.addEventListener("pointerleave", () => renderLatest(svg));',
+            script,
+        )
 
     def test_disables_ma_controls_without_enough_history(self):
         from datetime import timedelta
@@ -465,12 +523,19 @@ class GoldDashboardDataTest(unittest.TestCase):
         dashboard = build_site.read_dashboard_data(today=self.TODAY)
         html = build_site.build_html(dashboard)
 
-        excluded = len(dashboard["driver_layers"]) - dashboard["active_layers"]
+        total = len(dashboard["driver_layers"])
+        stale = sum(
+            layer["data_quality"] == "stale"
+            for layer in dashboard["driver_layers"]
+        )
+        excluded = total - dashboard["active_layers"]
+        self.assertGreater(stale, 0)
         self.assertIn(
-            f"{dashboard['active_layers']} / {len(dashboard['driver_layers'])} 组驱动可用",
+            f"{dashboard['active_layers']} / {total} 组驱动计入",
             html,
         )
-        self.assertIn(f"{excluded} 组过期或缺失", html)
+        self.assertIn(f"{stale} 组滞后", html)
+        self.assertIn(f"{excluded} 组未计入", html)
 
         self.assertIn("计算方法与已知局限", html)
         self.assertIn(
@@ -763,6 +828,29 @@ class DriverPostureTest(unittest.TestCase):
         self.assertIn("Wind", rows["etf"]["source"])
         self.assertNotIn("CFTC", rows["etf"]["source"])
         self.assertIn("CFTC", rows["cot"]["source"])
+
+    def test_driver_html_shows_each_observation_date_with_quality(self):
+        dashboard = build_site.read_dashboard_data(today=self.TODAY)
+        section = build_site.make_driver_section(dashboard["driver_rows"])
+
+        self.assertIn('role="table" aria-label="当前主要驱动"', section)
+        self.assertEqual(section.count('role="row"'), 7)
+        self.assertEqual(section.count('role="columnheader"'), 6)
+        self.assertEqual(section.count('role="cell"'), 36)
+        self.assertNotIn('aria-hidden="true"', section)
+
+        for row in dashboard["driver_rows"]:
+            with self.subTest(driver=row["id"]):
+                self.assertIn(
+                    f'<div class="driver-row" data-driver-id="{row["id"]}" role="row">',
+                    section,
+                )
+                self.assertIn(
+                    f'<small>观测日 {row["date"] or "—"}</small>',
+                    section,
+                )
+                self.assertIn(build_site.quality_badge(row["quality"]), section)
+                self.assertNotIn(row["source"], section)
 
     def test_dashboard_uses_corrected_china_purchase_change(self):
         dashboard = build_site.read_dashboard_data(today=self.TODAY)

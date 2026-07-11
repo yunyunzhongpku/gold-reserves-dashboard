@@ -103,6 +103,18 @@ GOLD_CHART_SCRIPT = r"""(() => {
     setText("[data-tooltip-ma200]", point.ma200);
   };
 
+  const renderLatest = (svg) => {
+    const points = payload.ranges[activeRange];
+    if (!points || !points.length) return;
+    if (svg) {
+      const line = svg.querySelector("[data-hover-line]");
+      const marker = svg.querySelector("[data-hover-price]");
+      if (line) line.setAttribute("hidden", "");
+      if (marker) marker.setAttribute("hidden", "");
+    }
+    showValues(points[points.length - 1]);
+  };
+
   const showPoint = (svg, event) => {
     const points = payload.ranges[activeRange];
     if (!points || !points.length) return;
@@ -147,7 +159,8 @@ GOLD_CHART_SCRIPT = r"""(() => {
     charts.forEach((svg) => {
       svg.toggleAttribute("hidden", svg.dataset.range !== activeRange);
     });
-    showValues(points[points.length - 1]);
+    const activeSvg = charts.find((svg) => svg.dataset.range === activeRange);
+    renderLatest(activeSvg);
   };
 
   rangeButtons.forEach((button) => {
@@ -166,6 +179,7 @@ GOLD_CHART_SCRIPT = r"""(() => {
   charts.forEach((svg) => {
     svg.addEventListener("pointermove", (event) => showPoint(svg, event));
     svg.addEventListener("pointerdown", (event) => showPoint(svg, event));
+    svg.addEventListener("pointerleave", () => renderLatest(svg));
   });
 
   activateRange("1y");
@@ -310,7 +324,10 @@ def optional_csv_float(value):
 
 def read_official_reserve_rows(path, max_date=None):
     if not path.exists():
-        return []
+        raise FileNotFoundError(
+            f"未找到 SAFE 权威序列文件：{path}；"
+            "中国官方黄金储备不得回退到 Excel 序列"
+        )
 
     rows = []
     seen_months = set()
@@ -356,10 +373,23 @@ def read_official_reserve_rows(path, max_date=None):
             previous_date = row_date
             previous_month = current_month
 
-    return [row for row in rows if max_date is None or row["_date"] <= max_date]
+    visible_rows = [
+        row for row in rows if max_date is None or row["_date"] <= max_date
+    ]
+    if len(visible_rows) < 2:
+        raise ValueError(
+            "官方储备序列至少需要当前月和前一个月两个连续 SAFE 锚点"
+        )
+    return visible_rows
 
 
 def merge_reserve_rows(base_rows, override_rows):
+    if override_rows:
+        authoritative_cutoff = max(row["_date"] for row in override_rows)
+        base_rows = [
+            row for row in base_rows if row["_date"] <= authoritative_cutoff
+        ]
+
     merged = {}
     for row in base_rows:
         item = {
@@ -2619,13 +2649,16 @@ def make_price_summary_section(technical_layer):
 def make_driver_section(rows):
     body = "".join(
         f"""
-      <div class="driver-row" data-driver-id="{escape(row['id'])}">
-        <span class="driver-state state-{escape(row['state'])}">{escape(state_badge(row['state']))}</span>
-        <div><strong>{escape(row['name'])}</strong><small>{escape(row['category'])}</small></div>
-        <strong>{escape(row['value'])}</strong>
-        <span>{escape(row['change'])}</span>
-        <span>{escape(row['read'])}</span>
-        <span class="quality">{escape(quality_badge(row['quality']))}</span>
+      <div class="driver-row" data-driver-id="{escape(row['id'])}" role="row">
+        <span class="driver-state state-{escape(row['state'])}" role="cell">{escape(state_badge(row['state']))}</span>
+        <div role="cell"><strong>{escape(row['name'])}</strong><small>{escape(row['category'])}</small></div>
+        <strong role="cell">{escape(row['value'])}</strong>
+        <span role="cell">{escape(row['change'])}</span>
+        <span role="cell">{escape(row['read'])}</span>
+        <span class="driver-observation" role="cell">
+          <span class="quality">{escape(quality_badge(row['quality']))}</span>
+          <small>观测日 {escape(row['date'] or '—')}</small>
+        </span>
       </div>
         """
         for row in rows
@@ -2633,10 +2666,12 @@ def make_driver_section(rows):
     return f"""
     <section class="driver-panel">
       <div class="section-heading"><h2>当前主要驱动</h2><span>按决策相关性排序</span></div>
-      <div class="driver-head" aria-hidden="true">
-        <span>状态</span><span>驱动</span><span>当前值</span><span>近期变化</span><span>解读</span><span>质量</span>
+      <div id="driver-table" class="driver-table" role="table" aria-label="当前主要驱动">
+        <div class="driver-head" role="row">
+          <span role="columnheader">状态</span><span role="columnheader">驱动</span><span role="columnheader">当前值</span><span role="columnheader">近期变化</span><span role="columnheader">解读</span><span role="columnheader">质量 / 观测日</span>
+        </div>
+        {body}
       </div>
-      <div id="driver-table" class="driver-table">{body}</div>
     </section>
     """
 
@@ -2764,10 +2799,14 @@ def build_html(dashboard):
     )
     updated = f"主要市场数据截至 {dashboard['technical_layer']['latest']['date']}"
     total_drivers = len(dashboard["driver_layers"])
+    stale_drivers = sum(
+        layer.get("data_quality") == "stale"
+        for layer in dashboard["driver_layers"]
+    )
     excluded_drivers = total_drivers - dashboard["active_layers"]
     availability = (
-        f"{dashboard['active_layers']} / {total_drivers} 组驱动可用 · "
-        f"{excluded_drivers} 组过期或缺失"
+        f"{dashboard['active_layers']} / {total_drivers} 组驱动计入 · "
+        f"{stale_drivers} 组滞后 · {excluded_drivers} 组未计入"
     )
     price_section = make_price_summary_section(dashboard["technical_layer"])
     driver_section = make_driver_section(dashboard["driver_rows"])
@@ -3295,7 +3334,7 @@ def build_html(dashboard):
     .section-heading span {{ color: var(--muted); font-size: 13px; }}
     .driver-head, .driver-row {{
       display: grid;
-      grid-template-columns: 62px minmax(110px, 1fr) 100px 110px minmax(150px, 1.2fr) 70px;
+      grid-template-columns: 62px minmax(110px, 1fr) 100px 110px minmax(150px, 1.2fr) 112px;
       gap: 10px;
       align-items: center;
     }}
@@ -3306,8 +3345,10 @@ def build_html(dashboard):
       border-bottom: 1px solid var(--line);
     }}
     .driver-row {{ padding: 11px 0; border-top: 1px solid var(--line); font-size: 13px; }}
-    .driver-row:first-child {{ border-top: 0; }}
+    .driver-head + .driver-row {{ border-top: 0; }}
     .driver-row small {{ display: block; color: var(--muted); font-size: 12px; }}
+    .driver-observation {{ display: grid; gap: 4px; align-items: start; }}
+    .driver-observation small {{ white-space: nowrap; }}
     .driver-state, .change-state, .quality {{
       display: inline-block;
       width: fit-content;
