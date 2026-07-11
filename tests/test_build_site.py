@@ -333,6 +333,252 @@ class GoldDashboardDataTest(unittest.TestCase):
         self.assertIn("黄金价格", html)
         self.assertIn("滚动相关", html)
 
+
+class DriverPostureTest(unittest.TestCase):
+    TODAY = _date(2026, 7, 7)
+
+    def layer(self, layer_id, state, quality="fresh"):
+        return {"id": layer_id, "state": state, "data_quality": quality}
+
+    def positioning_rows(self, etf_values, cot_values, cot_start=_date(2026, 5, 26)):
+        from datetime import timedelta
+
+        etf_start = self.TODAY - timedelta(days=len(etf_values))
+        etf_rows = [
+            {
+                "date": (etf_start + timedelta(days=i + 1)).isoformat(),
+                "spdr_holdings": value * 0.6,
+                "ishares_holdings": value * 0.4,
+            }
+            for i, value in enumerate(etf_values)
+        ]
+        cot_rows = [
+            {
+                "date": (cot_start + timedelta(days=7 * i)).isoformat(),
+                "managed_money_net": value,
+                "managed_money_long": value + 20_000,
+                "managed_money_short": 20_000,
+            }
+            for i, value in enumerate(cot_values)
+        ]
+        return etf_rows, cot_rows
+
+    def recent_change_layers(
+        self, etf_state, cot_state,
+        real_state="headwind", dollar_state="supportive",
+        real_quality="fresh", dollar_quality="fresh",
+        current_purchase=14.93, previous_purchase=9.95,
+    ):
+        return [
+            {
+                "id": "real_rate", "state": real_state,
+                "data_quality": real_quality, "change_label": "+0.10pct",
+            },
+            {
+                "id": "dollar", "state": dollar_state,
+                "data_quality": dollar_quality, "change_label": "-1.00",
+            },
+            {
+                "id": "official_reserves", "state": "supportive",
+                "latest": {"china_change": current_purchase},
+                "chart_rows": [
+                    {"china_mom_change": previous_purchase},
+                    {"china_mom_change": current_purchase},
+                ],
+            },
+            {
+                "id": "positioning_technical", "state": "neutral",
+                "sub_states": {"etf": etf_state, "cot": cot_state},
+                "latest": {"etf_change": -12.0, "managed_money_net_change": 18_000},
+            },
+        ]
+
+    def test_scores_only_five_driver_groups(self):
+        layers = [
+            self.layer("real_rate", "headwind"),
+            self.layer("dollar", "headwind"),
+            self.layer("inflation_expectation", "headwind"),
+            self.layer("official_reserves", "supportive"),
+            self.layer("positioning_technical", "neutral"),
+            self.layer("price_trend", "supportive"),
+            self.layer("epu", "supportive"),
+            self.layer("gpr", "supportive"),
+        ]
+
+        score, posture, _, tendency, active = build_site.score_driver_layers(layers)
+
+        self.assertEqual((score, posture, active), (-2, "承压", 5))
+        self.assertAlmostEqual(tendency, -0.4)
+
+    def test_excludes_missing_and_very_stale_but_counts_stale(self):
+        layers = [
+            self.layer("real_rate", "headwind", "stale"),
+            self.layer("dollar", "headwind", "very-stale"),
+            self.layer("inflation_expectation", "missing", "missing"),
+            self.layer("official_reserves", "supportive"),
+        ]
+
+        score, posture, state, tendency, active = build_site.score_driver_layers(layers)
+
+        self.assertEqual((score, posture, state, tendency, active), (0, "数据不足", "missing", 0.0, 2))
+
+    def test_combines_available_etf_and_cot_subsignals(self):
+        self.assertEqual(
+            build_site.combine_subsignal_states(["headwind", "supportive"]), "neutral")
+        self.assertEqual(
+            build_site.combine_subsignal_states(["supportive", "neutral"]), "supportive")
+        self.assertEqual(
+            build_site.combine_subsignal_states(["missing", "headwind"]), "headwind")
+        self.assertEqual(
+            build_site.combine_subsignal_states(["missing", "missing"]), "missing")
+
+    def test_positioning_ignores_gold_and_gvz_votes_and_exposes_subsignal_quality(self):
+        from datetime import timedelta
+
+        etf_rows, cot_rows = self.positioning_rows(
+            list(range(100, 122)), [10_000, 100_000, 15_000, 20_000, 40_000])
+        gold_rows = [
+            {
+                "date": (self.TODAY - timedelta(days=60 - i)).isoformat(),
+                "gold_price": 2_000 - i * 10,
+            }
+            for i in range(61)
+        ]
+        vol_rows = [{"date": self.TODAY.isoformat(), "gvz": 99.0}]
+
+        layer = build_site.make_positioning_layer(
+            etf_rows, vol_rows, gold_rows, cot_rows, today=self.TODAY)
+
+        self.assertEqual(layer["state"], "supportive")
+        self.assertEqual(layer["sub_states"], {"etf": "supportive", "cot": "supportive"})
+        self.assertEqual(layer["latest"]["etf_date"], etf_rows[-1]["date"])
+        self.assertEqual(layer["latest"]["cot_date"], cot_rows[-1]["date"])
+        self.assertEqual(layer["latest"]["etf_quality"], "fresh")
+        self.assertEqual(layer["latest"]["cot_quality"], "stale")
+
+    def test_positioning_treats_very_stale_cot_as_missing_vote(self):
+        etf_rows, cot_rows = self.positioning_rows(
+            list(range(121, 99, -1)),
+            [10_000, 100_000, 15_000, 20_000, 40_000],
+            cot_start=_date(2026, 4, 28),
+        )
+
+        layer = build_site.make_positioning_layer(
+            etf_rows, [], [], cot_rows, today=self.TODAY)
+
+        self.assertEqual(layer["latest"]["cot_quality"], "very-stale")
+        self.assertEqual(layer["sub_states"], {"etf": "headwind", "cot": "missing"})
+        self.assertEqual(layer["state"], "headwind")
+
+    def test_positioning_marks_both_missing_when_no_etf_or_cot_data(self):
+        layer = build_site.make_positioning_layer([], [], [], [], today=self.TODAY)
+
+        self.assertEqual(layer["sub_states"], {"etf": "missing", "cot": "missing"})
+        self.assertEqual(layer["state"], "missing")
+        self.assertEqual(layer["latest"]["etf_quality"], "missing")
+        self.assertEqual(layer["latest"]["cot_quality"], "missing")
+
+    def test_dashboard_exposes_six_rows_with_each_flow_source_and_date(self):
+        dashboard = build_site.read_dashboard_data(today=self.TODAY)
+        layer_ids = [layer["id"] for layer in dashboard["driver_layers"]]
+        row_ids = [row["id"] for row in dashboard["driver_rows"]]
+
+        self.assertEqual(layer_ids, [
+            "real_rate", "dollar", "inflation_expectation",
+            "official_reserves", "positioning_technical",
+        ])
+        self.assertEqual(row_ids, [
+            "real_rate", "dollar", "official_reserves",
+            "inflation_expectation", "etf", "cot",
+        ])
+        self.assertEqual(dashboard["technical_layer"]["id"], "price_trend")
+        self.assertEqual(
+            [item["id"] for item in dashboard["recent_changes"]],
+            ["macro", "official", "flows"],
+        )
+
+        positioning = dashboard["driver_layers"][-1]
+        rows = {row["id"]: row for row in dashboard["driver_rows"]}
+        self.assertEqual(rows["etf"]["date"], positioning["latest"]["etf_date"])
+        self.assertEqual(rows["cot"]["date"], positioning["latest"]["cot_date"])
+        self.assertNotEqual(rows["etf"]["date"], rows["cot"]["date"])
+        self.assertEqual(rows["etf"]["quality"], positioning["latest"]["etf_quality"])
+        self.assertEqual(rows["cot"]["quality"], positioning["latest"]["cot_quality"])
+        self.assertIn("Wind", rows["etf"]["source"])
+        self.assertNotIn("CFTC", rows["etf"]["source"])
+        self.assertIn("CFTC", rows["cot"]["source"])
+
+    def test_dashboard_uses_corrected_china_purchase_change(self):
+        dashboard = build_site.read_dashboard_data(today=self.TODAY)
+        rows = {row["id"]: row for row in dashboard["driver_rows"]}
+        changes = {item["id"]: item for item in dashboard["recent_changes"]}
+
+        self.assertEqual(rows["official_reserves"]["value"], "+14.93 吨")
+        self.assertIn("购金加速", changes["official"]["headline"])
+        self.assertIn("本月 +14.93 吨", changes["official"]["detail"])
+        self.assertIn("上月 +9.95 吨", changes["official"]["detail"])
+
+    def test_flows_change_reports_incomplete_if_either_subsignal_is_missing(self):
+        for states in [("missing", "headwind"), ("supportive", "missing")]:
+            with self.subTest(states=states):
+                changes = build_site.make_recent_changes(
+                    self.recent_change_layers(*states))
+                flows = changes[-1]
+                self.assertIn("数据不完整", flows["headline"])
+                self.assertNotIn("分化", flows["headline"])
+
+    def test_flows_change_reports_divergence_only_when_both_subsignals_are_valid(self):
+        changes = build_site.make_recent_changes(
+            self.recent_change_layers("headwind", "supportive"))
+
+        self.assertIn("分化", changes[-1]["headline"])
+
+    def test_flows_change_does_not_call_matching_neutral_signals_divergent(self):
+        changes = build_site.make_recent_changes(
+            self.recent_change_layers("neutral", "neutral"))
+
+        self.assertNotIn("分化", changes[-1]["headline"])
+
+    def test_macro_change_calls_two_neutral_signals_stable_not_divergent(self):
+        changes = build_site.make_recent_changes(self.recent_change_layers(
+            "headwind", "supportive",
+            real_state="neutral", dollar_state="neutral",
+        ))
+
+        macro = changes[0]
+        self.assertEqual(macro["tone"], "neutral")
+        self.assertIn("均偏稳", macro["headline"])
+        self.assertNotIn("分化", macro["headline"])
+
+    def test_macro_change_reports_incomplete_for_missing_or_very_stale_signal(self):
+        cases = [
+            {"real_state": "missing", "real_quality": "missing"},
+            {"real_state": "headwind", "real_quality": "very-stale"},
+        ]
+        for case in cases:
+            with self.subTest(case=case):
+                changes = build_site.make_recent_changes(self.recent_change_layers(
+                    "headwind", "supportive", dollar_state="headwind", **case,
+                ))
+                macro = changes[0]
+                self.assertEqual(macro["tone"], "missing")
+                self.assertIn("数据不完整", macro["headline"])
+                self.assertNotIn("分化", macro["headline"])
+
+    def test_official_change_calls_zero_purchase_flat(self):
+        for previous_purchase in [9.95, -9.95]:
+            with self.subTest(previous_purchase=previous_purchase):
+                changes = build_site.make_recent_changes(self.recent_change_layers(
+                    "headwind", "supportive",
+                    current_purchase=0.0, previous_purchase=previous_purchase,
+                ))
+                official = changes[1]
+                self.assertEqual(official["tone"], "neutral")
+                self.assertIn("本月未继续增持", official["headline"])
+                self.assertNotIn("购金加速", official["headline"])
+                self.assertNotIn("净买入", official["headline"])
+
+
 class PriceTrendTest(unittest.TestCase):
     def _rising(self, n=700, start=1000.0, step=5.0):  # 需 > 200(MA)+63(前瞻)+252(滚动) 才有非空相关
         from datetime import date, timedelta

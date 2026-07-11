@@ -51,6 +51,14 @@ FREQUENCY_THRESHOLDS = {
     "monthly": (45, 75),
 }
 
+DRIVER_LAYER_IDS = (
+    "real_rate",
+    "dollar",
+    "inflation_expectation",
+    "official_reserves",
+    "positioning_technical",
+)
+
 
 def classify_staleness(latest_date, today, frequency):
     if not latest_date:
@@ -645,6 +653,31 @@ def score_layers(layers):
     return score, posture, posture_state, tendency, active
 
 
+def combine_subsignal_states(states):
+    weights = {"supportive": 1, "neutral": 0, "headwind": -1}
+    votes = [weights[state] for state in states if state in weights]
+    if not votes:
+        return "missing"
+    average = sum(votes) / len(votes)
+    if average >= 0.5:
+        return "supportive"
+    if average <= -0.5:
+        return "headwind"
+    return "neutral"
+
+
+def score_driver_layers(layers):
+    selected = [
+        layer for layer in layers
+        if layer.get("id") in DRIVER_LAYER_IDS
+        and layer.get("state") in {"supportive", "neutral", "headwind"}
+        and layer.get("data_quality") not in {"missing", "very-stale"}
+    ]
+    if len(selected) < 3:
+        return 0, "数据不足", "missing", 0.0, len(selected)
+    return score_layers(selected)
+
+
 def make_real_rate_layer(rows):
     latest = latest_with_value(rows, "real_rate")
     delta, since = change_over_observations(rows, "real_rate", 21)
@@ -845,17 +878,25 @@ def make_positioning_layer(etf_rows, vol_rows, gold_rows, cot_rows, today=None):
     latest_gold = latest_with_value(gold_rows, "gold_price")
     gold_delta, _ = change_over_observations(gold_rows, "gold_price", 60)
 
+    etf_date = latest_etf["date"] if latest_etf else None
+    etf_quality, etf_lag = classify_staleness(etf_date, today, "daily")
     gvz_date = latest_vol["date"] if latest_vol else None
     gvz_quality, gvz_lag = classify_staleness(gvz_date, today, "daily")
 
-    etf_state = state_from_delta(etf_delta, supportive_when="up", threshold=3.0)
-    gold_state = state_from_delta(gold_delta, supportive_when="up", threshold=0.0)
+    etf_state = (
+        state_from_delta(etf_delta, supportive_when="up", threshold=3.0)
+        if latest_etf else "missing"
+    )
+    if etf_quality == "very-stale":
+        etf_state = "missing"
 
     latest_cot = latest_with_value(cot_rows, "managed_money_net")
-    cot_delta, cot_since = change_over_observations(cot_rows, "managed_money_net", 4)
+    cot_delta, _ = change_over_observations(cot_rows, "managed_money_net", 4)
     cot_percentile = percentile_rank(cot_rows, "managed_money_net", 156)
+    cot_date = latest_cot["date"] if latest_cot else None
+    cot_quality, cot_lag = classify_staleness(cot_date, today, "weekly")
     if latest_cot is None:
-        cot_state = "neutral"
+        cot_state = "missing"
         cot_sentence = "CFTC Managed Money 数据缺失，仓位拥挤度暂不计入。"
     else:
         if cot_percentile is not None and cot_percentile > 0.9:
@@ -871,14 +912,28 @@ def make_positioning_layer(etf_rows, vol_rows, gold_rows, cot_rows, today=None):
             f"近 4 周变化 {fmt_signed_integer(cot_delta, suffix=' 张')}，"
             f"三年分位 {fmt_number((cot_percentile or 0) * 100)}%。"
         )
+    if cot_quality == "very-stale":
+        cot_state = "missing"
 
-    state_score = sum({"supportive": 1, "neutral": 0, "headwind": -1}[item] for item in [etf_state, gold_state, cot_state])
-    if state_score >= 2:
-        state = "supportive"
-    elif state_score <= -2:
-        state = "headwind"
+    state = combine_subsignal_states([etf_state, cot_state])
+    active_qualities = [
+        (quality, lag)
+        for signal_state, quality, lag in [
+            (etf_state, etf_quality, etf_lag),
+            (cot_state, cot_quality, cot_lag),
+        ]
+        if signal_state != "missing"
+    ]
+    if any(quality == "fresh" for quality, _ in active_qualities):
+        data_quality = "fresh"
+    elif any(quality == "stale" for quality, _ in active_qualities):
+        data_quality = "stale"
     else:
-        state = "neutral"
+        data_quality = "missing"
+    active_lags = [lag for _, lag in active_qualities if lag is not None]
+    lag_days = min(active_lags) if active_lags else None
+    latest_dates = [value for value in [etf_date, cot_date] if value]
+    latest_date = max(latest_dates) if latest_dates else None
 
     gvz_percentile = percentile_rank(vol_rows, "gvz", 756) if latest_vol else None
     return {
@@ -886,15 +941,20 @@ def make_positioning_layer(etf_rows, vol_rows, gold_rows, cot_rows, today=None):
         "name": "仓位与技术",
         "source": "Wind: ETF(SPDR/iShares)、GVZ；CFTC: Disaggregated COT Gold",
         "frequency": "daily",
-        "data_quality": "fresh" if latest_cot else "partial",
+        "data_quality": data_quality,
+        "lag_days": lag_days,
         "state": state,
+        "sub_states": {"etf": etf_state, "cot": cot_state},
         "latest": {
-            "date": latest_etf["date"],
-            "value": latest_etf["etf_total"],
-            "etf_total": latest_etf["etf_total"],
-            "spdr_holdings": latest_etf["spdr_holdings"],
-            "ishares_holdings": latest_etf["ishares_holdings"],
+            "date": latest_date,
+            "value": latest_etf["etf_total"] if latest_etf else None,
+            "etf_total": latest_etf["etf_total"] if latest_etf else None,
+            "spdr_holdings": latest_etf["spdr_holdings"] if latest_etf else None,
+            "ishares_holdings": latest_etf["ishares_holdings"] if latest_etf else None,
             "etf_change": etf_delta,
+            "etf_date": etf_date,
+            "etf_quality": etf_quality,
+            "etf_lag": etf_lag,
             "gvz": latest_vol["gvz"] if latest_vol else None,
             "gvz_percentile": gvz_percentile,
             "gvz_date": gvz_date,
@@ -902,7 +962,9 @@ def make_positioning_layer(etf_rows, vol_rows, gold_rows, cot_rows, today=None):
             "gvz_lag": gvz_lag,
             "gold_price": latest_gold["gold_price"] if latest_gold else None,
             "gold_change_60": gold_delta,
-            "cot_date": latest_cot["date"] if latest_cot else None,
+            "cot_date": cot_date,
+            "cot_quality": cot_quality,
+            "cot_lag": cot_lag,
             "managed_money_net": latest_cot["managed_money_net"] if latest_cot else None,
             "managed_money_long": latest_cot["managed_money_long"] if latest_cot else None,
             "managed_money_short": latest_cot["managed_money_short"] if latest_cot else None,
@@ -911,10 +973,10 @@ def make_positioning_layer(etf_rows, vol_rows, gold_rows, cot_rows, today=None):
         },
         "change": etf_delta,
         "change_since": etf_since,
-        "value_label": f"ETF {fmt_number(latest_etf['etf_total'])} 吨",
+        "value_label": f"ETF {fmt_number(latest_etf['etf_total'] if latest_etf else None)} 吨",
         "change_label": fmt_signed(etf_delta, suffix=" 吨"),
         "read": (
-            f"SPDR+iShares 黄金 ETF 合计 {fmt_number(latest_etf['etf_total'])} 吨，"
+            f"SPDR+iShares 黄金 ETF 合计 {fmt_number(latest_etf['etf_total'] if latest_etf else None)} 吨，"
             f"近约 1 个月变化 {fmt_signed(etf_delta, suffix=' 吨')}；"
             f"GVZ {fmt_number(latest_vol['gvz'] if latest_vol else None)}，"
             f"三年分位 {fmt_number((gvz_percentile or 0) * 100)}%。"
@@ -926,6 +988,162 @@ def make_positioning_layer(etf_rows, vol_rows, gold_rows, cot_rows, today=None):
         "chart_key": "etf_total",
         "chart_rows": etf_rows,
     }
+
+
+def driver_row(
+    row_id, name, category, state, value, change, read,
+    quality, date_value, source,
+):
+    return {
+        "id": row_id,
+        "name": name,
+        "category": category,
+        "state": state,
+        "value": value,
+        "change": change,
+        "read": read,
+        "quality": quality,
+        "date": date_value,
+        "source": source,
+    }
+
+
+def make_driver_rows(layers):
+    by_id = {layer["id"]: layer for layer in layers}
+    real = by_id["real_rate"]
+    dollar = by_id["dollar"]
+    inflation = by_id["inflation_expectation"]
+    reserve = by_id["official_reserves"]
+    positioning = by_id["positioning_technical"]
+    latest_positioning = positioning["latest"]
+
+    return [
+        driver_row(
+            "real_rate", "实际利率", "宏观", real["state"],
+            real["value_label"], real["change_label"], "机会成本变化",
+            real["data_quality"], real["latest"].get("date"), real["source"],
+        ),
+        driver_row(
+            "dollar", "美元", "宏观", dollar["state"],
+            dollar["value_label"], dollar["change_label"], "美元计价压力",
+            dollar["data_quality"], dollar["latest"].get("date"), dollar["source"],
+        ),
+        driver_row(
+            "official_reserves", "中国央行购金", "官方部门", reserve["state"],
+            fmt_signed(reserve["latest"].get("china_change"), suffix=" 吨"),
+            "较上月增量", "官方购金慢变量", reserve["data_quality"],
+            reserve["latest"].get("date"),
+            reserve["latest"].get("china_source") or reserve["source"],
+        ),
+        driver_row(
+            "inflation_expectation", "通胀预期", "宏观", inflation["state"],
+            inflation["value_label"], inflation["change_label"], "通胀补偿变化",
+            inflation["data_quality"], inflation["latest"].get("date"),
+            inflation["source"],
+        ),
+        driver_row(
+            "etf", "黄金 ETF", "资金流", positioning["sub_states"]["etf"],
+            f"{fmt_number(latest_positioning.get('etf_total'))} 吨",
+            fmt_signed(latest_positioning.get("etf_change"), suffix=" 吨"),
+            "黄金 ETF 合计持仓", latest_positioning["etf_quality"],
+            latest_positioning.get("etf_date"), "Wind: ETF(SPDR/iShares)",
+        ),
+        driver_row(
+            "cot", "CFTC 净多", "仓位", positioning["sub_states"]["cot"],
+            f"{fmt_integer(latest_positioning.get('managed_money_net'))} 张",
+            fmt_signed_integer(
+                latest_positioning.get("managed_money_net_change"), suffix=" 张"),
+            "Managed Money 近 4 周变化", latest_positioning["cot_quality"],
+            latest_positioning.get("cot_date"), "CFTC: Disaggregated COT Gold",
+        ),
+    ]
+
+
+def make_recent_changes(layers):
+    by_id = {layer["id"]: layer for layer in layers}
+    real = by_id["real_rate"]
+    dollar = by_id["dollar"]
+    reserve = by_id["official_reserves"]
+    positioning = by_id["positioning_technical"]
+
+    macro_states = {real["state"], dollar["state"]}
+    macro_quality_missing = any(
+        layer.get("data_quality") in {"missing", "very-stale"}
+        for layer in [real, dollar]
+    )
+    if macro_quality_missing or not macro_states <= {"supportive", "neutral", "headwind"}:
+        macro_tone, macro_headline = "missing", "实际利率或美元数据不完整"
+    elif real["state"] == dollar["state"] == "neutral":
+        macro_tone, macro_headline = "neutral", "实际利率与美元均偏稳"
+    elif real["state"] == dollar["state"] == "headwind":
+        macro_tone, macro_headline = "headwind", "实际利率与美元同向上行"
+    elif real["state"] == dollar["state"] == "supportive":
+        macro_tone, macro_headline = "supportive", "实际利率与美元同向回落"
+    else:
+        macro_tone, macro_headline = "neutral", "实际利率与美元信号分化"
+
+    chart_rows = reserve.get("chart_rows", [])
+    current_purchase = reserve["latest"].get("china_change")
+    previous_purchase = (
+        chart_rows[-2].get("china_mom_change") if len(chart_rows) >= 2 else None)
+    if current_purchase is None:
+        official_tone, official_headline = "missing", "中国央行购金数据缺失"
+    elif current_purchase == 0:
+        official_tone, official_headline = "neutral", "中国央行本月未继续增持"
+    elif current_purchase < 0:
+        official_tone, official_headline = "headwind", "中国央行转为净卖出"
+    elif previous_purchase is not None and current_purchase > previous_purchase:
+        official_tone, official_headline = "supportive", "中国央行购金加速"
+    elif previous_purchase is not None and current_purchase < previous_purchase:
+        official_tone = "supportive"
+        official_headline = "中国央行仍在净买入，但速度放缓"
+    else:
+        official_tone, official_headline = "supportive", "中国央行继续净买入"
+
+    etf_state = positioning["sub_states"]["etf"]
+    cot_state = positioning["sub_states"]["cot"]
+    valid_states = {"supportive", "neutral", "headwind"}
+    if etf_state not in valid_states or cot_state not in valid_states:
+        flows_tone, flows_headline = "missing", "ETF 或 CFTC 数据不完整"
+    elif etf_state == cot_state:
+        flows_tone = etf_state
+        flows_headline = (
+            "ETF 与 CFTC 仓位均为中性"
+            if etf_state == "neutral" else "ETF 与 CFTC 仓位同向"
+        )
+    else:
+        flows_tone, flows_headline = "neutral", "ETF 与 CFTC 仓位分化"
+
+    return [
+        {
+            "id": "macro",
+            "tone": macro_tone,
+            "label": "宏观条件",
+            "headline": macro_headline,
+            "detail": f"实际利率 {real['change_label']}；美元 {dollar['change_label']}。",
+        },
+        {
+            "id": "official",
+            "tone": official_tone,
+            "label": "官方购金",
+            "headline": official_headline,
+            "detail": (
+                f"本月 {fmt_signed(current_purchase, suffix=' 吨')}；"
+                f"上月 {fmt_signed(previous_purchase, suffix=' 吨')}。"
+            ),
+        },
+        {
+            "id": "flows",
+            "tone": flows_tone,
+            "label": "资金与仓位",
+            "headline": flows_headline,
+            "detail": (
+                f"ETF {fmt_signed(positioning['latest'].get('etf_change'), suffix=' 吨')}；"
+                "CFTC "
+                f"{fmt_signed_integer(positioning['latest'].get('managed_money_net_change'), suffix=' 张')}。"
+            ),
+        },
+    ]
 
 
 def make_price_trend_layer(gold_rows):
@@ -1466,11 +1684,18 @@ def read_dashboard_data(today=None):
     ]
 
     for layer in layers:
+        if layer["id"] == "positioning_technical":
+            continue
         quality, lag = classify_staleness(layer["latest"].get("date"), today, layer["frequency"])
         layer["data_quality"] = quality
         layer["lag_days"] = lag
 
-    score, posture, posture_state, tendency, active_layers = score_layers(layers)
+    driver_layers = [layer for layer in layers if layer["id"] in DRIVER_LAYER_IDS]
+    score, posture, posture_state, tendency, active_layers = score_driver_layers(
+        driver_layers)
+    technical_layer = next(layer for layer in layers if layer["id"] == "price_trend")
+    driver_rows = make_driver_rows(layers)
+    recent_changes = make_recent_changes(layers)
 
     return {
         "title": "黄金数据驱动跟踪",
@@ -1478,6 +1703,10 @@ def read_dashboard_data(today=None):
         "score": score, "tendency": tendency, "active_layers": active_layers,
         "posture": posture, "posture_state": posture_state,
         "layers": layers,
+        "driver_layers": driver_layers,
+        "driver_rows": driver_rows,
+        "recent_changes": recent_changes,
+        "technical_layer": technical_layer,
         "valuation": make_valuation_snapshot(valuation_rows),
         "reserve_rows": layers[3]["chart_rows"],
         "relationships": make_relationships(
