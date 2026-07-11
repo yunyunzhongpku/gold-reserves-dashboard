@@ -19,10 +19,32 @@ class OfficialReserveOverrideTest(unittest.TestCase):
     def tearDown(self):
         self.tempdir.cleanup()
 
-    def write_csv(self, rows):
-        header = "date,china_reserves_10k_oz,global_reserves,source\n"
-        self.path.write_text(header + "\n".join(rows) + "\n", encoding="utf-8")
+    def write_csv(self, rows, header="date,china_reserves_10k_oz,global_reserves,source"):
+        self.path.write_text(header + "\n" + "\n".join(rows) + "\n", encoding="utf-8")
         return self.path
+
+    def test_rejects_missing_extra_or_reordered_headers(self):
+        cases = [
+            ("date,china_reserves_10k_oz,source", "2026-01-31,7419,SAFE"),
+            (
+                "date,china_reserves_10k_oz,global_reserves,source,notes",
+                "2026-01-31,7419,,SAFE,unexpected",
+            ),
+            (
+                "date,global_reserves,china_reserves_10k_oz,source",
+                "2026-01-31,,7419,SAFE",
+            ),
+        ]
+        for header, row in cases:
+            with self.subTest(header=header):
+                path = self.write_csv([row], header=header)
+                with self.assertRaisesRegex(ValueError, "表头必须严格为"):
+                    build_site.read_official_reserve_rows(path)
+
+    def test_rejects_empty_china_source(self):
+        path = self.write_csv(["2026-01-31,7419,,"])
+        with self.assertRaisesRegex(ValueError, "来源不能为空"):
+            build_site.read_official_reserve_rows(path)
 
     def test_reads_complete_safe_series_and_converts_tonnes(self):
         path = self.write_csv([
@@ -54,6 +76,20 @@ class OfficialReserveOverrideTest(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, message):
                     build_site.read_official_reserve_rows(path)
 
+    def test_rejects_non_finite_china_values(self):
+        for value in ["NaN", "inf", "-inf"]:
+            with self.subTest(value=value):
+                path = self.write_csv([f"2026-01-31,{value},,SAFE"])
+                with self.assertRaisesRegex(ValueError, "有限正数"):
+                    build_site.read_official_reserve_rows(path)
+
+    def test_rejects_non_finite_global_values(self):
+        for value in ["NaN", "inf", "-inf"]:
+            with self.subTest(value=value):
+                path = self.write_csv([f"2026-01-31,7419,{value},SAFE"])
+                with self.assertRaisesRegex(ValueError, "全球官方黄金储备必须为有限数值"):
+                    build_site.read_official_reserve_rows(path)
+
     def test_future_month_is_validated_but_excluded_from_dashboard_cutoff(self):
         path = self.write_csv([
             "2026-05-31,7496,,SAFE",
@@ -62,6 +98,15 @@ class OfficialReserveOverrideTest(unittest.TestCase):
         ])
         rows = build_site.read_official_reserve_rows(path, max_date=_date(2026, 7, 7))
         self.assertEqual([row["date"] for row in rows], ["2026-05-31", "2026-06-30"])
+
+    def test_invalid_future_month_is_rejected_before_dashboard_cutoff(self):
+        path = self.write_csv([
+            "2026-05-31,7496,,SAFE",
+            "2026-06-30,7544,,SAFE",
+            "2026-07-31,NaN,,SAFE",
+        ])
+        with self.assertRaisesRegex(ValueError, "有限正数"):
+            build_site.read_official_reserve_rows(path, max_date=_date(2026, 7, 7))
 
     def test_field_level_merge_preserves_global_reserve(self):
         base = [{
@@ -78,6 +123,15 @@ class OfficialReserveOverrideTest(unittest.TestCase):
         self.assertAlmostEqual(row["global_reserves"], 36558.5405)
         self.assertEqual(row["china_source"], "SAFE")
         self.assertIn("Excel", row["global_source"])
+
+    def test_excel_only_merge_row_marks_raw_china_ounces_unavailable(self):
+        base = [{
+            "date": "2026-04-30", "_date": _date(2026, 4, 30),
+            "china_reserves": 2321.5452, "global_reserves": 36501.0,
+        }]
+        row = build_site.merge_reserve_rows(base, [])[0]
+        self.assertIn("china_reserves_10k_oz", row)
+        self.assertIsNone(row["china_reserves_10k_oz"])
 
 
 class GoldDashboardDataTest(unittest.TestCase):

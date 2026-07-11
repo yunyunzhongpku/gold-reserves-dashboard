@@ -1,5 +1,6 @@
 from pathlib import Path
 import csv
+import math
 from datetime import date, datetime
 from html import escape
 
@@ -13,6 +14,8 @@ SITE_DIR = ROOT / "site"
 OUTPUT_FILE = SITE_DIR / "index.html"
 
 TEN_THOUSAND_TROY_OZ_TO_TONNES = 0.311034768
+OFFICIAL_RESERVE_COLUMNS = [
+    "date", "china_reserves_10k_oz", "global_reserves", "source"]
 
 WIND_DAILY_FILE = MARKET_DIR / "wind_daily.csv"
 DFII10_FILE = MARKET_DIR / "fred_dfii10.csv"
@@ -194,7 +197,14 @@ def read_official_reserve_rows(path, max_date=None):
     previous_date = None
     previous_month = None
     with path.open(encoding="utf-8", newline="") as file:
-        for raw in csv.DictReader(file):
+        reader = csv.DictReader(file)
+        if reader.fieldnames != OFFICIAL_RESERVE_COLUMNS:
+            expected = ",".join(OFFICIAL_RESERVE_COLUMNS)
+            actual = ",".join(reader.fieldnames or [])
+            raise ValueError(
+                f"官方储备 CSV 表头必须严格为 {expected}；实际为 {actual}")
+
+        for raw in reader:
             row_date = datetime.strptime(raw["date"], "%Y-%m-%d").date()
             current_month = month_index(row_date)
             if current_month in seen_months:
@@ -205,10 +215,14 @@ def read_official_reserve_rows(path, max_date=None):
                 raise ValueError("官方储备月份必须连续")
 
             ounces = float(raw["china_reserves_10k_oz"])
-            if ounces <= 0:
-                raise ValueError("中国官方黄金储备必须为正数")
+            if not math.isfinite(ounces) or ounces <= 0:
+                raise ValueError("中国官方黄金储备必须为有限正数")
             source = (raw.get("source") or "").strip()
+            if not source:
+                raise ValueError("中国官方黄金储备来源不能为空")
             global_reserves = optional_csv_float(raw.get("global_reserves"))
+            if global_reserves is not None and not math.isfinite(global_reserves):
+                raise ValueError("全球官方黄金储备必须为有限数值")
             rows.append({
                 "date": format_date(row_date),
                 "_date": row_date,
@@ -230,6 +244,7 @@ def merge_reserve_rows(base_rows, override_rows):
     for row in base_rows:
         item = {
             **row,
+            "china_reserves_10k_oz": row.get("china_reserves_10k_oz"),
             "china_source": row.get("china_source") or "Excel: 官方黄金储备",
             "global_source": row.get("global_source") or "Excel: 官方黄金储备",
         }
