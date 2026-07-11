@@ -2751,7 +2751,7 @@ def build_html(dashboard):
     recent_changes_section = make_recent_changes_section(dashboard["recent_changes"])
     research_details = make_research_details(dashboard)
 
-    return f"""<!doctype html>
+    html = f"""<!doctype html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
@@ -3375,6 +3375,7 @@ def build_html(dashboard):
 </body>
 </html>
 """
+    return "\n".join(line.rstrip() for line in html.splitlines()) + "\n"
 
 
 def main():

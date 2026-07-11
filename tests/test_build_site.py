@@ -450,6 +450,17 @@ class GoldDashboardDataTest(unittest.TestCase):
         self.assertNotIn("<h2>失效条件</h2>", html)
         self.assertNotIn("<h2>下一观察点</h2>", html)
 
+    def test_generated_html_has_no_trailing_whitespace(self):
+        html = build_site.build_html(
+            build_site.read_dashboard_data(today=self.TODAY))
+
+        trailing_lines = [
+            line_number
+            for line_number, line in enumerate(html.splitlines(), start=1)
+            if line != line.rstrip()
+        ]
+        self.assertEqual([], trailing_lines)
+
     def test_price_and_proxy_layers_remain_in_research_but_not_headline_score(self):
         dashboard = build_site.read_dashboard_data(today=self.TODAY)
         self.assertEqual(
