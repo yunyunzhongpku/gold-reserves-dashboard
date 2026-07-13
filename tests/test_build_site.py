@@ -1444,6 +1444,13 @@ class ResearchSectionTests(unittest.TestCase):
         gvz_part = positioning_html[positioning_html.index("GVZ 波动率"):]
         self.assertNotIn("已反转", gvz_part)
 
+    def test_positioning_relationship_has_no_composite_corr(self):
+        dashboard = build_site.read_dashboard_data(today=self.TODAY)
+        positioning = next(
+            item for item in dashboard["relationships"]
+            if item["id"] == "positioning_technical")
+        self.assertNotIn("latest_corr", positioning)
+
 
 if __name__ == "__main__":
     unittest.main()

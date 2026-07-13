@@ -637,21 +637,6 @@ def corr_class(value, expected="negative"):
     return "neutral"
 
 
-def phase_label(start, end):
-    if end is None:
-        return f"{start.year}-至今"
-    if start.year == end.year:
-        return str(start.year)
-    return f"{start.year}-{end.year}"
-
-
-def filter_date_range(rows, start, end):
-    return [
-        row for row in rows
-        if row.get("_date") is not None and row["_date"] >= start and (end is None or row["_date"] <= end)
-    ]
-
-
 def build_change_pairs(rows, factor_key, gold_key, lookback):
     pairs = []
     for i in range(lookback, len(rows)):
@@ -683,11 +668,6 @@ def rolling_corr(rows, x_key, y_key, window):
             "corr": corr,
         })
     return [row for row in output if row["corr"] is not None]
-
-
-def corr_for_range(rows, x_key, y_key, start, end):
-    sample = filter_date_range(rows, start, end)
-    return correlation((row.get(x_key), row.get(y_key)) for row in sample), len(sample)
 
 
 def gold_price_asof(gold_rows, target_date):
@@ -754,30 +734,6 @@ def latest_significant_cycle_start(rows, key, threshold, min_months=3):
     if not runs:
         return None
     return runs[-1][0]["date"]
-
-
-def weak_periods_from_rolling(rows, threshold=0.1, max_periods=3):
-    periods = []
-    active = []
-    for row in rows:
-        corr = row.get("corr")
-        weak = corr is not None and abs(corr) <= threshold
-        if weak:
-            active.append(row)
-        elif active:
-            if len(active) >= 3:
-                periods.append((active[0]["date"], active[-1]["date"]))
-            active = []
-    if len(active) >= 3:
-        periods.append((active[0]["date"], active[-1]["date"]))
-    return periods[-max_periods:]
-
-
-def phase_gold_return(gold_rows, start, end):
-    sample = filter_date_range([row for row in gold_rows if row.get("gold_price") is not None], start, end)
-    if len(sample) < 2:
-        return None
-    return pct_return(sample[-1]["gold_price"], sample[0]["gold_price"])
 
 
 def attach_gold_price(rows, gold_rows):
@@ -1464,25 +1420,13 @@ def make_monthly_factor_relationship(rel_id, name, metric, rows, factor_key, gol
     rolling = rolling_corr(enriched, "factor_3m_change", "gold_return_3m", 24)
     latest_corr = rolling[-1]["corr"] if rolling else None
 
-    phase_defs = [
-        ("2018-2020", date(2018, 1, 1), date(2020, 12, 31)),
-        ("2021-2022", date(2021, 1, 1), date(2022, 12, 31)),
-        ("2023-2024H1", date(2023, 1, 1), date(2024, 6, 30)),
-        ("2024H2-至今", date(2024, 7, 1), None),
-    ]
-    phases = []
-    for label, start, end in phase_defs:
-        corr, obs = corr_for_range(enriched, "factor_3m_change", "gold_return_3m", start, end)
-        phases.append({"label": label, "corr": corr, "tone": corr_tone(corr, expected=expected),
-                       "observations": obs, "gold_return": phase_gold_return(gold_rows, start, end)})
-
     latest_row = enriched[-1] if enriched else {}
     return {
         "id": rel_id, "name": name, "metric": metric, "expected": expected,
         "latest_corr": latest_corr, "latest_tone": corr_tone(latest_corr, expected=expected),
-        "start_month": None, "weak_periods": weak_periods_from_rolling(rolling),
+        "start_month": None,
         "trend_rows": enriched, "factor_key": factor_key, "factor_label": name,
-        "gold_key": "gold_price", "rolling_corr": rolling, "phases": phases,
+        "gold_key": "gold_price", "rolling_corr": rolling,
         "latest": {"date": latest_row.get("date"),
                    "factor_change": latest_row.get("factor_3m_change"),
                    "gold_return": latest_row.get("gold_return_3m")},
@@ -1504,23 +1448,6 @@ def make_central_bank_relationship(reserve_rows, gold_rows):
         min_months=3,
     )
 
-    phases = []
-    phase_defs = [
-        ("2018-2020", date(2018, 1, 1), date(2020, 12, 31)),
-        ("2021-2022", date(2021, 1, 1), date(2022, 12, 31)),
-        ("2023-2024H1", date(2023, 1, 1), date(2024, 6, 30)),
-        ("2024H2-至今", date(2024, 7, 1), None),
-    ]
-    for label, start, end in phase_defs:
-        corr, observations = corr_for_range(relationship_rows, "china_3m_change", "gold_return_3m", start, end)
-        phases.append({
-            "label": label,
-            "corr": corr,
-            "tone": corr_tone(corr, expected="positive"),
-            "observations": observations,
-            "gold_return": phase_gold_return(gold_rows, start, end),
-        })
-
     latest_row = relationship_rows[-1] if relationship_rows else {}
     return {
         "id": "central_bank_purchases",
@@ -1530,13 +1457,11 @@ def make_central_bank_relationship(reserve_rows, gold_rows):
         "latest_corr": latest_corr,
         "latest_tone": corr_tone(latest_corr, expected="positive"),
         "start_month": start_month,
-        "weak_periods": weak_periods_from_rolling(rolling),
         "trend_rows": relationship_rows,
         "factor_key": "china_3m_change",
         "factor_label": "购金3个月增量",
         "gold_key": "gold_price",
         "rolling_corr": rolling,
-        "phases": phases,
         "latest": {
             "date": latest_row.get("date"),
             "factor_change": latest_row.get("china_3m_change"),
@@ -1581,27 +1506,6 @@ def make_two_horizon_relationship(
     short_latest = short_rolling[-1]["corr"] if short_rolling else None
     medium_latest = medium_rolling[-1]["corr"] if medium_rolling else None
 
-    phase_defs = [
-        ("2003-2011", date(2003, 1, 1), date(2011, 12, 31)),
-        ("2012-2018", date(2012, 1, 1), date(2018, 12, 31)),
-        ("2019-2021", date(2019, 1, 1), date(2021, 12, 31)),
-        ("2022-2024", date(2022, 1, 1), date(2024, 12, 31)),
-        ("2025-至今", date(2025, 1, 1), None),
-    ]
-    phases = []
-    for label, start, end in phase_defs:
-        short_corr, short_obs = corr_for_range(short_pairs, "factor_change", "gold_return", start, end)
-        medium_corr, medium_obs = corr_for_range(medium_pairs, "factor_change", "gold_return", start, end)
-        phases.append({
-            "label": label,
-            "short_corr": short_corr,
-            "medium_corr": medium_corr,
-            "short_tone": corr_tone(short_corr, expected=expected),
-            "medium_tone": corr_tone(medium_corr, expected=expected),
-            "observations": min(short_obs, medium_obs),
-            "gold_return": phase_gold_return(rows, start, end),
-        })
-
     return {
         "id": relationship_id,
         "name": name,
@@ -1628,8 +1532,6 @@ def make_two_horizon_relationship(
         "factor_key": factor_key,
         "factor_label": name,
         "gold_key": "gold_price",
-        "phases": phases,
-        "weak_periods": weak_periods_from_rolling(medium_rolling),
         "read": (
             f"短期滚动相关 {fmt_corr(short_latest)}，中期滚动相关 {fmt_corr(medium_latest)}；"
             f"{read_suffix}"
@@ -1660,24 +1562,6 @@ def make_trend_relationship(gold_rows):
     short_latest = short_rolling[-1]["corr"] if short_rolling else None
     medium_latest = medium_rolling[-1]["corr"] if medium_rolling else None
 
-    phase_defs = [
-        ("2012-2018", date(2012, 1, 1), date(2018, 12, 31)),
-        ("2019-2021", date(2019, 1, 1), date(2021, 12, 31)),
-        ("2022-2024", date(2022, 1, 1), date(2024, 12, 31)),
-        ("2025-至今", date(2025, 1, 1), None),
-    ]
-    phases = []
-    for label, start, end in phase_defs:
-        short_corr, short_obs = corr_for_range(short_pairs, "factor_change", "gold_return", start, end)
-        medium_corr, medium_obs = corr_for_range(medium_pairs, "factor_change", "gold_return", start, end)
-        phases.append({
-            "label": label, "short_corr": short_corr, "medium_corr": medium_corr,
-            "short_tone": corr_tone(short_corr, expected="positive"),
-            "medium_tone": corr_tone(medium_corr, expected="positive"),
-            "observations": min(short_obs, medium_obs),
-            "gold_return": phase_gold_return(gold_rows, start, end),
-        })
-
     return {
         "id": "price_trend", "name": "价格与趋势",
         "metric": "200日趋势缺口(t) vs 未来黄金收益(前瞻,防自证)", "expected": "positive",
@@ -1692,7 +1576,6 @@ def make_trend_relationship(gold_rows):
         "trend_rows": attach_rolling_ma(
             [row for row in gold_rows if row.get("gold_price") is not None], "gold_price", 200, "ma200"),
         "factor_key": "ma200", "factor_label": "200日均线", "gold_key": "gold_price",
-        "phases": phases, "weak_periods": weak_periods_from_rolling(medium_rolling),
         "read": (
             f"前瞻相关 短 {fmt_corr(short_latest)} / 中 {fmt_corr(medium_latest)};"
             f"正值表示趋势对未来收益有跟随效应。检验用未来收益,避免与同期金价自证。"
@@ -1734,21 +1617,6 @@ def make_positioning_sub_metric(metric_id, name, rows, factor_key, expected, gol
     pairs = build_change_pairs(relationship_rows, factor_key, "gold_price", 21)
     rolling = rolling_corr(pairs, "factor_change", "gold_return", 52)
     latest_corr = rolling[-1]["corr"] if rolling else None
-    phase_defs = [
-        ("2021-2022", date(2021, 1, 1), date(2022, 12, 31)),
-        ("2023-2024", date(2023, 1, 1), date(2024, 12, 31)),
-        ("2025-至今", date(2025, 1, 1), None),
-    ]
-    phases = []
-    for label, start, end in phase_defs:
-        corr, observations = corr_for_range(pairs, "factor_change", "gold_return", start, end)
-        phases.append({
-            "label": label,
-            "corr": corr,
-            "tone": corr_tone(corr, expected=expected),
-            "observations": observations,
-            "gold_return": phase_gold_return(relationship_rows, start, end),
-        })
     return {
         "id": metric_id,
         "name": name,
@@ -1763,8 +1631,6 @@ def make_positioning_sub_metric(metric_id, name, rows, factor_key, expected, gol
         "factor_key": factor_key,
         "factor_label": name,
         "gold_key": "gold_price",
-        "phases": phases,
-        "weak_periods": weak_periods_from_rolling(rolling),
     }
 
 
@@ -1797,15 +1663,11 @@ def make_positioning_relationship(etf_rows, cot_rows, vol_rows, gold_rows):
             expected="absolute",
         ),
     ]
-    latest_corrs = [item["latest_corr"] for item in sub_metrics if item["latest_corr"] is not None]
-    latest_corr = sum(latest_corrs) / len(latest_corrs) if latest_corrs else None
     return {
         "id": "positioning_technical",
         "name": "仓位与技术",
         "metric": "ETF、CFTC Managed Money、GVZ 与黄金收益",
         "expected": "mixed",
-        "latest_corr": latest_corr,
-        "latest_tone": "分项观察",
         "sub_metrics": sub_metrics,
         "read": "仓位与技术层拆成 ETF 持仓、Managed Money 净多和 GVZ 波动率，分别看其对黄金短期收益的解释力。",
     }
@@ -2423,223 +2285,6 @@ def tone_badge(tone):
     return f'<span class="tone tone-{klass}">{escape(tone)}</span>'
 
 
-def make_central_bank_relationship_card(relationship):
-    weak_periods = relationship.get("weak_periods") or []
-    if weak_periods:
-        weak_text = "；".join(f"{start} 至 {end}" for start, end in weak_periods)
-    else:
-        weak_text = "未识别到连续 3 个月以上的低相关段"
-
-    phase_rows = "".join(
-        f"""
-        <tr>
-          <td>{escape(phase['label'])}</td>
-          <td>{fmt_corr(phase['corr'])}</td>
-          <td>{tone_badge(phase['tone'])}</td>
-          <td>{fmt_pct(phase['gold_return'])}</td>
-          <td>{phase['observations']}</td>
-        </tr>
-        """
-        for phase in relationship["phases"]
-    )
-    chart = make_corr_chart(
-        [{"label": "24个月滚动相关", "rows": relationship["rolling_corr"], "color": "#237a57"}],
-        "央行购金与黄金收益滚动相关",
-        limit=84,
-    )
-    trend_chart = make_dual_axis_chart(
-        relationship["trend_rows"],
-        relationship["factor_key"],
-        relationship["factor_label"],
-        relationship["gold_key"],
-        limit=84,
-        factor_color="#237a57",
-    )
-
-    return f"""
-    <article class="relationship-card">
-      <div class="relationship-head">
-        <div>
-          <div class="eyebrow">关系检验</div>
-          <h3>{escape(relationship['name'])}</h3>
-        </div>
-        {tone_badge(relationship['latest_tone'])}
-      </div>
-      <div class="metric-strip">
-        <div><span>起始显著推动</span><strong>{escape(relationship.get('start_month') or '—')}</strong></div>
-        <div><span>当前滚动相关</span><strong>{fmt_corr(relationship['latest_corr'])}</strong></div>
-        <div><span>最近 3 个月</span><strong>{fmt_signed(relationship['latest']['factor_change'])}</strong></div>
-      </div>
-      <p class="relationship-read">{escape(relationship['read'])} 什么时候不好用：{escape(weak_text)}。</p>
-      <h4>双轴走势</h4>
-      {trend_chart}
-      <h4>滚动相关</h4>
-      {chart}
-      <h4>阶段表现</h4>
-      <table class="phase-table">
-        <thead><tr><th>阶段</th><th>相关系数</th><th>判断</th><th>黄金收益</th><th>样本(月)</th></tr></thead>
-        <tbody>{phase_rows}</tbody>
-      </table>
-    </article>
-    """
-
-
-def make_horizon_relationship_card(relationship):
-    weak_periods = relationship.get("weak_periods") or []
-    if weak_periods:
-        weak_text = "；".join(f"{start} 至 {end}" for start, end in weak_periods[-2:])
-    else:
-        weak_text = "未识别到连续低相关段"
-
-    phase_rows = "".join(
-        f"""
-        <tr>
-          <td>{escape(phase['label'])}</td>
-          <td>{fmt_corr(phase['short_corr'])} {tone_badge(phase['short_tone'])}</td>
-          <td>{fmt_corr(phase['medium_corr'])} {tone_badge(phase['medium_tone'])}</td>
-          <td>{fmt_pct(phase['gold_return'])}</td>
-          <td>{phase['observations']}</td>
-        </tr>
-        """
-        for phase in relationship["phases"]
-    )
-    chart = make_corr_chart(
-        [
-            {
-                "label": relationship["short_term"]["label"],
-                "rows": relationship["short_term"]["rolling_corr"],
-                "color": "#366b9f",
-            },
-            {
-                "label": relationship["medium_term"]["label"],
-                "rows": relationship["medium_term"]["rolling_corr"],
-                "color": "#b88728",
-                "dash": True,
-            },
-        ],
-        f"{relationship['name']}与黄金收益滚动相关",
-        limit=180,
-    )
-    trend_chart = make_dual_axis_chart(
-        relationship["trend_rows"],
-        relationship["factor_key"],
-        relationship["factor_label"],
-        relationship["gold_key"],
-        limit=180,
-    )
-
-    return f"""
-    <article class="relationship-card">
-      <div class="relationship-head">
-        <div>
-          <div class="eyebrow">关系检验</div>
-          <h3>{escape(relationship['name'])}</h3>
-        </div>
-        {tone_badge(relationship['latest_tone'])}
-      </div>
-      <div class="metric-strip">
-        <div><span>{escape(relationship['short_term']['label'])}</span><strong>{fmt_corr(relationship['short_term']['latest_corr'])}</strong></div>
-        <div><span>{escape(relationship['medium_term']['label'])}</span><strong>{fmt_corr(relationship['medium_term']['latest_corr'])}</strong></div>
-        <div><span>低相关窗口</span><strong>{escape(weak_text)}</strong></div>
-      </div>
-      <p class="relationship-read">{escape(relationship['read'])}</p>
-      <h4>双轴走势</h4>
-      {trend_chart}
-      <h4>滚动相关</h4>
-      {chart}
-      <h4>阶段表现</h4>
-      <table class="phase-table">
-        <thead><tr><th>阶段</th><th>短期相关</th><th>中期相关</th><th>黄金收益</th><th>样本(日)</th></tr></thead>
-        <tbody>{phase_rows}</tbody>
-      </table>
-    </article>
-    """
-
-
-def make_positioning_relationship_card(relationship):
-    phase_rows = []
-    for sub_metric in relationship["sub_metrics"]:
-        for phase in sub_metric["phases"]:
-            phase_rows.append(f"""
-        <tr>
-          <td>{escape(sub_metric['name'])}</td>
-          <td>{escape(phase['label'])}</td>
-          <td>{fmt_corr(phase['corr'])}</td>
-          <td>{tone_badge(phase['tone'])}</td>
-          <td>{fmt_pct(phase['gold_return'])}</td>
-          <td>{phase['observations']}</td>
-        </tr>
-            """)
-
-    metric_strip = "".join(
-        f"""
-        <div><span>{escape(sub_metric['name'])}</span><strong>{fmt_corr(sub_metric['latest_corr'])}</strong></div>
-        """
-        for sub_metric in relationship["sub_metrics"]
-    )
-    chart = make_corr_chart(
-        [
-            {
-                "label": relationship["sub_metrics"][0]["name"],
-                "rows": relationship["sub_metrics"][0]["rolling_corr"],
-                "color": "#237a57",
-            },
-            {
-                "label": relationship["sub_metrics"][1]["name"],
-                "rows": relationship["sub_metrics"][1]["rolling_corr"],
-                "color": "#366b9f",
-                "dash": True,
-            },
-            {
-                "label": relationship["sub_metrics"][2]["name"],
-                "rows": relationship["sub_metrics"][2]["rolling_corr"],
-                "color": "#b88728",
-            },
-        ],
-        "仓位与技术指标与黄金收益滚动相关",
-        limit=120,
-    )
-    trend_chart_items = []
-    for sub_metric in relationship["sub_metrics"]:
-        trend_chart = make_dual_axis_chart(
-            sub_metric["trend_rows"],
-            sub_metric["factor_key"],
-            sub_metric["factor_label"],
-            sub_metric["gold_key"],
-            limit=120,
-        )
-        trend_chart_items.append(f"""
-        <div class="dual-axis-item">
-          <h5>{escape(sub_metric['name'])}</h5>
-          {trend_chart}
-        </div>
-        """)
-    trend_charts = "".join(trend_chart_items)
-
-    return f"""
-    <article class="relationship-card relationship-card-wide">
-      <div class="relationship-head">
-        <div>
-          <div class="eyebrow">关系检验</div>
-          <h3>{escape(relationship['name'])}</h3>
-        </div>
-        <span class="tone tone-neutral">{escape(relationship['latest_tone'])}</span>
-      </div>
-      <div class="metric-strip">{metric_strip}</div>
-      <p class="relationship-read">{escape(relationship['read'])}</p>
-      <h4>双轴走势</h4>
-      <div class="dual-axis-grid">{trend_charts}</div>
-      <h4>滚动相关</h4>
-      {chart}
-      <h4>阶段表现</h4>
-      <table class="phase-table">
-        <thead><tr><th>子指标</th><th>阶段</th><th>相关系数</th><th>判断</th><th>黄金收益</th><th>样本</th></tr></thead>
-        <tbody>{''.join(phase_rows)}</tbody>
-      </table>
-    </article>
-    """
-
-
 def evidence_hook_line(layer):
     """单驱动的判定推导句;数据被剔除时如实说明未计入姿态。"""
     quality = layer.get("data_quality")
@@ -2774,31 +2419,6 @@ def make_evidence_unit(unit_id, title, source_note, relationship, layer,
         <p class="evidence-footnote">徽章与阈值带按「{escape(corr_label)}」以现有阈值(顺预期 ≥0.35 有效、逆预期 ≥0.1 失效)判定;滚动窗为重叠样本,n 即窗口长度;阈值、窗口与已知局限见「方法与数据」。</p>
       </div>
     </details>
-    """
-
-
-def make_relationship_section(relationships):
-    cards = []
-    for relationship in relationships:
-        if relationship["id"] in {"central_bank_purchases", "epu", "gpr"}:
-            cards.append(make_central_bank_relationship_card(relationship))
-        elif relationship["id"] in {"real_rate", "dollar", "inflation_expectation", "price_trend"}:
-            cards.append(make_horizon_relationship_card(relationship))
-        elif relationship["id"] == "positioning_technical":
-            cards.append(make_positioning_relationship_card(relationship))
-
-    return f"""
-  <section class="wide relationship-section">
-    <div class="section-title-row">
-      <div>
-        <h2>因子关系检验</h2>
-        <p>用同一批数值数据检验“指标是否好用”：看当前滚动相关，也看阶段表现。正负方向按常识方向设定，但结论只来自相关系数。</p>
-      </div>
-    </div>
-    <div class="relationship-grid">
-      {''.join(cards)}
-    </div>
-  </section>
     """
 
 
@@ -3195,98 +2815,6 @@ def make_research_section(dashboard):
       <div class="section-heading"><h2>研究依据</h2><span>五组驱动证据 · 辅助观察 · 方法与数据</span></div>
       {''.join(units)}
     </section>
-    """
-
-
-def make_research_details(dashboard):
-    relationship_section = make_relationship_section(dashboard["relationships"])
-    china_chart = make_bar_chart(
-        dashboard["reserve_rows"],
-        "china_mom_change",
-        "中国央行黄金储备环比变化柱状图",
-        "china-bar",
-    )
-    global_chart = make_bar_chart(
-        dashboard["reserve_rows"],
-        "global_mom_change",
-        "全球央行黄金储备环比变化柱状图",
-        "global-bar",
-    )
-    reserve_layer = next(
-        layer for layer in dashboard["layers"] if layer["id"] == "official_reserves")
-    positioning_layer = next(
-        layer
-        for layer in dashboard["layers"]
-        if layer["id"] == "positioning_technical"
-    )
-    reserve_sources = (
-        f"中国：{reserve_layer['latest'].get('china_source') or '—'}；"
-        f"全球：{reserve_layer['latest'].get('global_source') or '—'}"
-    )
-    quality_rows = "".join(
-        f"""
-      <tr>
-        <td>{escape(layer['name'])}</td>
-        <td>{escape(quality_badge(layer['data_quality']))}</td>
-        <td>{'—' if layer.get('lag_days') is None else str(layer['lag_days']) + ' 天'}</td>
-        <td>{escape(layer['latest'].get('date') or '—')}</td>
-        <td>{escape(layer['source'])}</td>
-      </tr>
-        """
-        for layer in dashboard["layers"]
-    )
-    valuation = dashboard["valuation"] or {}
-    valuation_text = (
-        f"长期估值：金价/M2 {fmt_number(valuation.get('gold_to_m2'), 3)}，"
-        f"估值分位 {fmt_number((valuation.get('valuation_percentile') or 0) * 100)}%，"
-        f"数据日期 {valuation.get('date', '—')}。"
-    )
-    scoring_summary = (
-        f"驱动净分 {int(dashboard['score']):+d} / "
-        f"有效驱动 {dashboard['active_layers']} 组 · "
-        f"归一化倾向 {dashboard['tendency']:+.2f} · "
-        f"当前姿态 {dashboard['posture']}"
-    )
-    method_contract_rows = "\n".join(
-        f"          <li>{escape(contract)}</li>"
-        for contract in make_driver_method_contracts()
-    )
-    return f"""
-    <details class="research-evidence">
-      <summary><strong>研究依据</strong><span>关系检验 · 历史阶段 · 数据来源与方法</span></summary>
-      {relationship_section}
-      <section class="wide">
-        <h2>央行购金历史</h2>
-        <p class="research-intro">{escape(reserve_layer['read'])}</p>
-        <div class="chart-pair">
-          <div class="chart-box"><h3>中国央行黄金储备环比（吨）</h3>{china_chart}</div>
-          <div class="chart-box"><h3>全球官方黄金储备环比（吨）</h3>{global_chart}</div>
-        </div>
-        <p class="method">数据日期 {escape(reserve_layer['latest'].get('date') or '—')} · 来源 {escape(reserve_sources)}</p>
-      </section>
-      <section class="wide">
-        <h2>数据质量与来源</h2>
-        <table>
-          <thead><tr><th>层级</th><th>质量</th><th>滞后</th><th>数据日期</th><th>来源</th></tr></thead>
-          <tbody>{quality_rows}</tbody>
-        </table>
-        <p class="method">仓位数据说明：{escape(positioning_layer['read'])}</p>
-        <p class="method">{escape(valuation_text)}</p>
-        <p class="method">生成时间：{escape(dashboard['updated_at'])} · 数据文件：{escape(dashboard['source_file'])}</p>
-      </section>
-      <section class="wide">
-        <h2>计算方法与已知局限</h2>
-        <p class="method"><strong>当前计分：</strong>{escape(scoring_summary)}</p>
-        <ul>
-          <li>五组驱动为实际利率、美元、中国央行购金、通胀预期、资金与仓位；ETF 与 CFTC 合为一组，价格技术不参与驱动合成。</li>
-          <li>支持记 +1、中性记 0、压力记 -1；归一化倾向 +0.25 及以上为偏多，-0.25 及以下为承压，其余为中性。缺失和严重滞后不计分，滞后仍计分；有效驱动少于 3 组时显示数据不足。</li>
-          <li>技术状态独立判断；严格多头或空头排列按下列精确合同判定。</li>
-{method_contract_rows}
-          <li>该姿态是等权启发式框架，实际利率、美元与通胀预期可能共线；关系检验只说明统计相关，相关性不代表因果，滚动相关使用重叠窗口。</li>
-          <li>EPU 与 GPR 只保留在研究依据，不参与首页姿态；SAFE 官方序列仍需手工维护。</li>
-        </ul>
-      </section>
-    </details>
     """
 
 
