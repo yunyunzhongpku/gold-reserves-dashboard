@@ -1452,5 +1452,28 @@ class ResearchSectionTests(unittest.TestCase):
         self.assertNotIn("latest_corr", positioning)
 
 
+class ResearchInteractionScriptTests(unittest.TestCase):
+    TODAY = _date(2026, 7, 7)   # 与 ResearchSectionTests 一致
+
+    def _html(self):
+        return build_site.build_html(build_site.read_dashboard_data(today=self.TODAY))
+
+    def test_html_embeds_evidence_link_script_without_hover_machinery(self):
+        html = self._html()
+        self.assertIn("link.dataset.evidenceTarget", html)
+        self.assertIn('target.tagName === "DETAILS"', html)
+        self.assertNotIn("data-hover-chart", html)   # E14 暂缓:图表与 JS 均无 hover 装置
+
+    def test_styles_cap_evidence_body_and_hide_spark_chrome(self):
+        html = self._html()
+        self.assertIn(".evidence-body { max-width: 680px;", html)
+        self.assertIn(".evidence-body svg { max-width: 520px;", html)
+        self.assertIn(".evidence-spark svg text", html)
+        self.assertNotIn(".phase-table", html)
+        self.assertNotIn(".metric-strip", html)
+        self.assertNotIn(".relationship-grid", html)
+        self.assertNotIn(".research-evidence", html)
+
+
 if __name__ == "__main__":
     unittest.main()

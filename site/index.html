@@ -202,66 +202,6 @@
       margin-top: 4px;
       max-width: 760px;
     }
-    .relationship-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-    .relationship-card {
-      min-width: 0;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 14px;
-      background: #fcfdfb;
-    }
-    .relationship-card-wide {
-      grid-column: 1 / -1;
-    }
-    .relationship-head {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-    .relationship-head h3 {
-      font-size: 18px;
-      margin-top: 3px;
-    }
-    .relationship-card h4 {
-      margin: 14px 0 6px;
-      font-size: 13px;
-      color: var(--muted);
-    }
-    .relationship-read {
-      color: #334036;
-      font-size: 13px;
-      margin-top: 10px;
-    }
-    .metric-strip {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
-    }
-    .metric-strip div {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 9px;
-      min-width: 0;
-      background: #ffffff;
-    }
-    .metric-strip span {
-      display: block;
-      color: var(--muted);
-      font-size: 11px;
-      margin-bottom: 3px;
-    }
-    .metric-strip strong {
-      display: block;
-      font-size: 16px;
-      line-height: 1.2;
-      overflow-wrap: anywhere;
-    }
     .tone {
       display: inline-block;
       border-radius: 6px;
@@ -304,19 +244,6 @@
       padding: 10px;
       background: #ffffff;
     }
-    .dual-axis-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
-    }
-    .dual-axis-item {
-      min-width: 0;
-    }
-    .dual-axis-item h5 {
-      margin: 0 0 6px;
-      color: var(--muted);
-      font-size: 12px;
-    }
     .dual-axis-legend {
       display: flex;
       gap: 14px;
@@ -335,10 +262,6 @@
       width: 16px;
       height: 3px;
       border-radius: 4px;
-    }
-    .phase-table td:nth-child(2),
-    .phase-table td:nth-child(3) {
-      white-space: nowrap;
     }
     .x-axis, .y-axis, .zero-axis, .left-axis, .right-axis { stroke: #c5cbbf; stroke-width: 1; }
     .right-axis { stroke: var(--gold); }
@@ -383,8 +306,6 @@
     }
     @media (max-width: 980px) {
       .hero, .section-grid, .chart-pair { grid-template-columns: 1fr; }
-      .relationship-grid { grid-template-columns: 1fr; }
-      .dual-axis-grid { grid-template-columns: 1fr; }
       .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .posture { text-align: left; }
       .chart-box { min-width: 0; }
@@ -428,7 +349,7 @@
       gap: 16px;
       margin-top: 18px;
     }
-    .price-panel, .technical-panel, .driver-panel, .recent-panel, .research-evidence {
+    .price-panel, .technical-panel, .driver-panel, .recent-panel, .evidence-unit {
       border: 1px solid var(--line);
       border-radius: 14px;
       background: var(--panel);
@@ -519,7 +440,7 @@
     .section-heading span { color: var(--muted); font-size: 13px; }
     .driver-head, .driver-row {
       display: grid;
-      grid-template-columns: 62px minmax(110px, 1fr) 100px 110px minmax(150px, 1.2fr) 112px;
+      grid-template-columns: 62px minmax(110px, 1fr) 100px 110px minmax(150px, 1.2fr) 112px 72px;
       gap: 10px;
       align-items: center;
     }
@@ -562,38 +483,63 @@
     .change-meta small { color: var(--muted); font-size: 12px; }
     .recent-change h3 { font-size: 16px; margin-top: 7px; }
     .recent-change p { color: #334036; font-size: 13px; margin-top: 5px; }
-    .research-evidence { margin-top: 16px; padding: 0 16px 16px; }
-    .research-evidence > summary {
-      cursor: pointer;
-      padding: 16px 0;
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
+    .research-section { margin-top: 16px; }
+    .evidence-unit { margin-top: 10px; scroll-margin-top: 12px; }
+    .evidence-unit > .evidence-summary {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px; cursor: pointer; list-style: none;
     }
-    .research-evidence > summary span { color: var(--muted); font-size: 13px; text-align: right; }
-    .research-evidence[open] > summary { border-bottom: 1px solid var(--line); }
-    .research-evidence .wide { margin-top: 16px; }
+    .evidence-unit > .evidence-summary::-webkit-details-marker { display: none; }
+    .evidence-caret {
+      width: 0; height: 0; border-left: 5px solid var(--muted);
+      border-top: 4px solid transparent; border-bottom: 4px solid transparent;
+      transition: transform 0.15s ease;
+    }
+    .evidence-unit[open] .evidence-caret { transform: rotate(90deg); }
+    .evidence-title { min-width: 150px; display: flex; flex-direction: column; }
+    .evidence-title small { color: var(--muted); font-size: 11px; }
+    .evidence-spark svg { width: 64px; height: 16px; display: block; }
+    .evidence-spark svg text, .evidence-spark svg line { display: none; }
+    .evidence-corr { font-size: 13px; white-space: nowrap; }
+    .evidence-count { font-size: 12.5px; color: #4a5568; white-space: nowrap; }
+    .evidence-quality { margin-left: auto; font-size: 12px; }
+    .evidence-unit[open] > .evidence-summary { border-bottom: 1px solid var(--line); }
+    .evidence-body { max-width: 680px; padding: 4px 16px 16px; }
+    .evidence-body svg { max-width: 520px; height: auto; display: block; }
+    .evidence-hook {
+      background: #fdf6e8; border: 1px solid #f0e3c4; border-radius: 6px;
+      padding: 8px 12px; font-size: 13px; margin: 10px 0;
+    }
+    .evidence-hook a { margin-left: 6px; font-size: 12px; }
+    .evidence-read { color: #334036; font-size: 13px; margin: 8px 0; }
+    .evidence-chart-block h4 { margin: 14px 0 4px; font-size: 13px; color: #4a5568; }
+    .evidence-sub-block { border-top: 1px dashed var(--line); padding-top: 10px; margin-top: 14px; }
+    .evidence-sub-block h3 { font-size: 14px; display: flex; gap: 8px; align-items: center; }
+    .evidence-sub-block h3 small { color: var(--muted); font-weight: normal; }
+    .evidence-footnote { color: var(--muted); font-size: 11.5px; margin-top: 10px; }
+    .evidence-link { font-size: 12px; white-space: nowrap; }
+    .chart-box h5 { margin: 0 0 4px; font-size: 12.5px; color: #4a5568; }
+    .grid-line { stroke: #ececec; stroke-width: 1; }
+    .band-label { font-size: 10px; fill: #8a938c; }
     .research-intro { color: #334036; margin-bottom: 12px; font-size: 13px; }
     @media (max-width: 900px) {
-      .decision-header, .price-stage, .decision-grid, .chart-pair,
-      .relationship-grid, .dual-axis-grid { grid-template-columns: 1fr; }
+      .decision-header, .price-stage, .decision-grid, .chart-pair { grid-template-columns: 1fr; }
       .posture { text-align: left; }
       .driver-head { display: none; }
-      .driver-row { grid-template-columns: 54px minmax(120px, 1fr) minmax(90px, auto) minmax(90px, auto); }
+      .driver-row { grid-template-columns: 54px minmax(120px, 1fr) minmax(90px, auto) minmax(90px, auto) 72px; }
       .driver-row > span:nth-last-child(-n+2) { grid-column: 2 / -1; }
       .chart-box { min-width: 0; }
+      .evidence-body { padding: 4px 12px 12px; }
     }
     @media (max-width: 560px) {
       main { padding: 18px 12px 32px; }
       h1 { font-size: 28px; }
       .price-value { font-size: 32px; }
-      .driver-row { grid-template-columns: 48px minmax(0, 1fr); }
+      .driver-row { grid-template-columns: 48px minmax(0, 1fr) 72px; }
       .driver-row > strong, .driver-row > span:nth-child(n+3) { grid-column: 2 / -1; }
-      .research-evidence { padding: 0 12px 12px; }
-      .research-evidence > summary { flex-direction: column; }
-      .research-evidence > summary span { text-align: left; }
-      .metric-strip { grid-template-columns: 1fr; }
       .wide table { min-width: 680px; }
+      .evidence-spark { display: none; }
+      .evidence-summary { flex-wrap: wrap; gap: 8px; }
     }
   </style>
 </head>
@@ -1936,7 +1882,7 @@
         </tbody>
           </table>
           <p class="method">仓位数据说明：SPDR+iShares 黄金 ETF 合计 1465.49 吨，近约 1 个月变化 -39.29 吨；GVZ 26.00，三年分位 86.51%。Managed Money 黄金净多 115,395 张，近 4 周变化 +17,949 张，三年分位 44.23%。GVZ 数据 2026-07-06(滞后,滞后 7 天)。</p>
-          <p class="method">生成时间：2026-07-13 11:09:12 · 数据文件：data/招商证券：黄金图表整理2607.xlsx + data/market/official_reserves_manual.csv</p>
+          <p class="method">生成时间：2026-07-13 11:23:15 · 数据文件：data/招商证券：黄金图表整理2607.xlsx + data/market/official_reserves_manual.csv</p>
         </section>
         <section class="wide">
           <h2>计算方法与已知局限</h2>
@@ -2089,6 +2035,14 @@
   });
 
   activateRange("1y");
+})();
+(() => {
+  document.querySelectorAll("[data-evidence-target]").forEach((link) => {
+    link.addEventListener("click", () => {
+      const target = document.getElementById(link.dataset.evidenceTarget);
+      if (target && target.tagName === "DETAILS") target.open = true;
+    });
+  });
 })();
 </script>
 </body>
