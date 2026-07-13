@@ -2640,6 +2640,67 @@ def make_positioning_relationship_card(relationship):
     """
 
 
+def evidence_hook_line(layer):
+    """单驱动的判定推导句;数据被剔除时如实说明未计入姿态。"""
+    quality = layer.get("data_quality")
+    state = layer.get("state")
+    if quality in ("missing", "very-stale") or state not in ("supportive", "neutral", "headwind"):
+        lag = layer.get("lag_days")
+        lag_part = f"（滞后 {lag} 天）" if lag is not None else ""
+        return f"数据{QUALITY_LABELS.get(quality, '缺失')}{lag_part}，该驱动本期未计入首屏姿态。"
+    rules = {
+        "real_rate": f"容忍带 ±{REAL_RATE_CHANGE_THRESHOLD}pct，利率下行超带判支持、上行超带判压力",
+        "dollar": f"容忍带 ±{DOLLAR_CHANGE_THRESHOLD}，美元走弱超带判支持、走强超带判压力",
+        "official_reserves": "净买入判支持、净卖出判压力、零变动判中性",
+        "inflation_expectation": f"容忍带 ±{INFLATION_CHANGE_THRESHOLD}pct，通胀预期上行超带判支持、回落超带判压力",
+    }
+    window = (
+        "最新月环比购金" if layer["id"] == "official_reserves"
+        else f"近 {DRIVER_DAILY_LOOKBACK} 个有效观测变化"
+    )
+    return (
+        f"{window} {layer.get('change_label') or '—'}，{rules[layer['id']]}"
+        f" → 判『{STATE_LABELS[state]}』。"
+    )
+
+
+def positioning_hook_lines(layer):
+    latest = layer["latest"]
+    sub = layer["sub_states"]
+    return [
+        (f"ETF：近 {DRIVER_DAILY_LOOKBACK} 个观测持仓变化 "
+         f"{fmt_signed(latest.get('etf_change'), suffix=' 吨')}，"
+         f"容忍带 ±{ETF_CHANGE_THRESHOLD_TONNES:g} 吨 → {STATE_LABELS.get(sub['etf'], '缺失')}"),
+        (f"CFTC：近 {COT_CHANGE_LOOKBACK_WEEKS} 周净多变化 "
+         f"{fmt_signed_integer(latest.get('managed_money_net_change'), suffix=' 张')}，"
+         f"容忍带 ±{COT_CHANGE_THRESHOLD_CONTRACTS:,} 张；三年分位超过 "
+         f"{COT_CROWDING_PERCENTILE:.0%} 视为拥挤、直接判压力 → {STATE_LABELS.get(sub['cot'], '缺失')}"),
+        (f"合成：两票均值 ≥ +{POSITIONING_AVERAGE_VOTE_THRESHOLD:g} 判支持、"
+         f"≤ -{POSITIONING_AVERAGE_VOTE_THRESHOLD:g} 判压力，其余中性；GVZ 不投票"
+         f" → 判『{STATE_LABELS[layer['state']]}』。"),
+    ]
+
+
+def make_evidence_hook(layer):
+    scoring = (
+        layer.get("state") in ("supportive", "neutral", "headwind")
+        and layer.get("data_quality") not in ("missing", "very-stale")
+    )
+    if layer["id"] == "positioning_technical" and scoring:
+        body = "<br>".join(escape(line) for line in positioning_hook_lines(layer))
+    else:
+        body = escape(evidence_hook_line(layer))
+    # 未计入姿态时标题不得显示原 state 徽章(very-stale 层的 state 仍是三态之一,
+    # 但它没进投票,标「压力/支持」会与正文「未计入」自相矛盾)
+    title = state_badge(layer["state"]) if scoring else "未计入"
+    return f"""
+      <div class="evidence-hook">
+        <strong>首屏当前：{title}</strong> · {body}
+        <a href="#evidence-method">完整规则见方法与数据 →</a>
+      </div>
+    """
+
+
 def make_relationship_section(relationships):
     cards = []
     for relationship in relationships:

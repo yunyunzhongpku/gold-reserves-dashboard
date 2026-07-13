@@ -1254,5 +1254,54 @@ class EvidenceChartRenderTests(unittest.TestCase):
         self.assertIn(">-15.0<", html)
 
 
+class EvidenceHookTests(unittest.TestCase):
+    def test_real_rate_hook_explains_threshold_and_verdict(self):
+        layer = {"id": "real_rate", "state": "headwind", "data_quality": "fresh",
+                 "change": 0.18, "change_label": "+0.18pct", "lag_days": 1}
+        html = build_site.make_evidence_hook(layer)
+        self.assertIn("+0.18pct", html)          # 变化值
+        self.assertIn("±0.05pct", html)          # REAL_RATE_CHANGE_THRESHOLD
+        self.assertIn("判『压力』", html)          # 判定结论
+        self.assertIn("#evidence-method", html)  # 完整规则链接
+
+    def test_reserve_hook_uses_monthly_wording(self):
+        layer = {"id": "official_reserves", "state": "supportive", "data_quality": "fresh",
+                 "change": 5.0, "change_label": "+5.0 吨", "lag_days": 10}
+        html = build_site.make_evidence_hook(layer)
+        self.assertIn("+5.0 吨", html)
+        self.assertIn("净买入判支持", html)
+        self.assertIn("判『支持』", html)
+
+    def test_missing_layer_hook_says_excluded_from_posture(self):
+        layer = {"id": "dollar", "state": "missing", "data_quality": "missing",
+                 "change": None, "change_label": "—", "lag_days": None}
+        html = build_site.make_evidence_hook(layer)
+        self.assertIn("首屏当前：未计入", html)
+        self.assertIn("未计入首屏姿态", html)
+        self.assertNotIn("判『", html)
+
+    def test_very_stale_layer_hook_reports_lag_days_and_hides_state(self):
+        layer = {"id": "real_rate", "state": "headwind", "data_quality": "very-stale",
+                 "change": 0.18, "change_label": "+0.18pct", "lag_days": 30}
+        html = build_site.make_evidence_hook(layer)
+        self.assertIn("严重滞后", html)
+        self.assertIn("30 天", html)
+        self.assertIn("未计入首屏姿态", html)
+        self.assertIn("首屏当前：未计入", html)
+        self.assertNotIn("压力", html)   # 标题不得显示未参与投票的 state 徽章
+
+    def test_positioning_hook_lists_sub_rules_and_vote(self):
+        layer = {"id": "positioning_technical", "state": "neutral", "data_quality": "fresh",
+                 "sub_states": {"etf": "supportive", "cot": "headwind"},
+                 "latest": {"etf_change": 12.4, "managed_money_net_change": -18000},
+                 "lag_days": 0}
+        html = build_site.make_evidence_hook(layer)
+        self.assertIn("±3 吨", html)             # ETF_CHANGE_THRESHOLD_TONNES
+        self.assertIn("±15,000 张", html)        # COT_CHANGE_THRESHOLD_CONTRACTS
+        self.assertIn("90%", html)               # COT_CROWDING_PERCENTILE
+        self.assertIn("GVZ 不投票", html)
+        self.assertIn("判『中性』", html)
+
+
 if __name__ == "__main__":
     unittest.main()
