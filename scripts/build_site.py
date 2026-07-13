@@ -2888,6 +2888,7 @@ def make_driver_section(rows):
           <span class="quality">{escape(quality_badge(row['quality']))}</span>
           <small>观测日 {escape(row['date'] or '—')}</small>
         </span>
+        <a class="evidence-link" role="cell" href="#{DRIVER_EVIDENCE_TARGETS[row['id']]}" data-evidence-target="{DRIVER_EVIDENCE_TARGETS[row['id']]}">证据 →</a>
       </div>
         """
         for row in rows
@@ -2897,7 +2898,7 @@ def make_driver_section(rows):
       <div class="section-heading"><h2>当前主要驱动</h2><span>按决策相关性排序</span></div>
       <div id="driver-table" class="driver-table" role="table" aria-label="当前主要驱动">
         <div class="driver-head" role="row">
-          <span role="columnheader">状态</span><span role="columnheader">驱动</span><span role="columnheader">当前值</span><span role="columnheader">近期变化</span><span role="columnheader">解读</span><span role="columnheader">质量 / 观测日</span>
+          <span role="columnheader">状态</span><span role="columnheader">驱动</span><span role="columnheader">当前值</span><span role="columnheader">近期变化</span><span role="columnheader">解读</span><span role="columnheader">质量 / 观测日</span><span role="columnheader"></span>
         </div>
         {body}
       </div>
@@ -2984,6 +2985,217 @@ def make_driver_method_contracts():
             "严格空头排列：价格 ≤ MA20 < MA60 < MA200。"
         ),
     ]
+
+
+DRIVER_EVIDENCE_TARGETS = {
+    "real_rate": "evidence-real-rate",
+    "dollar": "evidence-dollar",
+    "official_reserves": "evidence-reserve",
+    "inflation_expectation": "evidence-inflation",
+    "etf": "evidence-positioning",
+    "cot": "evidence-positioning",
+}
+
+
+def tone_counts_text(tones):
+    parts = []
+    for word in ("有效", "偏弱", "失效", "样本不足"):
+        count = tones.count(word)
+        if count:
+            parts.append(f"{count} {word}")
+    return " · ".join(parts) if parts else "样本不足"
+
+
+def make_positioning_evidence_unit(relationship, layer):
+    sub_blocks = []
+    for sub_metric in relationship["sub_metrics"]:
+        block = make_evidence_relationship_block(sub_metric, "52期滚动相关", 120)
+        sub_blocks.append(
+            f'<div class="evidence-sub-block"><h3>{escape(sub_metric["name"])} '
+            f'{tone_badge(sub_metric["latest_tone"])}'
+            f'<small>滚动相关 {fmt_corr(sub_metric["latest_corr"])}</small></h3>{block}</div>'
+        )
+    counts = tone_counts_text([sub["latest_tone"] for sub in relationship["sub_metrics"]])
+    summary = make_evidence_summary(
+        "资金与仓位", "ETF / CFTC / GVZ",
+        f'<span class="evidence-count">{escape(counts)}</span>',
+        "", "",
+        f'<span class="quality">{quality_badge(layer["data_quality"])}</span>',
+    )
+    return f"""
+    <details class="evidence-unit" id="evidence-positioning">
+      {summary}
+      <div class="evidence-body">
+        {make_evidence_hook(layer)}
+        <p class="evidence-read">{escape(relationship['read'])}</p>
+        {''.join(sub_blocks)}
+        <p class="evidence-footnote">三个子指标分别判定:ETF、CFTC 看方向,GVZ 看绝对相关强弱(无方向、不作轴反转);口径不同,不产出三者的合成相关值。阈值与窗口见「方法与数据」。</p>
+      </div>
+    </details>
+    """
+
+
+def make_auxiliary_evidence_unit(relationships, valuation):
+    relationships_by_id = {item["id"]: item for item in relationships}
+    aux_defs = [
+        ("price_trend", 180, "252日滚动相关(中期)"),
+        ("epu", 84, "24个月滚动相关"),
+        ("gpr", 84, "24个月滚动相关"),
+    ]
+    sub_blocks = []
+    for relationship_id, chart_limit, corr_label in aux_defs:
+        relationship = relationships_by_id[relationship_id]
+        block = make_evidence_relationship_block(relationship, corr_label, chart_limit)
+        sub_blocks.append(
+            f'<div class="evidence-sub-block"><h3>{escape(relationship["name"])} '
+            f'{tone_badge(relationship["latest_tone"])}</h3>'
+            f'<p class="evidence-read">{escape(relationship["read"])}</p>'
+            f'{block}</div>'
+        )
+    valuation = valuation or {}
+    valuation_text = (
+        f"长期估值：金价/M2 {fmt_number(valuation.get('gold_to_m2'), 3)}，"
+        f"估值分位 {fmt_number((valuation.get('valuation_percentile') or 0) * 100)}%，"
+        f"数据日期 {valuation.get('date', '—')}。"
+    )
+    summary = make_evidence_summary(
+        "辅助观察", "价格趋势 / EPU / GPR",
+        '<span class="evidence-count">不计分</span>', "", "", "",
+    )
+    return f"""
+    <details class="evidence-unit" id="evidence-auxiliary">
+      {summary}
+      <div class="evidence-body">
+        <p class="evidence-note">以下指标不参与首页姿态计分,仅作背景观察。</p>
+        {''.join(sub_blocks)}
+        <p class="method">{escape(valuation_text)}</p>
+      </div>
+    </details>
+    """
+
+
+def make_method_evidence_unit(dashboard):
+    positioning_layer = next(
+        layer
+        for layer in dashboard["layers"]
+        if layer["id"] == "positioning_technical"
+    )
+    quality_rows = "".join(
+        f"""
+      <tr>
+        <td>{escape(layer['name'])}</td>
+        <td>{escape(quality_badge(layer['data_quality']))}</td>
+        <td>{'—' if layer.get('lag_days') is None else str(layer['lag_days']) + ' 天'}</td>
+        <td>{escape(layer['latest'].get('date') or '—')}</td>
+        <td>{escape(layer['source'])}</td>
+      </tr>
+        """
+        for layer in dashboard["layers"]
+    )
+    scoring_summary = (
+        f"驱动净分 {int(dashboard['score']):+d} / "
+        f"有效驱动 {dashboard['active_layers']} 组 · "
+        f"归一化倾向 {dashboard['tendency']:+.2f} · "
+        f"当前姿态 {dashboard['posture']}"
+    )
+    method_contract_rows = "\n".join(
+        f"          <li>{escape(contract)}</li>"
+        for contract in make_driver_method_contracts()
+    )
+    summary = make_evidence_summary(
+        "方法与数据", "口径 · 阈值 · 来源 · 已知局限", "", "", "", "")
+    return f"""
+    <details class="evidence-unit" id="evidence-method">
+      {summary}
+      <div class="evidence-body">
+        <section class="wide">
+          <h2>数据质量与来源</h2>
+          <table>
+            <thead><tr><th>层级</th><th>质量</th><th>滞后</th><th>数据日期</th><th>来源</th></tr></thead>
+            <tbody>{quality_rows}</tbody>
+          </table>
+          <p class="method">仓位数据说明：{escape(positioning_layer['read'])}</p>
+          <p class="method">生成时间：{escape(dashboard['updated_at'])} · 数据文件：{escape(dashboard['source_file'])}</p>
+        </section>
+        <section class="wide">
+          <h2>计算方法与已知局限</h2>
+          <p class="method"><strong>当前计分：</strong>{escape(scoring_summary)}</p>
+          <ul>
+            <li>五组驱动为实际利率、美元、中国央行购金、通胀预期、资金与仓位；ETF 与 CFTC 合为一组，价格技术不参与驱动合成。</li>
+            <li>支持记 +1、中性记 0、压力记 -1；归一化倾向 +0.25 及以上为偏多，-0.25 及以下为承压，其余为中性。缺失和严重滞后不计分，滞后仍计分；有效驱动少于 3 组时显示数据不足。</li>
+            <li>技术状态独立判断；严格多头或空头排列按下列精确合同判定。</li>
+{method_contract_rows}
+            <li>该姿态是等权启发式框架，实际利率、美元与通胀预期可能共线；关系检验只说明统计相关，相关性不代表因果，滚动相关使用重叠窗口。</li>
+            <li>EPU 与 GPR 只保留在研究依据，不参与首页姿态；SAFE 官方序列仍需手工维护。</li>
+            <li>关系演变图：滚动相关折线叠加三态阈值参考带（顺预期 ≥0.35 有效、逆预期 ≥0.1 失效、其余偏弱；GVZ 按绝对值），带边界即现有 corr_tone 阈值，不做历史分段。</li>
+            <li>滚动窗口为重叠样本：n 为观测数、有效自由度低于 n，相关值只是描述统计，不宣称显著性。</li>
+          </ul>
+        </section>
+      </div>
+    </details>
+    """
+
+
+def make_research_section(dashboard):
+    relationships = {item["id"]: item for item in dashboard["relationships"]}
+    layers = {layer["id"]: layer for layer in dashboard["layers"]}
+    reserve_layer = layers["official_reserves"]
+    china_chart = make_bar_chart(
+        dashboard["reserve_rows"],
+        "china_mom_change",
+        "中国央行黄金储备环比变化柱状图",
+        "china-bar",
+    )
+    global_chart = make_bar_chart(
+        dashboard["reserve_rows"],
+        "global_mom_change",
+        "全球央行黄金储备环比变化柱状图",
+        "global-bar",
+    )
+    reserve_sources = (
+        f"中国：{reserve_layer['latest'].get('china_source') or '—'}；"
+        f"全球：{reserve_layer['latest'].get('global_source') or '—'}"
+    )
+    reserve_extra = f"""
+        <section class="wide">
+          <h2>官方购金历史</h2>
+          <p class="research-intro">{escape(reserve_layer['read'])}</p>
+          <div class="chart-pair">
+            <div class="chart-box"><h3>中国央行黄金储备环比（吨）</h3>{china_chart}</div>
+            <div class="chart-box"><h3>全球官方黄金储备环比（吨）</h3>{global_chart}</div>
+          </div>
+          <p class="method">数据日期 {escape(reserve_layer['latest'].get('date') or '—')} · 来源 {escape(reserve_sources)}</p>
+        </section>
+    """
+    units = [
+        make_evidence_unit(
+            "evidence-real-rate", "实际利率", "FRED DFII10",
+            relationships["real_rate"], layers["real_rate"],
+            180, 504, "252日滚动相关(中期)"),
+        make_evidence_unit(
+            "evidence-dollar", "美元", "Wind USDX.FX",
+            relationships["dollar"], layers["dollar"],
+            180, 504, "252日滚动相关(中期)"),
+        make_evidence_unit(
+            "evidence-reserve", "官方购金", "SAFE · 月频",
+            relationships["central_bank_purchases"], layers["official_reserves"],
+            84, 24, "24个月滚动相关",
+            extra_sections=reserve_extra),
+        make_evidence_unit(
+            "evidence-inflation", "通胀预期", "FRED T10YIE",
+            relationships["inflation_expectation"], layers["inflation_expectation"],
+            180, 504, "252日滚动相关(中期)"),
+        make_positioning_evidence_unit(
+            relationships["positioning_technical"], layers["positioning_technical"]),
+        make_auxiliary_evidence_unit(dashboard["relationships"], dashboard["valuation"]),
+        make_method_evidence_unit(dashboard),
+    ]
+    return f"""
+    <section class="research-section" id="research">
+      <div class="section-heading"><h2>研究依据</h2><span>五组驱动证据 · 辅助观察 · 方法与数据</span></div>
+      {''.join(units)}
+    </section>
+    """
 
 
 def make_research_details(dashboard):
@@ -3104,7 +3316,7 @@ def build_html(dashboard):
     price_section = make_price_summary_section(dashboard["technical_layer"])
     driver_section = make_driver_section(dashboard["driver_rows"])
     recent_changes_section = make_recent_changes_section(dashboard["recent_changes"])
-    research_details = make_research_details(dashboard)
+    research_details = make_research_section(dashboard)
 
     html = f"""<!doctype html>
 <html lang="zh-CN">

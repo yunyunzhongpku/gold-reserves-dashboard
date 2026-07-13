@@ -548,9 +548,9 @@ class GoldDashboardDataTest(unittest.TestCase):
         self.assertIn('id="recent-changes"', html)
         self.assertEqual(html.count('class="recent-change '), 3)
         self.assertEqual(html.count('class="change-state state-'), 3)
-        self.assertIn('<details class="research-evidence">', html)
+        self.assertEqual(html.count('<details class="evidence-unit"'), 7)
         self.assertIn("研究依据", html)
-        self.assertNotIn('<details class="research-evidence" open>', html)
+        self.assertNotIn('<details class="evidence-unit" open', html)
         self.assertNotIn('<section class="cards">', html)
         self.assertNotIn("<h2>What Changed</h2>", html)
         self.assertNotIn("<h2>失效条件</h2>", html)
@@ -634,7 +634,8 @@ class GoldDashboardDataTest(unittest.TestCase):
         html = build_site.build_html(dashboard)
         self.assertIn("经济政策不确定性", html)
         self.assertIn("地缘政治风险", html)
-        self.assertIn("因子关系检验", html)
+        self.assertIn('id="evidence-auxiliary"', html)
+        self.assertIn("不参与首页姿态", html)
         self.assertIn("中国：SAFE", html)
         self.assertIn("全球：Excel: 官方黄金储备", html)
         self.assertIn("+14.93 吨", html)
@@ -657,9 +658,12 @@ class GoldDashboardDataTest(unittest.TestCase):
             },
         )
 
+        tone_words = {"有效", "偏弱", "失效", "样本不足"}
+
         central_bank = relationships["central_bank_purchases"]
         self.assertIsNotNone(central_bank["start_month"])
-        self.assertGreaterEqual(len(central_bank["phases"]), 3)
+        self.assertTrue(central_bank["rolling_corr"])
+        self.assertIn(central_bank["latest_tone"], tone_words)
         self.assertIsNotNone(central_bank["latest_corr"])
         self.assertTrue(central_bank["rolling_corr"])
 
@@ -668,7 +672,8 @@ class GoldDashboardDataTest(unittest.TestCase):
         self.assertIn("medium_term", real_rate)
         self.assertIsNotNone(real_rate["short_term"]["latest_corr"])
         self.assertIsNotNone(real_rate["medium_term"]["latest_corr"])
-        self.assertGreaterEqual(len(real_rate["phases"]), 3)
+        self.assertTrue(real_rate["rolling_corr"])
+        self.assertIn(real_rate["latest_tone"], tone_words)
 
         for relationship_id in ["dollar", "inflation_expectation"]:
             relationship = relationships[relationship_id]
@@ -676,7 +681,8 @@ class GoldDashboardDataTest(unittest.TestCase):
             self.assertIn("medium_term", relationship)
             self.assertIsNotNone(relationship["short_term"]["latest_corr"])
             self.assertIsNotNone(relationship["medium_term"]["latest_corr"])
-            self.assertGreaterEqual(len(relationship["phases"]), 3)
+            self.assertTrue(relationship["rolling_corr"])
+            self.assertIn(relationship["latest_tone"], tone_words)
 
         positioning = relationships["positioning_technical"]
         sub_metrics = {item["id"]: item for item in positioning["sub_metrics"]}
@@ -684,15 +690,15 @@ class GoldDashboardDataTest(unittest.TestCase):
         for sub_metric in sub_metrics.values():
             self.assertIsNotNone(sub_metric["latest_corr"])
             self.assertTrue(sub_metric["rolling_corr"])
-            self.assertGreaterEqual(len(sub_metric["phases"]), 3)
+            self.assertIn(sub_metric["latest_tone"], tone_words)
 
         html = build_site.build_html(dashboard)
-        self.assertIn("因子关系检验", html)
+        self.assertIn('id="research"', html)
         self.assertIn("什么时候开始显著推动", html)
         self.assertIn("滚动相关", html)
-        self.assertIn("阶段表现", html)
+        self.assertIn("关系演变", html)
         self.assertIn("实际利率短期", html)
-        self.assertIn("实际利率中期", html)
+        self.assertIn("252日滚动相关(中期)", html)   # 中期窗现由 corr_label 承接,不再走 metric-strip 的因子专属标签(E11 退役)
         self.assertIn("美元短期", html)
         self.assertIn("通胀预期短期", html)
         self.assertIn("ETF 持仓", html)
@@ -716,6 +722,9 @@ class GoldDashboardDataTest(unittest.TestCase):
         self.assertIn('class="right-axis"', html)
         self.assertIn("黄金价格", html)
         self.assertIn("滚动相关", html)
+        self.assertIn('class="grid-line"', html)
+        self.assertIn("已反转", html)
+        self.assertIn('class="tone-band"', html)
 
 
 class DriverPostureTest(unittest.TestCase):
@@ -898,8 +907,8 @@ class DriverPostureTest(unittest.TestCase):
 
         self.assertIn('role="table" aria-label="当前主要驱动"', section)
         self.assertEqual(section.count('role="row"'), 7)
-        self.assertEqual(section.count('role="columnheader"'), 6)
-        self.assertEqual(section.count('role="cell"'), 36)
+        self.assertEqual(section.count('role="columnheader"'), 7)
+        self.assertEqual(section.count('role="cell"'), 42)
         self.assertNotIn('aria-hidden="true"', section)
 
         for row in dashboard["driver_rows"]:
@@ -1368,6 +1377,72 @@ class EvidenceUnitTests(unittest.TestCase):
             chart_limit=180, spark_limit=504, corr_label="252日滚动相关(中期)",
         )
         self.assertNotIn("evidence-hook", html)
+
+
+class ResearchSectionTests(unittest.TestCase):
+    TODAY = _date(2026, 7, 7)   # 与现有集成测试类一致(避免两套快照日期)
+
+    def test_tone_counts_text_orders_and_skips_zero(self):
+        self.assertEqual(
+            build_site.tone_counts_text(["有效", "失效", "有效"]), "2 有效 · 1 失效")
+        self.assertEqual(build_site.tone_counts_text(["偏弱"]), "1 偏弱")
+        # 「样本不足」必须显式计入,不得静默省略(缺失显式化红线)
+        self.assertEqual(
+            build_site.tone_counts_text(["有效", "失效", "样本不足"]),
+            "1 有效 · 1 失效 · 1 样本不足")
+        self.assertEqual(build_site.tone_counts_text(["样本不足"]), "1 样本不足")
+
+    def test_research_section_exposes_seven_evidence_units(self):
+        dashboard = build_site.read_dashboard_data(today=self.TODAY)
+        html = build_site.build_html(dashboard)
+        self.assertEqual(html.count('<details class="evidence-unit"'), 7)
+        for anchor in [
+            "evidence-real-rate", "evidence-dollar", "evidence-reserve",
+            "evidence-inflation", "evidence-positioning",
+            "evidence-auxiliary", "evidence-method",
+        ]:
+            self.assertIn(f'id="{anchor}"', html)
+        self.assertNotIn('<details class="research-evidence">', html)
+        self.assertNotIn("阶段表现", html)
+        self.assertNotIn('class="phase-table"', html)
+        self.assertNotIn('class="metric-strip"', html)
+        self.assertIn("研究依据", html)
+        self.assertIn("不参与首页姿态", html)          # 辅助观察提示
+        self.assertIn("官方购金历史", html)             # 柱状图并入购金单元
+        self.assertIn("数据质量与来源", html)
+        self.assertIn("计算方法与已知局限", html)
+
+    def test_driver_rows_link_to_evidence_units(self):
+        dashboard = build_site.read_dashboard_data(today=self.TODAY)
+        html = build_site.build_html(dashboard)
+        self.assertIn(
+            'href="#evidence-real-rate" data-evidence-target="evidence-real-rate"', html)
+        self.assertIn(
+            'href="#evidence-reserve" data-evidence-target="evidence-reserve"', html)
+        self.assertEqual(html.count('data-evidence-target="evidence-positioning"'), 2)
+
+    def test_positioning_summary_shows_tone_counts_not_average(self):
+        dashboard = build_site.read_dashboard_data(today=self.TODAY)
+        html = build_site.build_html(dashboard)
+        start = html.index('id="evidence-positioning"')
+        body_start = html.index('<div class="evidence-body"', start)
+        summary_html = html[start:body_start]
+        self.assertIn('class="evidence-count"', summary_html)
+        self.assertRegex(summary_html, r"\d+ (有效|偏弱|失效)")
+        self.assertNotIn("滚动相关", summary_html)      # summary 无任何合成相关值
+        self.assertNotIn("sparkline", summary_html)     # summary 无 sparkline(E16)
+
+    def test_gvz_sub_block_is_not_inverted_and_positioning_has_sub_blocks(self):
+        dashboard = build_site.read_dashboard_data(today=self.TODAY)
+        html = build_site.build_html(dashboard)
+        start = html.index('id="evidence-positioning"')
+        end = html.index('id="evidence-auxiliary"')
+        positioning_html = html[start:end]
+        self.assertIn("ETF 持仓", positioning_html)
+        self.assertIn("Managed Money 净多", positioning_html)
+        self.assertIn("GVZ 波动率", positioning_html)
+        gvz_part = positioning_html[positioning_html.index("GVZ 波动率"):]
+        self.assertNotIn("已反转", gvz_part)
 
 
 if __name__ == "__main__":
