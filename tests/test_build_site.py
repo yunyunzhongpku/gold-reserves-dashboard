@@ -1303,5 +1303,72 @@ class EvidenceHookTests(unittest.TestCase):
         self.assertIn("判『中性』", html)
 
 
+class EvidenceUnitTests(unittest.TestCase):
+    @staticmethod
+    def _relationship(expected="negative"):
+        rows = []
+        day = date(2023, 1, 1)
+        rolling = []
+        for i in range(400):
+            rows.append({
+                "date": day.isoformat(), "_date": day,
+                "real_rate": 1.0 + i * 0.002, "gold_price": 2000.0 + i * 3,
+            })
+            if i >= 100:
+                rolling.append({
+                    "date": day.isoformat(), "_date": day,
+                    "corr": -0.6 if i < 250 else 0.3,
+                })
+            day = day + timedelta(days=1)
+        return {
+            "id": "real_rate", "name": "实际利率", "expected": expected,
+            "latest_corr": rolling[-1]["corr"],
+            "latest_tone": build_site.corr_tone(rolling[-1]["corr"], expected=expected),
+            "rolling_corr": rolling, "trend_rows": rows,
+            "factor_key": "real_rate", "factor_label": "实际利率",
+            "gold_key": "gold_price",
+            "read": "实际利率是持金机会成本,预期负相关。",
+        }
+
+    @staticmethod
+    def _layer():
+        return {"id": "real_rate", "state": "headwind", "data_quality": "fresh",
+                "change": 0.18, "change_label": "+0.18pct", "lag_days": 1}
+
+    def test_evidence_unit_assembles_summary_hook_charts_and_bands(self):
+        html = build_site.make_evidence_unit(
+            "evidence-real-rate", "实际利率", "FRED DFII10",
+            self._relationship(), self._layer(),
+            chart_limit=180, spark_limit=504, corr_label="252日滚动相关(中期)",
+        )
+        self.assertIn('<details class="evidence-unit" id="evidence-real-rate">', html)
+        self.assertIn('class="evidence-summary"', html)
+        self.assertIn("FRED DFII10", html)
+        self.assertIn('class="evidence-hook"', html)
+        self.assertIn("±0.05pct", html)                  # 钩子含阈值推导
+        self.assertIn("已反转", html)                     # expected=negative → 主图反转
+        self.assertIn('class="tone-band"', html)          # 演变图阈值带
+        self.assertIn('class="evidence-spark"', html)
+        self.assertIn('class="sparkline"', html)
+        self.assertIn("滚动相关", html)
+        self.assertIn('class="evidence-body"', html)
+        self.assertIn("重叠样本", html)                    # 尾注 n 说明(E9)
+
+    def test_positive_expected_unit_does_not_invert(self):
+        relationship = self._relationship(expected="positive")
+        html = build_site.make_evidence_unit(
+            "evidence-x", "测试因子", "来源", relationship, self._layer(),
+            chart_limit=84, spark_limit=24, corr_label="24个月滚动相关",
+        )
+        self.assertNotIn("已反转", html)
+
+    def test_unit_without_layer_has_no_hook(self):
+        html = build_site.make_evidence_unit(
+            "evidence-aux", "辅助", "来源", self._relationship(), None,
+            chart_limit=180, spark_limit=504, corr_label="252日滚动相关(中期)",
+        )
+        self.assertNotIn("evidence-hook", html)
+
+
 if __name__ == "__main__":
     unittest.main()

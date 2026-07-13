@@ -2701,6 +2701,82 @@ def make_evidence_hook(layer):
     """
 
 
+def make_evidence_summary(title, source_note, badge_html, spark_html, corr_html, quality_html):
+    return f"""
+      <summary class="evidence-summary">
+        <span class="evidence-caret" aria-hidden="true"></span>
+        <span class="evidence-title"><strong>{escape(title)}</strong><small>{escape(source_note)}</small></span>
+        {badge_html}
+        <span class="evidence-spark">{spark_html}</span>
+        <span class="evidence-corr">{corr_html}</span>
+        <span class="evidence-quality">{quality_html}</span>
+      </summary>
+    """
+
+
+def make_evidence_relationship_block(relationship, corr_label, chart_limit):
+    expected = relationship["expected"]
+    dual = make_dual_axis_chart(
+        relationship["trend_rows"],
+        relationship["factor_key"],
+        relationship["factor_label"],
+        relationship["gold_key"],
+        limit=chart_limit,
+        invert_factor=expected == "negative",
+    )
+    series = [{"label": corr_label, "rows": relationship["rolling_corr"], "color": "#237a57"}]
+    if relationship.get("short_term"):
+        series.append({
+            "label": relationship["short_term"]["label"],
+            "rows": relationship["short_term"]["rolling_corr"],
+            "color": "#366b9f",
+            "dash": True,
+        })
+    corr = make_corr_chart(
+        series,
+        f"{relationship['name']}与黄金收益滚动相关及三态阈值带",
+        limit=chart_limit,
+        expected=expected,
+    )
+    return f"""
+      <div class="evidence-chart-block">
+        <h4>主关系走势</h4>
+        {dual}
+        <h4>关系演变</h4>
+        {corr}
+      </div>
+    """
+
+
+def make_evidence_unit(unit_id, title, source_note, relationship, layer,
+                       chart_limit, spark_limit, corr_label, extra_sections=""):
+    spark = make_sparkline(
+        relationship["rolling_corr"], "corr",
+        color="#237a57", width=64, height=16, limit=spark_limit)
+    summary = make_evidence_summary(
+        title,
+        source_note,
+        tone_badge(relationship["latest_tone"]),
+        spark,
+        f"滚动相关 <strong>{fmt_corr(relationship['latest_corr'])}</strong>",
+        f'<span class="quality">{quality_badge(layer["data_quality"])}</span>' if layer else "",
+    )
+    hook = make_evidence_hook(layer) if layer else ""
+    block = make_evidence_relationship_block(relationship, corr_label, chart_limit)
+    return f"""
+    <details class="evidence-unit" id="{unit_id}">
+      {summary}
+      <div class="evidence-body">
+        {hook}
+        <p class="evidence-read">{escape(relationship['read'])}</p>
+        {block}
+        {extra_sections}
+        <p class="evidence-footnote">徽章与阈值带按「{escape(corr_label)}」以现有阈值(顺预期 ≥0.35 有效、逆预期 ≥0.1 失效)判定;滚动窗为重叠样本,n 即窗口长度;阈值、窗口与已知局限见「方法与数据」。</p>
+      </div>
+    </details>
+    """
+
+
 def make_relationship_section(relationships):
     cards = []
     for relationship in relationships:
