@@ -3,7 +3,7 @@ import re
 import sys
 import tempfile
 import unittest
-from datetime import date, date as _date
+from datetime import date, date as _date, timedelta
 from pathlib import Path
 
 
@@ -1200,6 +1200,58 @@ class EvidenceChartRenderTests(unittest.TestCase):
         html = build_site.make_corr_chart(
             [{"label": "x", "rows": rolling, "color": "#237a57"}], "t", expected="positive")
         self.assertLess(html.index('class="tone-band"'), html.index("<path"))
+
+    @staticmethod
+    def _trend_rows(count=80):
+        rows = []
+        day = date(2024, 1, 1)
+        for i in range(count):
+            rows.append({
+                "date": day.isoformat(), "_date": day,
+                "factor": 1.0 + i * 0.01, "gold_price": 2000.0 + i * 5,
+            })
+            day = day + timedelta(days=1)
+        return rows
+
+    def test_dual_axis_marks_inverted_axis_only_when_requested(self):
+        rows = self._trend_rows()
+        normal = build_site.make_dual_axis_chart(rows, "factor", "因子X")
+        inverted = build_site.make_dual_axis_chart(
+            rows, "factor", "因子X", invert_factor=True)
+        self.assertNotIn("已反转", normal)
+        self.assertIn("已反转", inverted)
+        self.assertIn('class="grid-line"', normal)
+        self.assertNotIn("data-hover-chart", normal)      # E14 暂缓,不得输出 hover 装置
+
+    def test_dual_axis_inversion_flips_geometry_not_axis_values(self):
+        rows = self._trend_rows()
+        normal = build_site.make_dual_axis_chart(rows, "factor", "因子X")
+        inverted = build_site.make_dual_axis_chart(
+            rows, "factor", "因子X", invert_factor=True)
+
+        def first_factor_y(html):
+            match = re.search(r'<path d="M ([0-9.]+) ([0-9.]+)', html)
+            return float(match.group(2))
+
+        # 因子序列单调上升:正常轴首点在下(y 大),反转轴首点在上(y 小)
+        self.assertGreater(first_factor_y(normal), first_factor_y(inverted))
+        # 轴刻度是原始数值:正常轴顶端是最大值 1.79,反转轴顶端是最小值 1.00,
+        # 两个数值在两种模式下都存在(只是位置对调),模板先渲染顶端刻度。
+        for html in (normal, inverted):
+            self.assertIn(">1.79<", html)
+            self.assertIn(">1.00<", html)
+        self.assertLess(normal.index(">1.79<"), normal.index(">1.00<"))
+        self.assertLess(inverted.index(">1.00<"), inverted.index(">1.79<"))
+
+    def test_bar_chart_shows_y_axis_scale(self):
+        rows = [
+            {"date": f"2025-{month:02d}-28", "_date": date(2025, month, 28), "change": value}
+            for month, value in [(1, 10.0), (2, -5.0), (3, 15.0)]
+        ]
+        html = build_site.make_bar_chart(rows, "change", "测试柱状图", "china-bar")
+        self.assertIn(">+15.0<", html)
+        self.assertIn(">0<", html)
+        self.assertIn(">-15.0<", html)
 
 
 if __name__ == "__main__":

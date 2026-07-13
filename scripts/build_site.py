@@ -2219,6 +2219,9 @@ def make_bar_chart(rows, change_key, aria_label, bar_class):
     <svg class="bar-chart" viewBox="0 0 {svg_width} 240" role="img" aria-label="{escape(aria_label)}">
       <line x1="30" y1="24" x2="30" y2="210" class="y-axis"></line>
       <line x1="30" y1="{mid_y}" x2="{svg_width - 20}" y2="{mid_y}" class="x-axis"></line>
+      <text x="2" y="34" class="chart-label">+{fmt_axis_value(max_abs)}</text>
+      <text x="2" y="{mid_y + 4}" class="chart-label">0</text>
+      <text x="2" y="196" class="chart-label">-{fmt_axis_value(max_abs)}</text>
       {''.join(bars)}
     </svg>
     """
@@ -2235,6 +2238,7 @@ def make_dual_axis_chart(
     limit=180,
     factor_color="#366b9f",
     gold_color="#b88728",
+    invert_factor=False,
 ):
     points = [
         row for row in rows
@@ -2252,50 +2256,60 @@ def make_dual_axis_chart(
 
     factor_values = [row[factor_key] for row in points]
     gold_values = [row[gold_key] for row in points]
-    factor_min = min(factor_values)
-    factor_max = max(factor_values)
-    gold_min = min(gold_values)
-    gold_max = max(gold_values)
+    factor_min, factor_max = min(factor_values), max(factor_values)
+    gold_min, gold_max = min(gold_values), max(gold_values)
     factor_span = factor_max - factor_min or 1
     gold_span = gold_max - gold_min or 1
 
     def x_for(index):
         return left_pad + chart_width * index / (len(points) - 1)
 
-    def y_for(value, min_value, span):
-        return top_pad + chart_height * (1 - (value - min_value) / span)
+    def gold_y(value):
+        return top_pad + chart_height * (1 - (value - gold_min) / gold_span)
 
-    factor_coords = [
-        (x_for(i), y_for(row[factor_key], factor_min, factor_span))
-        for i, row in enumerate(points)
-    ]
-    gold_coords = [
-        (x_for(i), y_for(row[gold_key], gold_min, gold_span))
-        for i, row in enumerate(points)
-    ]
+    def factor_y(value):
+        ratio = (value - factor_min) / factor_span
+        if invert_factor:
+            return top_pad + chart_height * ratio
+        return top_pad + chart_height * (1 - ratio)
+
+    factor_coords = [(x_for(i), factor_y(row[factor_key])) for i, row in enumerate(points)]
+    gold_coords = [(x_for(i), gold_y(row[gold_key])) for i, row in enumerate(points)]
     factor_path = " ".join(
-        f"{'M' if i == 0 else 'L'} {x:.1f} {y:.1f}" for i, (x, y) in enumerate(factor_coords)
-    )
+        f"{'M' if i == 0 else 'L'} {x:.1f} {y:.1f}" for i, (x, y) in enumerate(factor_coords))
     gold_path = " ".join(
-        f"{'M' if i == 0 else 'L'} {x:.1f} {y:.1f}" for i, (x, y) in enumerate(gold_coords)
-    )
+        f"{'M' if i == 0 else 'L'} {x:.1f} {y:.1f}" for i, (x, y) in enumerate(gold_coords))
     first_label = points[0]["date"][2:7]
     last_label = points[-1]["date"][2:7]
+
+    mid_y = top_pad + chart_height / 2
+    grid_ys = [top_pad + chart_height * ratio for ratio in (0.25, 0.5, 0.75)]
+    grid_lines = "".join(
+        f'<line x1="{left_pad}" y1="{y:.1f}" x2="{width - right_pad}" y2="{y:.1f}" class="grid-line"></line>'
+        for y in grid_ys
+    )
+    factor_axis_top = factor_min if invert_factor else factor_max
+    factor_axis_bottom = factor_max if invert_factor else factor_min
+    factor_axis_mid = (factor_min + factor_max) / 2
+    invert_note = "(已反转)" if invert_factor else ""
 
     return f"""
     <div class="dual-axis-wrap">
       <div class="dual-axis-legend">
-        <span><i style="background:{factor_color}"></i>{escape(factor_label)} {fmt_axis_value(points[-1][factor_key])}</span>
+        <span><i style="background:{factor_color}"></i>{escape(factor_label)}{invert_note} {fmt_axis_value(points[-1][factor_key])}</span>
         <span><i style="background:{gold_color}"></i>{escape(gold_label)} {fmt_axis_value(points[-1][gold_key])}</span>
       </div>
-      <svg class="dual-axis-chart" viewBox="0 0 {width} {height}" role="img" aria-label="{escape(factor_label)}与{escape(gold_label)}双轴走势">
+      <svg class="dual-axis-chart" viewBox="0 0 {width} {height}" role="img" aria-label="{escape(factor_label)}与{escape(gold_label)}双轴走势{invert_note}">
+        {grid_lines}
         <line x1="{left_pad}" y1="{top_pad}" x2="{left_pad}" y2="{height - bottom_pad}" class="left-axis"></line>
         <line x1="{width - right_pad}" y1="{top_pad}" x2="{width - right_pad}" y2="{height - bottom_pad}" class="right-axis"></line>
         <line x1="{left_pad}" y1="{height - bottom_pad}" x2="{width - right_pad}" y2="{height - bottom_pad}" class="x-axis"></line>
-        <text x="6" y="{top_pad + 4}" class="chart-label">{fmt_axis_value(factor_max)}</text>
-        <text x="6" y="{height - bottom_pad}" class="chart-label">{fmt_axis_value(factor_min)}</text>
-        <text x="{width - 6}" y="{top_pad + 4}" text-anchor="end" class="chart-label">{fmt_axis_value(gold_max)}</text>
-        <text x="{width - 6}" y="{height - bottom_pad}" text-anchor="end" class="chart-label">{fmt_axis_value(gold_min)}</text>
+        <text x="6" y="{top_pad + 4}" class="chart-label">{fmt_axis_value(gold_max)}</text>
+        <text x="6" y="{mid_y + 4:.1f}" class="chart-label">{fmt_axis_value((gold_min + gold_max) / 2)}</text>
+        <text x="6" y="{height - bottom_pad}" class="chart-label">{fmt_axis_value(gold_min)}</text>
+        <text x="{width - 6}" y="{top_pad + 4}" text-anchor="end" class="chart-label">{fmt_axis_value(factor_axis_top)}</text>
+        <text x="{width - 6}" y="{mid_y + 4:.1f}" text-anchor="end" class="chart-label">{fmt_axis_value(factor_axis_mid)}</text>
+        <text x="{width - 6}" y="{height - bottom_pad}" text-anchor="end" class="chart-label">{fmt_axis_value(factor_axis_bottom)}</text>
         <path d="{factor_path}" fill="none" stroke="{factor_color}" stroke-width="2.3"></path>
         <path d="{gold_path}" fill="none" stroke="{gold_color}" stroke-width="2.3"></path>
         <circle cx="{factor_coords[-1][0]:.1f}" cy="{factor_coords[-1][1]:.1f}" r="3.1" fill="{factor_color}"></circle>
