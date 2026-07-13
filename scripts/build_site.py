@@ -2192,7 +2192,7 @@ def make_dual_axis_chart(
     """
 
 
-TONE_BAND_FILLS = {"有效": "#237a57", "偏弱": "#808080", "失效": "#b5543c"}
+TONE_BAND_FILLS = {"有效": "#237a57", "偏弱": "#677064", "失效": "#b94343"}
 TONE_BAND_OPACITY = {"有效": 0.07, "偏弱": 0.05, "失效": 0.07}
 
 
@@ -2350,7 +2350,7 @@ def make_evidence_hook(layer):
     return f"""
       <div class="evidence-hook">
         <strong>首屏当前：{title}</strong> · {body}
-        <a href="#evidence-method">完整规则见方法与数据 →</a>
+        <a href="#evidence-method" data-evidence-target="evidence-method">完整规则见方法与数据 →</a>
       </div>
     """
 
@@ -3047,18 +3047,6 @@ def build_html(dashboard):
       height: auto;
       display: block;
     }}
-    .section-title-row {{
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 14px;
-    }}
-    .section-title-row p {{
-      color: var(--muted);
-      font-size: 13px;
-      margin-top: 4px;
-      max-width: 760px;
-    }}
     .tone {{
       display: inline-block;
       border-radius: 6px;
@@ -3121,8 +3109,8 @@ def build_html(dashboard):
       border-radius: 4px;
     }}
     .x-axis, .y-axis, .zero-axis, .left-axis, .right-axis {{ stroke: #c5cbbf; stroke-width: 1; }}
-    .right-axis {{ stroke: var(--gold); }}
-    .left-axis {{ stroke: var(--blue); }}
+    .right-axis {{ stroke: var(--blue); }}
+    .left-axis {{ stroke: var(--gold); }}
     .zero-axis {{ stroke-dasharray: 3 4; }}
     .chart-label, .bar-value {{
       fill: var(--muted);
@@ -3375,7 +3363,6 @@ def build_html(dashboard):
     .evidence-sub-block h3 small {{ color: var(--muted); font-weight: normal; }}
     .evidence-footnote {{ color: var(--muted); font-size: 11.5px; margin-top: 10px; }}
     .evidence-link {{ font-size: 12px; white-space: nowrap; }}
-    .chart-box h5 {{ margin: 0 0 4px; font-size: 12.5px; color: #4a5568; }}
     .grid-line {{ stroke: #ececec; stroke-width: 1; }}
     .band-label {{ font-size: 10px; fill: #8a938c; }}
     .research-intro {{ color: #334036; margin-bottom: 12px; font-size: 13px; }}
@@ -3384,7 +3371,8 @@ def build_html(dashboard):
       .posture {{ text-align: left; }}
       .driver-head {{ display: none; }}
       .driver-row {{ grid-template-columns: 54px minmax(120px, 1fr) minmax(90px, auto) minmax(90px, auto) 72px; }}
-      .driver-row > span:nth-last-child(-n+2) {{ grid-column: 2 / -1; }}
+      .driver-row > span:nth-last-child(-n+3) {{ grid-column: 2 / -1; }}
+      .driver-row > a.evidence-link {{ grid-row: 1; grid-column: 5; }}
       .chart-box {{ min-width: 0; }}
       .evidence-body {{ padding: 4px 12px 12px; }}
     }}
@@ -3394,6 +3382,7 @@ def build_html(dashboard):
       .price-value {{ font-size: 32px; }}
       .driver-row {{ grid-template-columns: 48px minmax(0, 1fr) 72px; }}
       .driver-row > strong, .driver-row > span:nth-child(n+3) {{ grid-column: 2 / -1; }}
+      .driver-row > a.evidence-link {{ grid-row: 1; grid-column: 3; }}
       .wide table {{ min-width: 680px; }}
       .evidence-spark {{ display: none; }}
       .evidence-summary {{ flex-wrap: wrap; gap: 8px; }}

@@ -190,18 +190,6 @@
       height: auto;
       display: block;
     }
-    .section-title-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 14px;
-    }
-    .section-title-row p {
-      color: var(--muted);
-      font-size: 13px;
-      margin-top: 4px;
-      max-width: 760px;
-    }
     .tone {
       display: inline-block;
       border-radius: 6px;
@@ -264,8 +252,8 @@
       border-radius: 4px;
     }
     .x-axis, .y-axis, .zero-axis, .left-axis, .right-axis { stroke: #c5cbbf; stroke-width: 1; }
-    .right-axis { stroke: var(--gold); }
-    .left-axis { stroke: var(--blue); }
+    .right-axis { stroke: var(--blue); }
+    .left-axis { stroke: var(--gold); }
     .zero-axis { stroke-dasharray: 3 4; }
     .chart-label, .bar-value {
       fill: var(--muted);
@@ -518,7 +506,6 @@
     .evidence-sub-block h3 small { color: var(--muted); font-weight: normal; }
     .evidence-footnote { color: var(--muted); font-size: 11.5px; margin-top: 10px; }
     .evidence-link { font-size: 12px; white-space: nowrap; }
-    .chart-box h5 { margin: 0 0 4px; font-size: 12.5px; color: #4a5568; }
     .grid-line { stroke: #ececec; stroke-width: 1; }
     .band-label { font-size: 10px; fill: #8a938c; }
     .research-intro { color: #334036; margin-bottom: 12px; font-size: 13px; }
@@ -527,7 +514,8 @@
       .posture { text-align: left; }
       .driver-head { display: none; }
       .driver-row { grid-template-columns: 54px minmax(120px, 1fr) minmax(90px, auto) minmax(90px, auto) 72px; }
-      .driver-row > span:nth-last-child(-n+2) { grid-column: 2 / -1; }
+      .driver-row > span:nth-last-child(-n+3) { grid-column: 2 / -1; }
+      .driver-row > a.evidence-link { grid-row: 1; grid-column: 5; }
       .chart-box { min-width: 0; }
       .evidence-body { padding: 4px 12px 12px; }
     }
@@ -537,6 +525,7 @@
       .price-value { font-size: 32px; }
       .driver-row { grid-template-columns: 48px minmax(0, 1fr) 72px; }
       .driver-row > strong, .driver-row > span:nth-child(n+3) { grid-column: 2 / -1; }
+      .driver-row > a.evidence-link { grid-row: 1; grid-column: 3; }
       .wide table { min-width: 680px; }
       .evidence-spark { display: none; }
       .evidence-summary { flex-wrap: wrap; gap: 8px; }
@@ -803,7 +792,7 @@
 
       <div class="evidence-hook">
         <strong>首屏当前：压力</strong> · 近 21 个有效观测变化 +0.18pct，容忍带 ±0.05pct，利率下行超带判支持、上行超带判压力 → 判『压力』。
-        <a href="#evidence-method">完整规则见方法与数据 →</a>
+        <a href="#evidence-method" data-evidence-target="evidence-method">完整规则见方法与数据 →</a>
       </div>
 
         <p class="evidence-read">短期滚动相关 -0.69，中期滚动相关 -0.34；负值越强，实际利率对黄金的解释越有效。</p>
@@ -841,7 +830,7 @@
     <div class="corr-wrap">
       <div class="corr-legend"><span><i style="background:#237a57"></i>252日滚动相关(中期) -0.34</span><span><i style="background:#366b9f"></i>实际利率短期 -0.69</span></div>
       <svg class="corr-chart" viewBox="0 0 720 180" role="img" aria-label="实际利率与黄金收益滚动相关及三态阈值带">
-        <rect class="tone-band" x="38" y="104.4" width="666" height="41.6" fill="#237a57" fill-opacity="0.07"></rect><text class="band-label" x="698" y="128.2" text-anchor="end">有效</text><rect class="tone-band" x="38" y="75.6" width="666" height="28.8" fill="#808080" fill-opacity="0.05"></rect><text class="band-label" x="698" y="93.0" text-anchor="end">偏弱</text><rect class="tone-band" x="38" y="18.0" width="666" height="57.6" fill="#b5543c" fill-opacity="0.07"></rect><text class="band-label" x="698" y="49.8" text-anchor="end">失效</text>
+        <rect class="tone-band" x="38" y="104.4" width="666" height="41.6" fill="#237a57" fill-opacity="0.07"></rect><text class="band-label" x="698" y="128.2" text-anchor="end">有效</text><rect class="tone-band" x="38" y="75.6" width="666" height="28.8" fill="#677064" fill-opacity="0.05"></rect><text class="band-label" x="698" y="93.0" text-anchor="end">偏弱</text><rect class="tone-band" x="38" y="18.0" width="666" height="57.6" fill="#b94343" fill-opacity="0.07"></rect><text class="band-label" x="698" y="49.8" text-anchor="end">失效</text>
         <line x1="38" y1="50.0" x2="704" y2="50.0" class="grid-line"></line>
         <line x1="38" y1="114.0" x2="704" y2="114.0" class="grid-line"></line>
         <line x1="38" y1="82.0" x2="704" y2="82.0" class="zero-axis"></line>
@@ -891,7 +880,7 @@
 
       <div class="evidence-hook">
         <strong>首屏当前：压力</strong> · 近 21 个有效观测变化 +1.45，容忍带 ±0.5，美元走弱超带判支持、走强超带判压力 → 判『压力』。
-        <a href="#evidence-method">完整规则见方法与数据 →</a>
+        <a href="#evidence-method" data-evidence-target="evidence-method">完整规则见方法与数据 →</a>
       </div>
 
         <p class="evidence-read">短期滚动相关 -0.63，中期滚动相关 -0.13；负值越强，美元走强对黄金的压制越稳定。</p>
@@ -929,7 +918,7 @@
     <div class="corr-wrap">
       <div class="corr-legend"><span><i style="background:#237a57"></i>252日滚动相关(中期) -0.13</span><span><i style="background:#366b9f"></i>美元短期 -0.63</span></div>
       <svg class="corr-chart" viewBox="0 0 720 180" role="img" aria-label="美元与黄金收益滚动相关及三态阈值带">
-        <rect class="tone-band" x="38" y="104.4" width="666" height="41.6" fill="#237a57" fill-opacity="0.07"></rect><text class="band-label" x="698" y="128.2" text-anchor="end">有效</text><rect class="tone-band" x="38" y="75.6" width="666" height="28.8" fill="#808080" fill-opacity="0.05"></rect><text class="band-label" x="698" y="93.0" text-anchor="end">偏弱</text><rect class="tone-band" x="38" y="18.0" width="666" height="57.6" fill="#b5543c" fill-opacity="0.07"></rect><text class="band-label" x="698" y="49.8" text-anchor="end">失效</text>
+        <rect class="tone-band" x="38" y="104.4" width="666" height="41.6" fill="#237a57" fill-opacity="0.07"></rect><text class="band-label" x="698" y="128.2" text-anchor="end">有效</text><rect class="tone-band" x="38" y="75.6" width="666" height="28.8" fill="#677064" fill-opacity="0.05"></rect><text class="band-label" x="698" y="93.0" text-anchor="end">偏弱</text><rect class="tone-band" x="38" y="18.0" width="666" height="57.6" fill="#b94343" fill-opacity="0.07"></rect><text class="band-label" x="698" y="49.8" text-anchor="end">失效</text>
         <line x1="38" y1="50.0" x2="704" y2="50.0" class="grid-line"></line>
         <line x1="38" y1="114.0" x2="704" y2="114.0" class="grid-line"></line>
         <line x1="38" y1="82.0" x2="704" y2="82.0" class="zero-axis"></line>
@@ -979,7 +968,7 @@
 
       <div class="evidence-hook">
         <strong>首屏当前：支持</strong> · 最新月环比购金 +14.93 吨，净买入判支持、净卖出判压力、零变动判中性 → 判『支持』。
-        <a href="#evidence-method">完整规则见方法与数据 →</a>
+        <a href="#evidence-method" data-evidence-target="evidence-method">完整规则见方法与数据 →</a>
       </div>
 
         <p class="evidence-read">什么时候开始显著推动：按中国官方黄金储备 3 个月增量连续超过 30 吨识别，最近一轮从 2023-01-31 开始。</p>
@@ -1017,7 +1006,7 @@
     <div class="corr-wrap">
       <div class="corr-legend"><span><i style="background:#237a57"></i>24个月滚动相关 -0.39</span></div>
       <svg class="corr-chart" viewBox="0 0 720 180" role="img" aria-label="央行购金与黄金收益滚动相关及三态阈值带">
-        <rect class="tone-band" x="38" y="88.4" width="666" height="57.6" fill="#b5543c" fill-opacity="0.07"></rect><text class="band-label" x="698" y="120.2" text-anchor="end">失效</text><rect class="tone-band" x="38" y="59.6" width="666" height="28.8" fill="#808080" fill-opacity="0.05"></rect><text class="band-label" x="698" y="77.0" text-anchor="end">偏弱</text><rect class="tone-band" x="38" y="18.0" width="666" height="41.6" fill="#237a57" fill-opacity="0.07"></rect><text class="band-label" x="698" y="41.8" text-anchor="end">有效</text>
+        <rect class="tone-band" x="38" y="88.4" width="666" height="57.6" fill="#b94343" fill-opacity="0.07"></rect><text class="band-label" x="698" y="120.2" text-anchor="end">失效</text><rect class="tone-band" x="38" y="59.6" width="666" height="28.8" fill="#677064" fill-opacity="0.05"></rect><text class="band-label" x="698" y="77.0" text-anchor="end">偏弱</text><rect class="tone-band" x="38" y="18.0" width="666" height="41.6" fill="#237a57" fill-opacity="0.07"></rect><text class="band-label" x="698" y="41.8" text-anchor="end">有效</text>
         <line x1="38" y1="50.0" x2="704" y2="50.0" class="grid-line"></line>
         <line x1="38" y1="114.0" x2="704" y2="114.0" class="grid-line"></line>
         <line x1="38" y1="82.0" x2="704" y2="82.0" class="zero-axis"></line>
@@ -1383,7 +1372,7 @@
 
       <div class="evidence-hook">
         <strong>首屏当前：压力</strong> · 近 21 个有效观测变化 -0.16pct，容忍带 ±0.05pct，通胀预期上行超带判支持、回落超带判压力 → 判『压力』。
-        <a href="#evidence-method">完整规则见方法与数据 →</a>
+        <a href="#evidence-method" data-evidence-target="evidence-method">完整规则见方法与数据 →</a>
       </div>
 
         <p class="evidence-read">短期滚动相关 +0.41，中期滚动相关 -0.40；正值越强，通胀补偿对黄金的解释越稳定。</p>
@@ -1421,7 +1410,7 @@
     <div class="corr-wrap">
       <div class="corr-legend"><span><i style="background:#237a57"></i>252日滚动相关(中期) -0.40</span><span><i style="background:#366b9f"></i>通胀预期短期 +0.41</span></div>
       <svg class="corr-chart" viewBox="0 0 720 180" role="img" aria-label="通胀预期与黄金收益滚动相关及三态阈值带">
-        <rect class="tone-band" x="38" y="88.4" width="666" height="57.6" fill="#b5543c" fill-opacity="0.07"></rect><text class="band-label" x="698" y="120.2" text-anchor="end">失效</text><rect class="tone-band" x="38" y="59.6" width="666" height="28.8" fill="#808080" fill-opacity="0.05"></rect><text class="band-label" x="698" y="77.0" text-anchor="end">偏弱</text><rect class="tone-band" x="38" y="18.0" width="666" height="41.6" fill="#237a57" fill-opacity="0.07"></rect><text class="band-label" x="698" y="41.8" text-anchor="end">有效</text>
+        <rect class="tone-band" x="38" y="88.4" width="666" height="57.6" fill="#b94343" fill-opacity="0.07"></rect><text class="band-label" x="698" y="120.2" text-anchor="end">失效</text><rect class="tone-band" x="38" y="59.6" width="666" height="28.8" fill="#677064" fill-opacity="0.05"></rect><text class="band-label" x="698" y="77.0" text-anchor="end">偏弱</text><rect class="tone-band" x="38" y="18.0" width="666" height="41.6" fill="#237a57" fill-opacity="0.07"></rect><text class="band-label" x="698" y="41.8" text-anchor="end">有效</text>
         <line x1="38" y1="50.0" x2="704" y2="50.0" class="grid-line"></line>
         <line x1="38" y1="114.0" x2="704" y2="114.0" class="grid-line"></line>
         <line x1="38" y1="82.0" x2="704" y2="82.0" class="zero-axis"></line>
@@ -1460,7 +1449,7 @@
 
       <div class="evidence-hook">
         <strong>首屏当前：中性</strong> · ETF：近 21 个观测持仓变化 -39.29 吨，容忍带 ±3 吨 → 压力<br>CFTC：近 4 周净多变化 +17,949 张，容忍带 ±15,000 张；三年分位超过 90% 视为拥挤、直接判压力 → 支持<br>合成：两票均值 ≥ +0.5 判支持、≤ -0.5 判压力，其余中性；GVZ 不投票 → 判『中性』。
-        <a href="#evidence-method">完整规则见方法与数据 →</a>
+        <a href="#evidence-method" data-evidence-target="evidence-method">完整规则见方法与数据 →</a>
       </div>
 
         <p class="evidence-read">仓位与技术层拆成 ETF 持仓、Managed Money 净多和 GVZ 波动率，分别看其对黄金短期收益的解释力。</p>
@@ -1498,7 +1487,7 @@
     <div class="corr-wrap">
       <div class="corr-legend"><span><i style="background:#237a57"></i>52期滚动相关 +0.83</span></div>
       <svg class="corr-chart" viewBox="0 0 720 180" role="img" aria-label="ETF 持仓与黄金收益滚动相关及三态阈值带">
-        <rect class="tone-band" x="38" y="88.4" width="666" height="57.6" fill="#b5543c" fill-opacity="0.07"></rect><text class="band-label" x="698" y="120.2" text-anchor="end">失效</text><rect class="tone-band" x="38" y="59.6" width="666" height="28.8" fill="#808080" fill-opacity="0.05"></rect><text class="band-label" x="698" y="77.0" text-anchor="end">偏弱</text><rect class="tone-band" x="38" y="18.0" width="666" height="41.6" fill="#237a57" fill-opacity="0.07"></rect><text class="band-label" x="698" y="41.8" text-anchor="end">有效</text>
+        <rect class="tone-band" x="38" y="88.4" width="666" height="57.6" fill="#b94343" fill-opacity="0.07"></rect><text class="band-label" x="698" y="120.2" text-anchor="end">失效</text><rect class="tone-band" x="38" y="59.6" width="666" height="28.8" fill="#677064" fill-opacity="0.05"></rect><text class="band-label" x="698" y="77.0" text-anchor="end">偏弱</text><rect class="tone-band" x="38" y="18.0" width="666" height="41.6" fill="#237a57" fill-opacity="0.07"></rect><text class="band-label" x="698" y="41.8" text-anchor="end">有效</text>
         <line x1="38" y1="50.0" x2="704" y2="50.0" class="grid-line"></line>
         <line x1="38" y1="114.0" x2="704" y2="114.0" class="grid-line"></line>
         <line x1="38" y1="82.0" x2="704" y2="82.0" class="zero-axis"></line>
@@ -1550,7 +1539,7 @@
     <div class="corr-wrap">
       <div class="corr-legend"><span><i style="background:#237a57"></i>52期滚动相关 -0.19</span></div>
       <svg class="corr-chart" viewBox="0 0 720 180" role="img" aria-label="Managed Money 净多与黄金收益滚动相关及三态阈值带">
-        <rect class="tone-band" x="38" y="88.4" width="666" height="57.6" fill="#b5543c" fill-opacity="0.07"></rect><text class="band-label" x="698" y="120.2" text-anchor="end">失效</text><rect class="tone-band" x="38" y="59.6" width="666" height="28.8" fill="#808080" fill-opacity="0.05"></rect><text class="band-label" x="698" y="77.0" text-anchor="end">偏弱</text><rect class="tone-band" x="38" y="18.0" width="666" height="41.6" fill="#237a57" fill-opacity="0.07"></rect><text class="band-label" x="698" y="41.8" text-anchor="end">有效</text>
+        <rect class="tone-band" x="38" y="88.4" width="666" height="57.6" fill="#b94343" fill-opacity="0.07"></rect><text class="band-label" x="698" y="120.2" text-anchor="end">失效</text><rect class="tone-band" x="38" y="59.6" width="666" height="28.8" fill="#677064" fill-opacity="0.05"></rect><text class="band-label" x="698" y="77.0" text-anchor="end">偏弱</text><rect class="tone-band" x="38" y="18.0" width="666" height="41.6" fill="#237a57" fill-opacity="0.07"></rect><text class="band-label" x="698" y="41.8" text-anchor="end">有效</text>
         <line x1="38" y1="50.0" x2="704" y2="50.0" class="grid-line"></line>
         <line x1="38" y1="114.0" x2="704" y2="114.0" class="grid-line"></line>
         <line x1="38" y1="82.0" x2="704" y2="82.0" class="zero-axis"></line>
@@ -1602,7 +1591,7 @@
     <div class="corr-wrap">
       <div class="corr-legend"><span><i style="background:#237a57"></i>52期滚动相关 -0.87</span></div>
       <svg class="corr-chart" viewBox="0 0 720 180" role="img" aria-label="GVZ 波动率与黄金收益滚动相关及三态阈值带">
-        <rect class="tone-band" x="38" y="104.4" width="666" height="41.6" fill="#237a57" fill-opacity="0.07"></rect><text class="band-label" x="698" y="128.2" text-anchor="end">有效</text><rect class="tone-band" x="38" y="88.4" width="666" height="16.0" fill="#808080" fill-opacity="0.05"></rect><text class="band-label" x="698" y="99.4" text-anchor="end">偏弱</text><rect class="tone-band" x="38" y="75.6" width="666" height="12.8" fill="#b5543c" fill-opacity="0.07"></rect><text class="band-label" x="698" y="85.0" text-anchor="end">失效</text><rect class="tone-band" x="38" y="59.6" width="666" height="16.0" fill="#808080" fill-opacity="0.05"></rect><text class="band-label" x="698" y="70.6" text-anchor="end">偏弱</text><rect class="tone-band" x="38" y="18.0" width="666" height="41.6" fill="#237a57" fill-opacity="0.07"></rect><text class="band-label" x="698" y="41.8" text-anchor="end">有效</text>
+        <rect class="tone-band" x="38" y="104.4" width="666" height="41.6" fill="#237a57" fill-opacity="0.07"></rect><text class="band-label" x="698" y="128.2" text-anchor="end">有效</text><rect class="tone-band" x="38" y="88.4" width="666" height="16.0" fill="#677064" fill-opacity="0.05"></rect><text class="band-label" x="698" y="99.4" text-anchor="end">偏弱</text><rect class="tone-band" x="38" y="75.6" width="666" height="12.8" fill="#b94343" fill-opacity="0.07"></rect><text class="band-label" x="698" y="85.0" text-anchor="end">失效</text><rect class="tone-band" x="38" y="59.6" width="666" height="16.0" fill="#677064" fill-opacity="0.05"></rect><text class="band-label" x="698" y="70.6" text-anchor="end">偏弱</text><rect class="tone-band" x="38" y="18.0" width="666" height="41.6" fill="#237a57" fill-opacity="0.07"></rect><text class="band-label" x="698" y="41.8" text-anchor="end">有效</text>
         <line x1="38" y1="50.0" x2="704" y2="50.0" class="grid-line"></line>
         <line x1="38" y1="114.0" x2="704" y2="114.0" class="grid-line"></line>
         <line x1="38" y1="82.0" x2="704" y2="82.0" class="zero-axis"></line>
@@ -1672,7 +1661,7 @@
     <div class="corr-wrap">
       <div class="corr-legend"><span><i style="background:#237a57"></i>252日滚动相关(中期) -0.55</span><span><i style="background:#366b9f"></i>趋势→未来1月 +0.19</span></div>
       <svg class="corr-chart" viewBox="0 0 720 180" role="img" aria-label="价格与趋势与黄金收益滚动相关及三态阈值带">
-        <rect class="tone-band" x="38" y="88.4" width="666" height="57.6" fill="#b5543c" fill-opacity="0.07"></rect><text class="band-label" x="698" y="120.2" text-anchor="end">失效</text><rect class="tone-band" x="38" y="59.6" width="666" height="28.8" fill="#808080" fill-opacity="0.05"></rect><text class="band-label" x="698" y="77.0" text-anchor="end">偏弱</text><rect class="tone-band" x="38" y="18.0" width="666" height="41.6" fill="#237a57" fill-opacity="0.07"></rect><text class="band-label" x="698" y="41.8" text-anchor="end">有效</text>
+        <rect class="tone-band" x="38" y="88.4" width="666" height="57.6" fill="#b94343" fill-opacity="0.07"></rect><text class="band-label" x="698" y="120.2" text-anchor="end">失效</text><rect class="tone-band" x="38" y="59.6" width="666" height="28.8" fill="#677064" fill-opacity="0.05"></rect><text class="band-label" x="698" y="77.0" text-anchor="end">偏弱</text><rect class="tone-band" x="38" y="18.0" width="666" height="41.6" fill="#237a57" fill-opacity="0.07"></rect><text class="band-label" x="698" y="41.8" text-anchor="end">有效</text>
         <line x1="38" y1="50.0" x2="704" y2="50.0" class="grid-line"></line>
         <line x1="38" y1="114.0" x2="704" y2="114.0" class="grid-line"></line>
         <line x1="38" y1="82.0" x2="704" y2="82.0" class="zero-axis"></line>
@@ -1724,7 +1713,7 @@
     <div class="corr-wrap">
       <div class="corr-legend"><span><i style="background:#237a57"></i>24个月滚动相关 +0.29</span></div>
       <svg class="corr-chart" viewBox="0 0 720 180" role="img" aria-label="经济政策不确定性与黄金收益滚动相关及三态阈值带">
-        <rect class="tone-band" x="38" y="88.4" width="666" height="57.6" fill="#b5543c" fill-opacity="0.07"></rect><text class="band-label" x="698" y="120.2" text-anchor="end">失效</text><rect class="tone-band" x="38" y="59.6" width="666" height="28.8" fill="#808080" fill-opacity="0.05"></rect><text class="band-label" x="698" y="77.0" text-anchor="end">偏弱</text><rect class="tone-band" x="38" y="18.0" width="666" height="41.6" fill="#237a57" fill-opacity="0.07"></rect><text class="band-label" x="698" y="41.8" text-anchor="end">有效</text>
+        <rect class="tone-band" x="38" y="88.4" width="666" height="57.6" fill="#b94343" fill-opacity="0.07"></rect><text class="band-label" x="698" y="120.2" text-anchor="end">失效</text><rect class="tone-band" x="38" y="59.6" width="666" height="28.8" fill="#677064" fill-opacity="0.05"></rect><text class="band-label" x="698" y="77.0" text-anchor="end">偏弱</text><rect class="tone-band" x="38" y="18.0" width="666" height="41.6" fill="#237a57" fill-opacity="0.07"></rect><text class="band-label" x="698" y="41.8" text-anchor="end">有效</text>
         <line x1="38" y1="50.0" x2="704" y2="50.0" class="grid-line"></line>
         <line x1="38" y1="114.0" x2="704" y2="114.0" class="grid-line"></line>
         <line x1="38" y1="82.0" x2="704" y2="82.0" class="zero-axis"></line>
@@ -1776,7 +1765,7 @@
     <div class="corr-wrap">
       <div class="corr-legend"><span><i style="background:#237a57"></i>24个月滚动相关 +0.03</span></div>
       <svg class="corr-chart" viewBox="0 0 720 180" role="img" aria-label="地缘政治风险与黄金收益滚动相关及三态阈值带">
-        <rect class="tone-band" x="38" y="88.4" width="666" height="57.6" fill="#b5543c" fill-opacity="0.07"></rect><text class="band-label" x="698" y="120.2" text-anchor="end">失效</text><rect class="tone-band" x="38" y="59.6" width="666" height="28.8" fill="#808080" fill-opacity="0.05"></rect><text class="band-label" x="698" y="77.0" text-anchor="end">偏弱</text><rect class="tone-band" x="38" y="18.0" width="666" height="41.6" fill="#237a57" fill-opacity="0.07"></rect><text class="band-label" x="698" y="41.8" text-anchor="end">有效</text>
+        <rect class="tone-band" x="38" y="88.4" width="666" height="57.6" fill="#b94343" fill-opacity="0.07"></rect><text class="band-label" x="698" y="120.2" text-anchor="end">失效</text><rect class="tone-band" x="38" y="59.6" width="666" height="28.8" fill="#677064" fill-opacity="0.05"></rect><text class="band-label" x="698" y="77.0" text-anchor="end">偏弱</text><rect class="tone-band" x="38" y="18.0" width="666" height="41.6" fill="#237a57" fill-opacity="0.07"></rect><text class="band-label" x="698" y="41.8" text-anchor="end">有效</text>
         <line x1="38" y1="50.0" x2="704" y2="50.0" class="grid-line"></line>
         <line x1="38" y1="114.0" x2="704" y2="114.0" class="grid-line"></line>
         <line x1="38" y1="82.0" x2="704" y2="82.0" class="zero-axis"></line>
@@ -1882,7 +1871,7 @@
         </tbody>
           </table>
           <p class="method">仓位数据说明：SPDR+iShares 黄金 ETF 合计 1465.49 吨，近约 1 个月变化 -39.29 吨；GVZ 26.00，三年分位 86.51%。Managed Money 黄金净多 115,395 张，近 4 周变化 +17,949 张，三年分位 44.23%。GVZ 数据 2026-07-06(滞后,滞后 7 天)。</p>
-          <p class="method">生成时间：2026-07-13 11:23:15 · 数据文件：data/招商证券：黄金图表整理2607.xlsx + data/market/official_reserves_manual.csv</p>
+          <p class="method">生成时间：2026-07-13 11:53:51 · 数据文件：data/招商证券：黄金图表整理2607.xlsx + data/market/official_reserves_manual.csv</p>
         </section>
         <section class="wide">
           <h2>计算方法与已知局限</h2>

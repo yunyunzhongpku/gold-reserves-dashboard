@@ -665,7 +665,6 @@ class GoldDashboardDataTest(unittest.TestCase):
         self.assertTrue(central_bank["rolling_corr"])
         self.assertIn(central_bank["latest_tone"], tone_words)
         self.assertIsNotNone(central_bank["latest_corr"])
-        self.assertTrue(central_bank["rolling_corr"])
 
         real_rate = relationships["real_rate"]
         self.assertIn("short_term", real_rate)
@@ -1450,6 +1449,7 @@ class ResearchSectionTests(unittest.TestCase):
             item for item in dashboard["relationships"]
             if item["id"] == "positioning_technical")
         self.assertNotIn("latest_corr", positioning)
+        self.assertNotIn("latest_tone", positioning)
 
 
 class ResearchInteractionScriptTests(unittest.TestCase):
