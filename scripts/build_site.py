@@ -2307,7 +2307,21 @@ def make_dual_axis_chart(
     """
 
 
-def make_corr_chart(series_defs, aria_label, width=720, height=180, limit=96):
+TONE_BAND_FILLS = {"有效": "#237a57", "偏弱": "#808080", "失效": "#b5543c"}
+TONE_BAND_OPACITY = {"有效": 0.07, "偏弱": 0.05, "失效": 0.07}
+
+
+def corr_tone_bands(expected):
+    """corr_tone 阈值的区间化表述:[(下界, 上界, 态), ...],覆盖 [-1, +1]。"""
+    if expected == "absolute":
+        return [(-1.0, -0.35, "有效"), (-0.35, -0.1, "偏弱"), (-0.1, 0.1, "失效"),
+                (0.1, 0.35, "偏弱"), (0.35, 1.0, "有效")]
+    if expected == "negative":
+        return [(-1.0, -0.35, "有效"), (-0.35, 0.1, "偏弱"), (0.1, 1.0, "失效")]
+    return [(-1.0, -0.1, "失效"), (-0.1, 0.35, "偏弱"), (0.35, 1.0, "有效")]
+
+
+def make_corr_chart(series_defs, aria_label, width=720, height=180, limit=96, expected=None):
     top_pad = 18
     bottom_pad = 34
     left_pad = 38
@@ -2345,6 +2359,19 @@ def make_corr_chart(series_defs, aria_label, width=720, height=180, limit=96):
     if not paths:
         return '<div class="empty-chart">暂无足够滚动相关数据</div>'
 
+    band_rects = []
+    if expected:
+        for lower, upper, tone in corr_tone_bands(expected):
+            band_y = y_for(upper)
+            band_height = y_for(lower) - y_for(upper)
+            band_rects.append(
+                f'<rect class="tone-band" x="{left_pad}" y="{band_y:.1f}" '
+                f'width="{chart_width}" height="{band_height:.1f}" '
+                f'fill="{TONE_BAND_FILLS[tone]}" fill-opacity="{TONE_BAND_OPACITY[tone]}"></rect>'
+                f'<text class="band-label" x="{width - right_pad - 6}" '
+                f'y="{band_y + band_height / 2 + 3:.1f}" text-anchor="end">{tone}</text>'
+            )
+
     visible_points.sort(key=lambda row: row["_date"])
     first_label = visible_points[0]["date"][2:7]
     last_label = visible_points[-1]["date"][2:7]
@@ -2353,11 +2380,16 @@ def make_corr_chart(series_defs, aria_label, width=720, height=180, limit=96):
     <div class="corr-wrap">
       <div class="corr-legend">{''.join(legends)}</div>
       <svg class="corr-chart" viewBox="0 0 {width} {height}" role="img" aria-label="{escape(aria_label)}">
+        {''.join(band_rects)}
+        <line x1="{left_pad}" y1="{y_for(0.5):.1f}" x2="{width - right_pad}" y2="{y_for(0.5):.1f}" class="grid-line"></line>
+        <line x1="{left_pad}" y1="{y_for(-0.5):.1f}" x2="{width - right_pad}" y2="{y_for(-0.5):.1f}" class="grid-line"></line>
         <line x1="{left_pad}" y1="{zero_y:.1f}" x2="{width - right_pad}" y2="{zero_y:.1f}" class="zero-axis"></line>
         <line x1="{left_pad}" y1="{top_pad}" x2="{left_pad}" y2="{height - bottom_pad}" class="y-axis"></line>
         <line x1="{left_pad}" y1="{height - bottom_pad}" x2="{width - right_pad}" y2="{height - bottom_pad}" class="x-axis"></line>
         <text x="8" y="{top_pad + 4}" class="chart-label">+1</text>
+        <text x="8" y="{y_for(0.5) + 4:.1f}" class="chart-label">+0.5</text>
         <text x="8" y="{zero_y + 4:.1f}" class="chart-label">0</text>
+        <text x="8" y="{y_for(-0.5) + 4:.1f}" class="chart-label">-0.5</text>
         <text x="8" y="{height - bottom_pad}" class="chart-label">-1</text>
         <text x="{left_pad}" y="{height - 8}" class="chart-label">{first_label}</text>
         <text x="{width - right_pad}" y="{height - 8}" text-anchor="end" class="chart-label">{last_label}</text>

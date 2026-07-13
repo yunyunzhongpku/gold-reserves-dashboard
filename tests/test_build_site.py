@@ -3,7 +3,7 @@ import re
 import sys
 import tempfile
 import unittest
-from datetime import date as _date
+from datetime import date, date as _date
 from pathlib import Path
 
 
@@ -1139,6 +1139,67 @@ class PostureTest(unittest.TestCase):
         self.assertEqual(active, 4)
         self.assertAlmostEqual(tendency, 0.25)
         self.assertEqual(posture, "偏多")
+
+
+class EvidenceChartRenderTests(unittest.TestCase):
+    @staticmethod
+    def _rolling(corr_values):
+        rows = []
+        day = date(2020, 1, 31)
+        for corr in corr_values:
+            rows.append({"date": day.isoformat(), "_date": day, "corr": corr})
+            day = build_site.shift_months(day, 1)
+        return rows
+
+    def test_corr_tone_bands_translate_thresholds(self):
+        self.assertEqual(
+            build_site.corr_tone_bands("positive"),
+            [(-1.0, -0.1, "失效"), (-0.1, 0.35, "偏弱"), (0.35, 1.0, "有效")])
+        self.assertEqual(
+            build_site.corr_tone_bands("negative"),
+            [(-1.0, -0.35, "有效"), (-0.35, 0.1, "偏弱"), (0.1, 1.0, "失效")])
+        self.assertEqual(
+            [tone for _, _, tone in build_site.corr_tone_bands("absolute")],
+            ["有效", "偏弱", "失效", "偏弱", "有效"])
+
+    def test_bands_agree_with_corr_tone_at_probe_points(self):
+        # 合同锁定:带只是 corr_tone 的可视化,任何探针点上两者不得矛盾。
+        # 探针落在共享边界时属于相邻两带,断言 corr_tone 结果在其中即可。
+        probes = [-0.99, -0.36, -0.35, -0.2, -0.1, -0.05, 0.0,
+                  0.05, 0.1, 0.2, 0.35, 0.36, 0.99]
+        for expected in ("positive", "negative", "absolute"):
+            for probe in probes:
+                tone = build_site.corr_tone(probe, expected=expected)
+                hit = [t for lo, hi, t in build_site.corr_tone_bands(expected)
+                       if lo <= probe <= hi]
+                self.assertIn(tone, hit, msg=f"{expected} @ {probe}")
+
+    def test_corr_chart_draws_bands_only_with_expected(self):
+        rolling = self._rolling([0.6] * 30 + [0.0] * 30)
+        series = [{"label": "24个月滚动相关", "rows": rolling, "color": "#237a57"}]
+        with_bands = build_site.make_corr_chart(series, "测试滚动相关", expected="positive")
+        without = build_site.make_corr_chart(series, "测试滚动相关")
+        self.assertEqual(with_bands.count('class="tone-band"'), 3)
+        self.assertEqual(with_bands.count('class="band-label"'), 3)
+        for tone in ("有效", "偏弱", "失效"):
+            self.assertIn(f">{tone}</text>", with_bands)
+        self.assertNotIn("tone-band", without)
+        self.assertIn('class="grid-line"', without)
+        self.assertIn(">+0.5<", without)
+        self.assertIn(">-0.5<", without)
+
+    def test_absolute_bands_render_five_rects(self):
+        rolling = self._rolling([0.6] * 30)
+        html = build_site.make_corr_chart(
+            [{"label": "x", "rows": rolling, "color": "#237a57"}], "t", expected="absolute")
+        self.assertEqual(html.count('class="tone-band"'), 5)
+        self.assertEqual(html.count(">有效</text>"), 2)
+
+    def test_bands_paint_below_series_paths(self):
+        rolling = self._rolling([0.6] * 30)
+        html = build_site.make_corr_chart(
+            [{"label": "x", "rows": rolling, "color": "#237a57"}], "t", expected="positive")
+        self.assertLess(html.index('class="tone-band"'), html.index("<path"))
 
 
 if __name__ == "__main__":
