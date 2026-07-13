@@ -1974,7 +1974,8 @@ def make_gold_chart_panel(technical_layer: dict) -> str:
     """
 
 
-def make_sparkline(rows, key, color="#2563eb", width=360, height=96, limit=120):
+def make_sparkline(rows, key, color="#2563eb", width=360, height=96, limit=120,
+                   compact=False):
     points = [(row["date"], row.get(key)) for row in rows if row.get(key) is not None][-limit:]
     if len(points) < 2:
         return '<div class="empty-chart">暂无足够数据</div>'
@@ -1983,10 +1984,13 @@ def make_sparkline(rows, key, color="#2563eb", width=360, height=96, limit=120):
     min_value = min(values)
     max_value = max(values)
     span = max_value - min_value or 1
-    left_pad = 42
-    right_pad = 10
-    top_pad = 12
-    bottom_pad = 22
+    if compact:
+        left_pad = right_pad = top_pad = bottom_pad = 2
+    else:
+        left_pad = 42
+        right_pad = 10
+        top_pad = 12
+        bottom_pad = 22
     chart_width = width - left_pad - right_pad
     chart_height = height - top_pad - bottom_pad
 
@@ -1997,18 +2001,28 @@ def make_sparkline(rows, key, color="#2563eb", width=360, height=96, limit=120):
         coords.append((x, y))
 
     path = " ".join(f"{'M' if i == 0 else 'L'} {x:.1f} {y:.1f}" for i, (x, y) in enumerate(coords))
-    first_label = points[0][0][2:7]
-    last_label = points[-1][0][2:7]
-    return f"""
-    <svg class="sparkline" viewBox="0 0 {width} {height}" role="img" aria-label="{escape(key)} trend">
+    if compact:
+        chart_chrome = ""
+        stroke_width = 1.8
+        circle_radius = 2
+    else:
+        first_label = points[0][0][2:7]
+        last_label = points[-1][0][2:7]
+        chart_chrome = f"""
       <line x1="{left_pad}" y1="{top_pad}" x2="{left_pad}" y2="{height - bottom_pad}" class="y-axis"></line>
       <line x1="{left_pad}" y1="{height - bottom_pad}" x2="{width - right_pad}" y2="{height - bottom_pad}" class="x-axis"></line>
       <text x="4" y="{top_pad + 4}" class="chart-label">{fmt_axis_value(max_value)}</text>
       <text x="4" y="{height - bottom_pad}" class="chart-label">{fmt_axis_value(min_value)}</text>
-      <path d="{path}" fill="none" stroke="{color}" stroke-width="2.5"></path>
-      <circle cx="{coords[-1][0]:.1f}" cy="{coords[-1][1]:.1f}" r="3.5" fill="{color}"></circle>
       <text x="{left_pad}" y="{height - 3}" class="chart-label">{first_label}</text>
       <text x="{width - right_pad}" y="{height - 3}" text-anchor="end" class="chart-label">{last_label}</text>
+        """
+        stroke_width = 2.5
+        circle_radius = 3.5
+    return f"""
+    <svg class="sparkline" viewBox="0 0 {width} {height}" role="img" aria-label="{escape(key)} trend">
+      {chart_chrome}
+      <path d="{path}" fill="none" stroke="{color}" stroke-width="{stroke_width}"></path>
+      <circle cx="{coords[-1][0]:.1f}" cy="{coords[-1][1]:.1f}" r="{circle_radius}" fill="{color}"></circle>
     </svg>
     """
 
@@ -2406,7 +2420,7 @@ def make_evidence_unit(unit_id, title, source_note, relationship, layer,
                        chart_limit, spark_limit, corr_label, extra_sections=""):
     spark = make_sparkline(
         relationship["rolling_corr"], "corr",
-        color="#237a57", width=64, height=16, limit=spark_limit)
+        color="#237a57", width=64, height=16, limit=spark_limit, compact=True)
     summary = make_evidence_summary(
         title,
         source_note,
@@ -3270,7 +3284,7 @@ def build_html(dashboard):
     .technical-trigger {{ font-size: 13px; }}
     .decision-grid {{
       display: grid;
-      grid-template-columns: minmax(0, 1.5fr) minmax(290px, .8fr);
+      grid-template-columns: minmax(0, 1fr) 290px;
       gap: 16px;
       margin-top: 16px;
     }}
@@ -3349,8 +3363,9 @@ def build_html(dashboard):
     .evidence-count {{ font-size: 12.5px; color: #4a5568; white-space: nowrap; }}
     .evidence-quality {{ margin-left: auto; font-size: 12px; }}
     .evidence-unit[open] > .evidence-summary {{ border-bottom: 1px solid var(--line); }}
-    .evidence-body {{ max-width: 680px; padding: 4px 16px 16px; }}
+    .evidence-body {{ max-width: 760px; padding: 4px 16px 16px; }}
     .evidence-body svg {{ max-width: 520px; height: auto; display: block; }}
+    .evidence-body .corr-chart {{ max-width: 720px; }}
     .evidence-hook {{
       background: #fdf6e8; border: 1px solid #f0e3c4; border-radius: 6px;
       padding: 8px 12px; font-size: 13px; margin: 10px 0;
@@ -3366,6 +3381,9 @@ def build_html(dashboard):
     .grid-line {{ stroke: #ececec; stroke-width: 1; }}
     .band-label {{ font-size: 10px; fill: #8a938c; }}
     .research-intro {{ color: #334036; margin-bottom: 12px; font-size: 13px; }}
+    @media (max-width: 1160px) {{
+      .decision-grid {{ grid-template-columns: 1fr; }}
+    }}
     @media (max-width: 900px) {{
       .decision-header, .price-stage, .decision-grid, .chart-pair {{ grid-template-columns: 1fr; }}
       .posture {{ text-align: left; }}

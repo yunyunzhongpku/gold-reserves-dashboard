@@ -1464,15 +1464,41 @@ class ResearchInteractionScriptTests(unittest.TestCase):
         self.assertIn('target.tagName === "DETAILS"', html)
         self.assertNotIn("data-hover-chart", html)   # E14 暂缓:图表与 JS 均无 hover 装置
 
-    def test_styles_cap_evidence_body_and_hide_spark_chrome(self):
+    def test_styles_give_corr_chart_more_room_and_hide_spark_chrome(self):
         html = self._html()
-        self.assertIn(".evidence-body { max-width: 680px;", html)
+        self.assertIn(".evidence-body { max-width: 760px;", html)
         self.assertIn(".evidence-body svg { max-width: 520px;", html)
+        self.assertIn(".evidence-body .corr-chart { max-width: 720px;", html)
         self.assertIn(".evidence-spark svg text", html)
         self.assertNotIn(".phase-table", html)
         self.assertNotIn(".metric-strip", html)
         self.assertNotIn(".relationship-grid", html)
         self.assertNotIn(".research-evidence", html)
+
+    def test_wide_decision_grid_reserves_room_for_evidence_column(self):
+        html = self._html()
+        self.assertIn(
+            "grid-template-columns: minmax(0, 1fr) 290px;", html)
+        self.assertIn("@media (max-width: 1160px)", html)
+
+    def test_compact_sparkline_uses_the_whole_tiny_viewbox(self):
+        rows = [
+            {"date": f"2026-01-{day:02d}", "corr": value}
+            for day, value in enumerate([-0.5, 0.0, 0.5], start=1)
+        ]
+        html = build_site.make_sparkline(
+            rows, "corr", width=64, height=16, compact=True)
+
+        self.assertIn('viewBox="0 0 64 16"', html)
+        self.assertNotIn("<line", html)
+        self.assertNotIn("<text", html)
+        path = re.search(r'<path d="([^"]+)"', html).group(1)
+        coords = [
+            (float(x), float(y))
+            for x, y in re.findall(r"(?:M|L) ([0-9.]+) ([0-9.]+)", path)
+        ]
+        self.assertGreater(coords[-1][0] - coords[0][0], 50)
+        self.assertTrue(all(0 <= x <= 64 and 0 <= y <= 16 for x, y in coords))
 
 
 if __name__ == "__main__":
