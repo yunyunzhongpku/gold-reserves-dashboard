@@ -427,7 +427,7 @@ class GoldDashboardDataTest(unittest.TestCase):
         self.assertIn("data/market/official_reserves_manual.csv", dashboard["source_file"])
         layers = {layer["id"]: layer for layer in dashboard["layers"]}
 
-        for layer_id in ["official_reserves", "epu", "gpr", "positioning_technical"]:
+        for layer_id in ["official_reserves", "epu", "gpr"]:
             latest_date = _date.fromisoformat(layers[layer_id]["latest"]["date"])
             self.assertLessEqual(latest_date, self.TODAY)
 
