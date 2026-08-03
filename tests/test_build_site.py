@@ -453,7 +453,10 @@ class GoldDashboardDataTest(unittest.TestCase):
         self.assertIn("全球官方黄金储备 36558.54 吨", html)
         self.assertNotIn("全球官方黄金储备本期未更新", html)
         self.assertNotIn("Wind 通讯社", html)
-        self.assertNotIn("2026-07-31", html)
+        self.assertTrue(all(
+            _date.fromisoformat(row["date"]) <= self.TODAY
+            for row in layer["chart_rows"]
+        ))
 
     def test_reads_refreshed_workbook_into_driver_layers(self):
         dashboard = build_site.read_dashboard_data(today=self.TODAY)
