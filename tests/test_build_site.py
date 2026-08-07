@@ -102,9 +102,9 @@ class OfficialReserveOverrideTest(unittest.TestCase):
         )
         expected_dates = [
             "2025-12-31", "2026-01-31", "2026-02-28", "2026-03-31",
-            "2026-04-30", "2026-05-31", "2026-06-30",
+            "2026-04-30", "2026-05-31", "2026-06-30", "2026-07-31",
         ]
-        expected_ounces = [7415, 7419, 7422, 7438, 7464, 7496, 7544]
+        expected_ounces = [7415, 7419, 7422, 7438, 7464, 7496, 7544, 7608]
 
         self.assertGreaterEqual(len(rows), len(expected_dates))
         self.assertEqual(
