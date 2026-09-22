@@ -23,6 +23,8 @@ OFFICIAL_RESERVE_COLUMNS = [
 
 WIND_DAILY_FILE = MARKET_DIR / "wind_daily.csv"
 DFII10_FILE = MARKET_DIR / "fred_dfii10.csv"
+WIND_SUPPLEMENTAL_FILE = MARKET_DIR / "wind_supplemental.csv"
+VALUATION_FILE = MARKET_DIR / "gold_valuation.csv"
 SHEET_REAL_RATE = "实际利率与金价"
 SHEET_DOLLAR = "美元指数"
 SHEET_VOLATILITY = "隐含波动率"
@@ -313,7 +315,7 @@ def read_sheet_rows(workbook, sheet_name, columns, max_date=None):
     return rows
 
 
-def read_csv_rows(path, numeric_columns):
+def read_csv_rows(path, numeric_columns, max_date=None):
     if not path.exists():
         return []
 
@@ -321,6 +323,8 @@ def read_csv_rows(path, numeric_columns):
     with path.open(encoding="utf-8", newline="") as file:
         for raw in csv.DictReader(file):
             row_date = as_date(datetime.strptime(raw["date"], "%Y-%m-%d"))
+            if max_date is not None and row_date > max_date:
+                continue
             item = {"date": format_date(row_date), "_date": row_date}
             has_value = False
             for key in numeric_columns:
@@ -338,6 +342,19 @@ def read_csv_rows(path, numeric_columns):
 
     rows.sort(key=lambda row: row["_date"])
     return rows
+
+
+def merge_supplemental_rows(base_rows, new_rows, keys):
+    merged = {row["date"]: dict(row) for row in base_rows}
+    for row in new_rows:
+        if not any(row.get(key) is not None for key in keys):
+            continue
+        item = merged.setdefault(row["date"], {"date": row["date"], "_date": date.fromisoformat(row["date"])})
+        for key in keys:
+            item[key] = row.get(key)
+        if "global_reserves" in keys:
+            item["global_source"] = "Wind EDB: L8751203"
+    return [merged[day] for day in sorted(merged)]
 
 
 def month_index(value):
@@ -1403,7 +1420,10 @@ def make_gpr_layer(gpr_rows, gold_rows):
 
 
 def make_valuation_snapshot(rows):
-    latest = rows[-1] if rows else None
+    complete = [row for row in rows if all(
+        row.get(key) is not None and math.isfinite(row[key])
+        for key in ("gold_price", "gold_to_m2", "valuation_percentile"))]
+    latest = complete[-1] if complete else None
     if latest is None:
         return None
     return {
@@ -1713,12 +1733,24 @@ def read_dashboard_data(today=None):
     finally:
         workbook.close()
 
+    supplemental = read_csv_rows(WIND_SUPPLEMENTAL_FILE,
+        ["spdr_holdings", "ishares_holdings", "epu", "gpr", "global_reserves"], max_date=today)
+    if not supplemental:
+        raise ValueError("Wind supplemental data is missing; do not rebuild from stale Excel alone")
+    etf_rows = merge_supplemental_rows(etf_rows, supplemental, ["spdr_holdings", "ishares_holdings"])
+    epu_rows = merge_supplemental_rows(epu_rows, supplemental, ["epu"])
+    gpr_rows = merge_supplemental_rows(gpr_rows, supplemental, ["gpr"])
+    reserve_rows = merge_supplemental_rows(reserve_rows, supplemental, ["global_reserves"])
+    valuation_rows = read_csv_rows(VALUATION_FILE,
+        ["gold_price", "gold_to_m2", "valuation_percentile"], max_date=today)
+
     manual_reserve_rows = read_official_reserve_rows(
         OFFICIAL_RESERVES_MANUAL_FILE, max_date=today)
     reserve_rows = merge_reserve_rows(reserve_rows, manual_reserve_rows)
     source_files = [str(DATA_FILE.relative_to(ROOT))]
     if manual_reserve_rows:
         source_files.append(str(OFFICIAL_RESERVES_MANUAL_FILE.relative_to(ROOT)))
+    source_files.extend([str(WIND_SUPPLEMENTAL_FILE.relative_to(ROOT)), str(VALUATION_FILE.relative_to(ROOT))])
 
     wind_rows = read_csv_rows(WIND_DAILY_FILE, ["gold_price", "dollar_index", "gvz"])
     # 稀疏宽表 → 派生每指标的稠密子集,使行号 lookback == 有效观测 lookback
@@ -1742,6 +1774,10 @@ def read_dashboard_data(today=None):
         make_epu_layer(epu_rows, gold_rows),
         make_gpr_layer(gpr_rows, gold_rows),
     ]
+    for layer in layers:
+        if layer["id"] in {"epu", "gpr"}:
+            code = "G1060817" if layer["id"] == "epu" else "L2715907"
+            layer["source"] = f"Wind EDB: {code}（完整日历月均值）"
 
     for layer in layers:
         if layer["id"] == "positioning_technical":
@@ -2699,8 +2735,9 @@ def make_auxiliary_evidence_unit(relationships, valuation):
     valuation = valuation or {}
     valuation_text = (
         f"长期估值：金价/M2 {fmt_number(valuation.get('gold_to_m2'), 3)}，"
-        f"估值分位 {fmt_number((valuation.get('valuation_percentile') or 0) * 100)}%，"
+        f"估值分位 {fmt_number(valuation['valuation_percentile'] * 100 if valuation.get('valuation_percentile') is not None else None)}%，"
         f"数据日期 {valuation.get('date', '—')}。"
+        "估值使用最新完整月频输入，按原工作簿口径核验后更新；未接入自动计算。"
     )
     summary = make_evidence_summary(
         "辅助观察", "价格趋势 / EPU / GPR",

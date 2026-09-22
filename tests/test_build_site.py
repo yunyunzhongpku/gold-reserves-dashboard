@@ -445,7 +445,7 @@ class GoldDashboardDataTest(unittest.TestCase):
         self.assertAlmostEqual(layer["latest"]["global_reserves"], 36558.5405)
         self.assertIn("SAFE", layer["source"])
         self.assertIn("SAFE", layer["latest"]["china_source"])
-        self.assertIn("Excel", layer["latest"]["global_source"])
+        self.assertEqual("Wind EDB: L8751203", layer["latest"]["global_source"])
         self.assertEqual(layer["state"], "supportive")
 
         html = build_site.build_html(dashboard)
@@ -638,7 +638,7 @@ class GoldDashboardDataTest(unittest.TestCase):
         self.assertIn('id="evidence-auxiliary"', html)
         self.assertIn("不参与首页姿态", html)
         self.assertIn("中国：SAFE", html)
-        self.assertIn("全球：Excel: 官方黄金储备", html)
+        self.assertIn("全球：Wind EDB: L8751203", html)
         self.assertIn("+14.93 吨", html)
 
     def test_relationships_explain_factor_usefulness_by_phase(self):

@@ -15,6 +15,7 @@ ALLOWED_UPDATE_PATHS = [
     "data/market/fred_dfii10.csv",
     "data/market/cftc_gold_cot.csv",
     "data/market/official_reserves_manual.csv",
+    "data/market/wind_supplemental.csv",
     "data/etf_tracking.html",
     "site/index.html",
 ]
@@ -32,6 +33,7 @@ TEST_COMMAND = [
     "tests.test_asset_tabs",
     "tests.test_merge_assets",
     "tests.test_combined_refresh",
+    "tests.test_refresh_wind_supplemental",
     "-v",
 ]
 

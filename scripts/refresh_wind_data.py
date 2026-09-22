@@ -106,6 +106,11 @@ def refresh(begin=START_DATE, end=None, reconcile=True):
         if failures:
             raise SystemExit(f"Reconciliation failed vs Excel: {failures}")
     rows = build_wind_daily_rows(series)
+    if __package__:
+        from .refresh_wind_supplemental import refresh as refresh_supplemental
+    else:
+        from refresh_wind_supplemental import refresh as refresh_supplemental
+    refresh_supplemental(end=end)
     write_csv(WIND_DAILY_FILE, rows, FIELDNAMES)
     return rows
 
