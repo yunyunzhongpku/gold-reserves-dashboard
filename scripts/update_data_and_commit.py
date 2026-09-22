@@ -15,8 +15,10 @@ ALLOWED_UPDATE_PATHS = [
     "data/market/fred_dfii10.csv",
     "data/market/cftc_gold_cot.csv",
     "data/market/official_reserves_manual.csv",
+    "data/etf_tracking.html",
     "site/index.html",
 ]
+ETF_UPDATE_PATHS = ["data/etf_tracking.html", "site/index.html"]
 
 PUSH_REMOTE = "git@github.com:yunyunzhongpku/gold-reserves-dashboard.git"
 
@@ -27,6 +29,8 @@ TEST_COMMAND = [
     "tests.test_build_site",
     "tests.test_refresh_wind_data",
     "tests.test_update_data_and_commit",
+    "tests.test_asset_tabs",
+    "tests.test_merge_assets",
     "-v",
 ]
 
@@ -60,8 +64,8 @@ def unexpected_paths(entries, allowed_paths=None):
     return sorted({path for _, path in entries if path not in allowed})
 
 
-def git_add_command():
-    return ["git", "add", "--", *ALLOWED_UPDATE_PATHS]
+def git_add_command(paths=None):
+    return ["git", "add", "--", *(paths if paths is not None else ALLOWED_UPDATE_PATHS)]
 
 
 def git_push_command(branch):
@@ -83,10 +87,13 @@ def require_clean_tracked_worktree():
         raise SystemExit(f"Tracked worktree is dirty before refresh; aborting.\n{details}")
 
 
-def run_refresh_pipeline():
-    run_command([sys.executable, "scripts/refresh_wind_data.py"])
-    run_command([sys.executable, "scripts/refresh_market_data.py"])
-    run_command([sys.executable, "scripts/build_site.py"])
+def run_refresh_pipeline(etf_page=None):
+    if etf_page is None:
+        run_command([sys.executable, "scripts/refresh_wind_data.py"])
+        run_command([sys.executable, "scripts/refresh_market_data.py"])
+        run_command([sys.executable, "scripts/build_site.py"])
+    else:
+        run_command([sys.executable, "scripts/build_site.py", "--etf-page", str(Path(etf_page).resolve())])
 
     env = os.environ.copy()
     env.setdefault("PYTHONPYCACHEPREFIX", "/private/tmp/gold-dashboard-pycache")
@@ -94,17 +101,18 @@ def run_refresh_pipeline():
     run_command(["git", "diff", "--check", "--", *ALLOWED_UPDATE_PATHS])
 
     entries = tracked_status()
-    blocked = unexpected_paths(entries)
+    blocked = unexpected_paths(entries, ETF_UPDATE_PATHS if etf_page is not None else ALLOWED_UPDATE_PATHS)
     if blocked:
         raise SystemExit("Unexpected tracked paths changed; aborting.\n" + "\n".join(blocked))
 
 
-def commit_allowed_changes():
-    if not tracked_status(ALLOWED_UPDATE_PATHS):
+def commit_allowed_changes(*, etf_only=False):
+    paths = ETF_UPDATE_PATHS if etf_only else ALLOWED_UPDATE_PATHS
+    if not tracked_status(paths):
         print("No data changes to commit.")
         return False
 
-    run_command(git_add_command())
+    run_command(git_add_command(paths))
     staged = run_command(["git", "diff", "--cached", "--quiet"], check=False)
     if staged.returncode == 0:
         print("No staged data changes to commit.")
@@ -116,7 +124,7 @@ def commit_allowed_changes():
         "git",
         "commit",
         "-m",
-        "data: refresh gold dashboard market data",
+        "data: refresh ETF tracking snapshot" if etf_only else "data: refresh gold dashboard market data",
         "-m",
         "Co-Authored-By: Codex <noreply@openai.com>",
     ])
@@ -141,14 +149,15 @@ def main():
     parser = argparse.ArgumentParser(description="Refresh dashboard data locally and optionally commit generated outputs.")
     parser.add_argument("--no-commit", action="store_true", help="Run refresh, build, and checks without creating a commit.")
     parser.add_argument("--no-push", action="store_true", help="Create a local commit without pushing to GitHub.")
+    parser.add_argument("--etf-page", type=Path, help="Update only the ETF snapshot from this local HTML; reuse saved gold data.")
     args = parser.parse_args()
 
     require_clean_tracked_worktree()
-    run_refresh_pipeline()
+    run_refresh_pipeline(etf_page=args.etf_page)
     if args.no_commit:
         print("Refresh completed; commit skipped by --no-commit.")
         return
-    committed = commit_allowed_changes()
+    committed = commit_allowed_changes(etf_only=args.etf_page is not None)
     if args.no_push:
         print("Push skipped by --no-push.")
         return
