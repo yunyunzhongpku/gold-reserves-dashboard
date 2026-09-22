@@ -31,6 +31,7 @@ TEST_COMMAND = [
     "tests.test_update_data_and_commit",
     "tests.test_asset_tabs",
     "tests.test_merge_assets",
+    "tests.test_combined_refresh",
     "-v",
 ]
 
@@ -87,10 +88,11 @@ def require_clean_tracked_worktree():
         raise SystemExit(f"Tracked worktree is dirty before refresh; aborting.\n{details}")
 
 
-def run_refresh_pipeline(etf_page=None):
-    if etf_page is None:
+def run_refresh_pipeline(etf_page=None, *, refresh_gold=False):
+    if etf_page is None or refresh_gold:
         run_command([sys.executable, "scripts/refresh_wind_data.py"])
         run_command([sys.executable, "scripts/refresh_market_data.py"])
+    if etf_page is None:
         run_command([sys.executable, "scripts/build_site.py"])
     else:
         run_command([sys.executable, "scripts/build_site.py", "--etf-page", str(Path(etf_page).resolve())])
@@ -101,7 +103,8 @@ def run_refresh_pipeline(etf_page=None):
     run_command(["git", "diff", "--check", "--", *ALLOWED_UPDATE_PATHS])
 
     entries = tracked_status()
-    blocked = unexpected_paths(entries, ETF_UPDATE_PATHS if etf_page is not None else ALLOWED_UPDATE_PATHS)
+    etf_only = etf_page is not None and not refresh_gold
+    blocked = unexpected_paths(entries, ETF_UPDATE_PATHS if etf_only else ALLOWED_UPDATE_PATHS)
     if blocked:
         raise SystemExit("Unexpected tracked paths changed; aborting.\n" + "\n".join(blocked))
 
@@ -150,14 +153,17 @@ def main():
     parser.add_argument("--no-commit", action="store_true", help="Run refresh, build, and checks without creating a commit.")
     parser.add_argument("--no-push", action="store_true", help="Create a local commit without pushing to GitHub.")
     parser.add_argument("--etf-page", type=Path, help="Update only the ETF snapshot from this local HTML; reuse saved gold data.")
+    parser.add_argument("--refresh-gold", action="store_true", help="Also refresh gold data when importing an ETF page; publish both together.")
     args = parser.parse_args()
+    if args.refresh_gold and args.etf_page is None:
+        parser.error("--refresh-gold requires --etf-page")
 
     require_clean_tracked_worktree()
-    run_refresh_pipeline(etf_page=args.etf_page)
+    run_refresh_pipeline(etf_page=args.etf_page, refresh_gold=args.refresh_gold)
     if args.no_commit:
         print("Refresh completed; commit skipped by --no-commit.")
         return
-    committed = commit_allowed_changes(etf_only=args.etf_page is not None)
+    committed = commit_allowed_changes(etf_only=args.etf_page is not None and not args.refresh_gold)
     if args.no_push:
         print("Push skipped by --no-push.")
         return
