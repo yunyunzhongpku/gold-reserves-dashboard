@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import argparse
 import csv
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
+import math
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 MARKET_DIR = ROOT / "data" / "market"
@@ -17,6 +19,7 @@ WIND_SERIES = {
 }
 START_DATE = "2003-01-01"
 FIELDNAMES = ["date", "gold_price", "dollar_index", "gvz"]
+MARKET_OPTIONS = "Days=Trading;TradingCalendar=NYSE;Fill=Blank"
 
 # (sheet, 0-based value column) 与源 Excel 对账
 EXCEL_ANCHORS = {
@@ -49,12 +52,23 @@ def compare_series(wind_series, excel_series, tol=1e-6):
     return sorted(mismatches)
 
 
+def latest_closed_market_date(now=None):
+    """Allow two hours after the US close before accepting that day's daily data."""
+    market_now = (now or datetime.now(ZoneInfo("America/New_York"))).astimezone(
+        ZoneInfo("America/New_York")
+    )
+    return market_now.date() if market_now.hour >= 18 else market_now.date() - timedelta(days=1)
+
+
 def fetch_wind_series(codes, begin, end):
     from tkf_wind import w
+    market_end = min(date.fromisoformat(end), latest_closed_market_date())
+    if market_end < date.fromisoformat(begin):
+        raise ValueError("No completed overseas market day in requested range.")
     w.start()
     out = {}
     for key, code in codes.items():
-        data = w.wsd(code, "close", begin, end, "")
+        data = w.wsd(code, "close", begin, market_end.isoformat(), MARKET_OPTIONS)
         if getattr(data, "ErrorCode", -1) != 0:
             raise RuntimeError(f"Wind wsd failed for {code}: ErrorCode={data.ErrorCode}")
         series = {}
@@ -62,6 +76,8 @@ def fetch_wind_series(codes, begin, end):
             if v is None:
                 continue
             day = t.date() if isinstance(t, datetime) else t
+            if day > market_end or day.weekday() >= 5 or not math.isfinite(float(v)):
+                continue
             series[day.strftime("%Y-%m-%d")] = float(v)
         out[key] = series
     return out
