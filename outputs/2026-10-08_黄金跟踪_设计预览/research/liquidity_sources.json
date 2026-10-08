@@ -1,0 +1,140 @@
+{
+  "title": "三大经济体 M2 研究组合",
+  "as_of": "2026-10-08",
+  "scope": [
+    "United States M2",
+    "China M2",
+    "euro-area M2 (changing composition)"
+  ],
+  "not_global_total": true,
+  "not_central_bank_balance_sheets": true,
+  "formula_current_fx": "US M2 USD + China M2 CNY × USD/CNY + euro-area M2 EUR × USD/EUR",
+  "formula_fixed_fx": "same local-currency balances; CNY and EUR exchange rates fixed at 2020-12 last valid trading observation",
+  "no_arbitrary_weights_or_deductions": true,
+  "seasonal_adjustment": "all non-seasonally-adjusted",
+  "period_alignment_limit": "US M2 is monthly average; Chinese/ECB M2 are end-month stocks. Same-month alignment is an approximation, not synchronous point-in-time liquidity.",
+  "vintage_limit": "Current retrieved revisions, not a historical release-vintage panel. Do not claim an investable historical predictor or optimize a lead/lag.",
+  "comparability_limit": "National M2 definitions differ, euro-area membership changes, China M2 statistical scope changed in 2011/2018. Fixed FX removes translation changes only, not local-definition/reclassification effects.",
+  "fixed_fx_month": "2020-12",
+  "fixed_usd_per_cny": 0.1532567049808429,
+  "fixed_usd_per_eur": 1.223,
+  "fx_period_basis": "FRED H.10 daily New York noon buying rate, last valid observation of each completed calendar month",
+  "decomposition": "YoY symmetric midpoint exact identity, each region Δ(MF)=mean(F)ΔM+mean(M)ΔF; aggregate contributions divided by prior-year dollar total",
+  "missing_policy": "no zero fill, no interpolation, no cross-month forward fill; aggregate requires every constituent and same-month FX",
+  "common_history": {
+    "first": "2000-01-31",
+    "last": "2026-08-31",
+    "observations": 320
+  },
+  "latest": {
+    "date": "2026-08-31",
+    "month": "2026-08",
+    "us_m2_usd_bn": 23284.3,
+    "cn_m2_cny_bn": 356808.36,
+    "ea_m2_eur_bn": 16441.0004632149,
+    "usd_per_cny": 0.1488161673884251,
+    "usd_per_eur": 1.1617,
+    "cny_fx_date": "2026-08-31",
+    "eur_fx_date": "2026-08-31",
+    "us_period_basis": "monthly average",
+    "cn_period_basis": "month end",
+    "ea_period_basis": "month end",
+    "m2_current_fx_usd_bn": 95482.66286546619,
+    "m2_fixed_2020_12_fx_usd_bn": 98074.9171297302,
+    "us_share_current_fx_pct": 24.38589300008031,
+    "cn_share_current_fx_pct": 55.61098845993122,
+    "ea_share_current_fx_pct": 20.003118539988463,
+    "m2_current_fx_yoy_pct": 9.677532752779339,
+    "m2_fixed_fx_yoy_pct": 6.3463577053365805,
+    "money_balance_contribution_yoy_pp": 6.431042546271145,
+    "fx_translation_contribution_yoy_pp": 3.2464902065081955,
+    "us_m2_yoy_pct": 5.678728821636536,
+    "cn_m2_yoy_pct": 7.477854357569447,
+    "ea_m2_yoy_pct": 4.126878926996791,
+    "total_usd_bn": 95482.66286546619,
+    "total_fixed_usd_bn": 98074.9171297302,
+    "local_contribution_pct": 6.431042546271145,
+    "fx_contribution_pct": 3.2464902065081955
+  },
+  "sources": [
+    {
+      "file": "raw/us_m2.csv",
+      "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=M2NS",
+      "series": "M2NS",
+      "sha256": "23263ce038c5cf79d36a4c9f9f35b398e1fe7c38a3b8e46d1e98394a4834db32",
+      "bytes": 14606
+    },
+    {
+      "file": "raw/cny_per_usd.csv",
+      "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DEXCHUS",
+      "series": "DEXCHUS",
+      "sha256": "c6ff45baac8cf5d5a10d616a54c79784e85cee07fd1e57d1421c5be3b02622a7",
+      "bytes": 211783
+    },
+    {
+      "file": "raw/usd_per_eur.csv",
+      "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DEXUSEU",
+      "series": "DEXUSEU",
+      "sha256": "81324d84a8772ee71420e54e21ae12a1995a6a49c6dfa4480c0bc6450aacdc1f",
+      "bytes": 128665
+    },
+    {
+      "file": "raw/ea_m2.csv",
+      "url": "https://data-api.ecb.europa.eu/service/data/BSI/M.U2.N.V.M20.X.1.U2.2300.Z01.E?startPeriod=2000-01&endPeriod=2026-09&format=csvdata",
+      "series": "BSI.M.U2.N.V.M20.X.1.U2.2300.Z01.E",
+      "sha256": "55da6b9c381189e2f819ec2d3593d1b055aa9a6f32212731e9ffdec591ea843e",
+      "bytes": 170858
+    },
+    {
+      "file": "raw/china_m2_wind.csv",
+      "url": "Wind EDB via tkf_wind",
+      "series": "M0001384",
+      "sha256": "e12202279b5cc4a435265fb303ebf7a6d1a4b0d7b406ab8e447046dcc3816eaa",
+      "bytes": 7937
+    }
+  ],
+  "documentation": [
+    {
+      "name": "US M2NS definitions and monthly frequency",
+      "url": "https://fred.stlouisfed.org/series/M2NS"
+    },
+    {
+      "name": "Federal Reserve H.6 definitions and monthly-average basis",
+      "url": "https://www.federalreserve.gov/releases/h6/current/default.htm"
+    },
+    {
+      "name": "Federal Reserve H.6 monthly-average basis",
+      "url": "https://www.federalreserve.gov/releases/h6/about.htm"
+    },
+    {
+      "name": "ECB official M2 dimensions",
+      "url": "https://data.ecb.europa.eu/data/datasets/BSI/BSI.M.U2.N.V.M20.X.1.U2.2300.Z01.E"
+    },
+    {
+      "name": "FRED H.10 CNY/USD",
+      "url": "https://fred.stlouisfed.org/series/DEXCHUS"
+    },
+    {
+      "name": "FRED H.10 USD/EUR",
+      "url": "https://fred.stlouisfed.org/series/DEXUSEU"
+    },
+    {
+      "name": "PBC official 2016 balances, unit and 2011 scope note",
+      "url": "https://www.pbc.gov.cn/diaochatongjisi/fileDir/resource/cms/2017/01/2017011815321483353.pdf"
+    }
+  ],
+  "rejected_sources": [
+    {
+      "name": "FRED MYAGM2CNM189N",
+      "reason": "China M2 discontinued/frozen in 2019; cannot represent current China history"
+    },
+    {
+      "name": "NBS official monthly API",
+      "reason": "HTTP 403 on this retrieval; no data used"
+    },
+    {
+      "name": "old workbook gold/M2 valuation",
+      "reason": "mixed denominator formula across 2024 and extra gold-reserve scaling; no reuse of percentile or level"
+    }
+  ]
+}

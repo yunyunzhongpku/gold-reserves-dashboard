@@ -1,0 +1,12 @@
+# 仅在本地保留供应商研究快照及嵌入完整行情的产物。
+# Coinbase / FRED 禁止未经许可转载；本目录源码与公开宏观输入可提交。
+/snapshot.json
+/index.html
+/2026-10-08_黄金跟踪_设计预览.html
+/research/raw/
+/research/assets_daily.csv
+/research/asset_sources.json
+/research/asset_study.json
+/research/research_results.json
+/research/2026-10-08_关联资产_研究.md
+/2026-10-08_黄金跟踪_货币与关联资产.jpg

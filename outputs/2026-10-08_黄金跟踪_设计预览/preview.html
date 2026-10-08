@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>黄金数据驱动跟踪 · 设计预览</title>
+  <style>__STYLE__</style>
+</head>
+<body>
+<main>
+  <header class="page-header">
+    <div><div class="title-row"><h1>黄金数据驱动跟踪</h1><span class="preview-label">设计预览</span></div><p id="as-of" class="muted"></p></div>
+    <nav aria-label="页面内容"><a href="#drivers">指标走势</a><a href="#context">风险背景</a><a href="#liquidity">货币背景</a><a href="#references">关联资产</a><a href="#methods">方法与数据</a></nav>
+  </header>
+  <section class="market-stage" aria-label="黄金价格与驱动环境">
+    <article class="price-panel">
+      <div class="price-heading"><div><p class="overline">黄金现货 <span>美元 / 盎司</span></p><div class="price-number" id="gold-value"></div><p id="gold-return" class="muted"></p></div><div class="range-buttons" id="gold-range" aria-label="金价图表区间"><button data-range="3m" aria-pressed="false">3 个月</button><button data-range="1y" aria-pressed="true">1 年</button><button data-range="3y" aria-pressed="false">3 年</button><button data-range="4y" aria-pressed="false">4 年</button><button data-range="5y" aria-pressed="false">5 年</button><button data-range="10y" aria-pressed="false">10 年</button></div></div>
+      <div id="gold-chart" class="chart-host price-chart"></div>
+      <div class="price-bottom"><div id="ma-controls" class="legend-controls" aria-label="金价均线"><span class="legend-price">金价</span><button data-ma="ma20" aria-pressed="true">MA20</button><button data-ma="ma60" aria-pressed="true">MA60</button><button data-ma="ma200" aria-pressed="false">MA200</button></div><span class="tiny">Wind · SPTAUUSDOZ.IDC</span></div>
+    </article>
+    <aside class="market-aside">
+      <div class="environment"><div class="overline">驱动环境 <span>按 5 个驱动组汇总</span></div><div class="environment-heading"><strong id="environment-value"></strong><span class="tiny">描述性框架</span></div><div id="environment-counts" class="environment-counts"></div><p class="tiny environment-note">ETF 与 CFTC 合为 1 组；支持与压力相抵时，该组记为中性。</p></div>
+      <div class="technical"><p class="overline">价格技术状态</p><h2 id="technical-title"></h2><p id="technical-alignment" class="muted"></p><dl id="ma-values"></dl><p class="tiny" id="technical-trigger"></p><a href="#explorer" id="trend-research" class="tiny">查看趋势与未来收益检验 ↗</a></div>
+    </aside>
+  </section>
+  <section id="changes" class="change-strip" aria-label="近期变化摘要"></section>
+  <section id="drivers">
+    <div class="section-header"><div><h2>核心指标走势</h2><p class="muted">原始单位与真实方向。当前值、近期变化按最新有效观测计算。</p></div><div class="range-buttons" id="driver-range" aria-label="核心指标图表区间"><button data-range="3m" aria-pressed="false">3 个月</button><button data-range="1y" aria-pressed="true">1 年</button><button data-range="3y" aria-pressed="false">3 年</button><button data-range="4y" aria-pressed="false">4 年</button><button data-range="5y" aria-pressed="false">5 年</button><button data-range="10y" aria-pressed="false">10 年</button></div></div>
+    <p id="core-counts" class="muted"></p>
+    <div id="core-grid" class="metric-grid"></div>
+    <p class="section-note">图表区间仅改变显示范围；线图纵轴自适应，柱图以零为基准。不同指标的纵轴尺度独立。</p>
+  </section>
+  <section id="explorer" class="explorer" hidden aria-label="指标研究详情">
+    <div class="explorer-header"><div><p class="overline">指标研究</p><h2 id="explorer-title"></h2></div><button id="close-explorer" class="text-button">收起详情 ↑</button></div>
+    <div class="explorer-controls"><label>指标 <select id="metric-select" aria-label="研究指标"></select></label><div id="detail-range" class="range-buttons" aria-label="研究图表区间"><button data-range="1y" aria-pressed="false">1 年</button><button data-range="3y" aria-pressed="true">3 年</button><button data-range="10y" aria-pressed="false">10 年</button></div></div>
+    <div id="detail-tabs" class="detail-tabs" role="tablist" aria-label="研究视图"><button role="tab" id="view-self" aria-controls="view-panel" aria-selected="true" data-view="self">指标自身</button><button role="tab" id="view-compare" aria-controls="view-panel" aria-selected="false" tabindex="-1" data-view="compare">与黄金对照</button><button role="tab" id="view-relation" aria-controls="view-panel" aria-selected="false" tabindex="-1" data-view="relation">历史相关关系</button><button role="tab" id="view-research" aria-controls="view-panel" aria-selected="false" tabindex="-1" data-view="research" hidden>研究结论</button></div>
+    <div id="view-panel" role="tabpanel" aria-labelledby="view-self"></div>
+    <details class="source-detail"><summary>数据、口径与当前区间明细</summary><div id="source-content"></div></details>
+  </section>
+  <section id="context">
+    <div class="section-header"><div><h2>风险背景</h2><p class="muted">波动与不确定性单独观察，不参与驱动合成。</p></div><div id="context-range" class="range-buttons" aria-label="风险背景图表区间"><button data-range="3m" aria-pressed="false">3 个月</button><button data-range="1y" aria-pressed="true">1 年</button><button data-range="3y" aria-pressed="false">3 年</button><button data-range="4y" aria-pressed="false">4 年</button><button data-range="5y" aria-pressed="false">5 年</button><button data-range="10y" aria-pressed="false">10 年</button></div></div>
+    <div id="context-grid" class="metric-grid"></div>
+  </section>
+  <section id="liquidity">
+    <div class="section-header"><div><h2>货币背景</h2><p class="muted">黄金与美中欧 M2 的同比同图比较；固定汇率去除折算影响，比值另作长期观察。</p></div><div id="liquidity-range" class="range-buttons" aria-label="货币背景图表区间"><button data-range="3m" aria-pressed="false">3 个月</button><button data-range="1y" aria-pressed="true">1 年</button><button data-range="3y" aria-pressed="false">3 年</button><button data-range="4y" aria-pressed="false">4 年</button><button data-range="5y" aria-pressed="false">5 年</button><button data-range="10y" aria-pressed="false">10 年</button></div></div>
+    <div id="liquidity-grid" class="metric-grid two-column"></div><p id="liquidity-summary" class="section-note"></p>
+  </section>
+  <section id="references">
+    <div class="section-header"><div><h2>关联资产参考</h2><p class="muted">只参考走势，不参与黄金驱动计分；铜使用完整月均价。</p></div><div id="reference-range" class="range-buttons" aria-label="关联资产图表区间"><button data-range="3m" aria-pressed="false">3 个月</button><button data-range="1y" aria-pressed="true">1 年</button><button data-range="3y" aria-pressed="false">3 年</button><button data-range="4y" aria-pressed="false">4 年</button><button data-range="5y" aria-pressed="false">5 年</button><button data-range="10y" aria-pressed="false">10 年</button></div></div>
+    <div id="reference-grid" class="metric-grid reference-grid"></div><p id="reference-summary" class="section-note"></p>
+  </section>
+  <section id="reserves">
+    <div class="section-header"><div><h2>官方储备的长期变化</h2><p class="muted">中国与全球分别显示自己的观测日期；存量与月度净增分别观察。</p></div><div id="reserve-range" class="range-buttons" aria-label="官方储备图表区间"><button data-range="3y" aria-pressed="true">3 年</button><button data-range="10y" aria-pressed="false">10 年</button></div></div>
+    <div id="reserve-grid" class="metric-grid two-column"></div>
+  </section>
+  <section id="methods" class="methods-panel"><div class="section-header"><div><h2>方法与数据</h2><p class="muted">黄金驱动沿用现有规则；新增货币与关联资产研究单独标注，不参与计分。</p></div></div><div class="methods-grid"><div><h3>如何读这个页面</h3><p>先看金价与各指标自身变化，再检查同一时间区间的黄金对照。近期支持或压力是阈值规则的描述，相关系数是历史样本的统计描述。</p><p>历史相关不证明因果，也不代表未来收益预测能力。原有驱动相关与滚动窗口沿用既有方法；新增研究分别标注同比观察与非重叠月度／周度收益检验，并在「展开研究」说明样本、美元影响与不确定性。</p></div><div><h3>日期与缺失值</h3><p>卡片分别显示日频、周频和月频观测日期。观测日与披露日不同：COT 通常统计周二仓位，于周五发布；储备月末日期表示统计期。</p><p>缺失值保留为空，图表保留中断。日频跨越 7 天、周频跨越 12 天、月频跨越 45 天时断线；此规则用于提示缺口，不等于交易日历核验。</p></div></div><details><summary>查看现有驱动判断规则与数据质量阈值</summary><ul id="method-rules"></ul></details><details><summary>需要进一步研究的方法问题</summary><ul><li>五组等权摘要与阈值是观察框架，尚不能视为经过验证的交易模型。</li><li>日频与周频关系检验目前使用不同的实际时间跨度；CFTC 详情据实标注 21 个周度配对观测，后续再讨论是否统一。</li><li>储备增长区间能描述增持节奏，不能单凭与金价同期变化认定“推动了黄金”。</li><li>经济政策与地缘风险指数存在共线性和阶段性；不加入更多票数或合成分数。</li><li>数据披露时间和历史版本尚需进一步完善，不能将当前历史序列直接用于历史时点交易回测。</li></ul></details><p class="tiny sources-line">定义核对：<a href="https://fred.stlouisfed.org/series/DFII10" target="_blank" rel="noopener">FRED 实际利率</a> · <a href="https://fred.stlouisfed.org/series/T10YIE" target="_blank" rel="noopener">FRED 通胀补偿</a> · <a href="https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm" target="_blank" rel="noopener">CFTC 报告说明</a> · <a href="https://www.safe.gov.cn/safe/2026/0206/27116.html" target="_blank" rel="noopener">SAFE 官方储备</a></p></section>
+  <footer id="footer"></footer>
+</main>
+<script type="application/json" id="snapshot">__DATA__</script>
+<script>__SCRIPT__</script>
+</body>
+</html>
