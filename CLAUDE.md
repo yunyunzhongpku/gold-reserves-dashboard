@@ -39,4 +39,8 @@
 
 - **Wind 是 LAN-only**(`10.92.26.150`),GitHub CI 到不了。更新数据必须本机跑 `scripts/refresh_wind_data.py` + `scripts/refresh_market_data.py` 并提交 CSV;CI(`pages.yml`)只渲染已提交的数据。
 - **部署**:push 到 `main` 触发 GitHub Pages 重新部署 `site/index.html`。要数据新,先本地刷新再 push。
+- **正式黄金页基准（2026-10-12 用户授权）**:以会话 `01a1196e-c58b-7932-b38b-b399df64f6f6` 的 10 月 8 日最终优化版为准。生产模板在 `templates/gold/`,快照组装在 `scripts/gold_page/`;`scripts/build_site.py` 调用新模板,不再用旧 `build_html` 作为正式页。旧函数仅保留既有回归检查。
+- **统一日更**:固定会话 `01a11192-e577-7572-aa41-47225f0ee235` 的 ETF 先行入口不变。黄金刷新后运行 `scripts/refresh_gold_context.py`,维护三地 M2 与白银／铜／BTC 的已核验源,再构建两页并严格验证。新增固定数据白名单仅为 `gold_context_monthly.csv`、`gold_context_assets.csv`、`gold_context_sources.json`。首次迁移须核验重叠历史,之后未知修订停止；初始化参数不能绕过既有对账。
+- **货币背景口径**:美、中、欧 M2 均非季调,美国月均、中欧月末；使用 Fed H.10 每月最后有效汇率,固定基月 2020-12,直接加总、无额外权重。仅显示完整共同月份,不称全球总量或公允价值。旧五国加权与矿产储量的混合历史分位已停用,旧 CSV 不作为正式页输入。`data/gold_context_research.json` 保存明确日期的既有研究,日更不重跑研究或回测。
+- **BTC 发布边界**:用户于 2026-10-12 明确确认有原 Coinbase/FRED 数据的转载授权,本网站继续使用原来源,不拼接或悄悄换源；这不代表读者取得上游再转载授权。原本地预览和研究输出保留,不纳入日更提交。
 - 设计依据沉淀在 `docs/superpowers/specs/` 与 `docs/superpowers/plans/`;下一轮 backlog 见 spec 的"已知局限"节。

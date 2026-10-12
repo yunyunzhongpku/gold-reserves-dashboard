@@ -16,6 +16,9 @@ ALLOWED_UPDATE_PATHS = [
     "data/market/cftc_gold_cot.csv",
     "data/market/official_reserves_manual.csv",
     "data/market/wind_supplemental.csv",
+    "data/market/gold_context_monthly.csv",
+    "data/market/gold_context_assets.csv",
+    "data/market/gold_context_sources.json",
     "data/etf_tracking.html",
     "site/index.html",
 ]
@@ -34,6 +37,9 @@ TEST_COMMAND = [
     "tests.test_merge_assets",
     "tests.test_combined_refresh",
     "tests.test_refresh_wind_supplemental",
+    "tests.test_gold_page",
+    "tests.test_gold_yoy",
+    "tests.test_refresh_gold_context",
     "-v",
 ]
 
@@ -94,6 +100,7 @@ def run_refresh_pipeline(etf_page=None, *, refresh_gold=False):
     if etf_page is None or refresh_gold:
         run_command([sys.executable, "scripts/refresh_wind_data.py"])
         run_command([sys.executable, "scripts/refresh_market_data.py"])
+        run_command([sys.executable, "scripts/refresh_gold_context.py"])
     if etf_page is None:
         run_command([sys.executable, "scripts/build_site.py"])
     else:

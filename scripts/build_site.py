@@ -3479,14 +3479,15 @@ def build_html(dashboard):
 def main(argv=None):
     if __package__:
         from .merge_assets import write_merged_site
+        from .gold_page.snapshot import render_html
     else:
         from merge_assets import write_merged_site
+        from gold_page.snapshot import render_html
     parser = argparse.ArgumentParser(description="Build the gold and US ETF tracking page from saved data.")
     parser.add_argument("--etf-page", type=Path, help="Import a reviewed self-contained ETF page before building.")
     args = parser.parse_args(argv)
     SITE_DIR.mkdir(exist_ok=True)
-    dashboard = read_dashboard_data()
-    html = build_html(dashboard)
+    html = render_html()
     write_merged_site(html, ROOT / "data" / "etf_tracking.html", OUTPUT_FILE, etf_source=args.etf_page)
     print(f"Wrote {OUTPUT_FILE}")
 

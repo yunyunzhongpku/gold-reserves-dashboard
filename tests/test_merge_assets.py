@@ -245,7 +245,8 @@ class RefreshPipelineModeTest(unittest.TestCase):
 
         self.assertEqual(commands[0], [sys.executable, "scripts/refresh_wind_data.py"])
         self.assertEqual(commands[1], [sys.executable, "scripts/refresh_market_data.py"])
-        self.assertEqual(commands[2], [sys.executable, "scripts/build_site.py"])
+        self.assertEqual(commands[2], [sys.executable, "scripts/refresh_gold_context.py"])
+        self.assertEqual(commands[3], [sys.executable, "scripts/build_site.py"])
 
 
 if __name__ == "__main__":

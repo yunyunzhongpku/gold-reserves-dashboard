@@ -1,0 +1,7048 @@
+{
+  "liquidity": {
+    "results": {
+      "gold": {
+        "name": "黄金",
+        "usd": {
+          "n": 283,
+          "start": "2003-02",
+          "end": "2026-08",
+          "correlation": 0.3600050601354039,
+          "partial_dollar": -0.03977199683936813,
+          "partial_dollar_calendar": 0.008331080156623132,
+          "interval": [
+            -0.14474042804026374,
+            0.07575209270085552
+          ]
+        },
+        "fixed": {
+          "n": 283,
+          "start": "2003-02",
+          "end": "2026-08",
+          "correlation": 0.0015225971334244305,
+          "partial_dollar": -0.013670280925251733,
+          "partial_dollar_calendar": 0.09151295429445024,
+          "interval": [
+            -0.11154136855695664,
+            0.08926170363570773
+          ]
+        },
+        "fxDollarCorrelation": -0.9130253949045164
+      },
+      "silver": {
+        "name": "白银",
+        "usd": {
+          "n": 119,
+          "start": "2016-10",
+          "end": "2026-08",
+          "correlation": 0.3888056922573761,
+          "partial_dollar": 0.014236995498692742,
+          "partial_dollar_calendar": 0.11609586885869064,
+          "interval": [
+            -0.1564874473383474,
+            0.19375171708010638
+          ]
+        },
+        "fixed": {
+          "n": 119,
+          "start": "2016-10",
+          "end": "2026-08",
+          "correlation": -0.06920788847151473,
+          "partial_dollar": -0.08819062934389092,
+          "partial_dollar_calendar": 0.07606819233475189,
+          "interval": [
+            -0.21394976326847043,
+            0.05155349469014225
+          ]
+        },
+        "fxDollarCorrelation": -0.8512585669660521
+      },
+      "bitcoin": {
+        "name": "比特币",
+        "usd": {
+          "n": 119,
+          "start": "2016-10",
+          "end": "2026-08",
+          "correlation": 0.031013794306984366,
+          "partial_dollar": -0.09290372950085259,
+          "partial_dollar_calendar": 0.05504093706014757,
+          "interval": [
+            -0.2620503607981328,
+            0.07774298346489047
+          ]
+        },
+        "fixed": {
+          "n": 119,
+          "start": "2016-10",
+          "end": "2026-08",
+          "correlation": -0.10593687833234916,
+          "partial_dollar": -0.10836834438453365,
+          "partial_dollar_calendar": 0.12800711234225928,
+          "interval": [
+            -0.26971548359766706,
+            0.04085021105221676
+          ]
+        },
+        "fxDollarCorrelation": -0.8512585669660521
+      }
+    },
+    "lags": {
+      "gold": [
+        {
+          "lag": 0,
+          "usd": {
+            "n": 283,
+            "start": "2003-02",
+            "end": "2026-08",
+            "correlation": 0.3600050601354039,
+            "partial_dollar": -0.03977199683936813,
+            "partial_dollar_calendar": 0.008331080156623132,
+            "interval": null
+          },
+          "fixed": {
+            "n": 283,
+            "start": "2003-02",
+            "end": "2026-08",
+            "correlation": 0.0015225971334244305,
+            "partial_dollar": -0.013670280925251733,
+            "partial_dollar_calendar": 0.09151295429445024,
+            "interval": null
+          }
+        },
+        {
+          "lag": 1,
+          "usd": {
+            "n": 283,
+            "start": "2003-02",
+            "end": "2026-08",
+            "correlation": 0.01597935927793506,
+            "partial_dollar": 0.001318632813153952,
+            "partial_dollar_calendar": -0.04946632443319049,
+            "interval": null
+          },
+          "fixed": {
+            "n": 283,
+            "start": "2003-02",
+            "end": "2026-08",
+            "correlation": 0.09603966460146814,
+            "partial_dollar": 0.09933366210289846,
+            "partial_dollar_calendar": 0.0904839652836403,
+            "interval": null
+          }
+        },
+        {
+          "lag": 3,
+          "usd": {
+            "n": 283,
+            "start": "2003-02",
+            "end": "2026-08",
+            "correlation": -0.07528585838986632,
+            "partial_dollar": -0.11642653242021206,
+            "partial_dollar_calendar": -0.046400715492136015,
+            "interval": null
+          },
+          "fixed": {
+            "n": 283,
+            "start": "2003-02",
+            "end": "2026-08",
+            "correlation": -0.13845318207254795,
+            "partial_dollar": -0.16084139539305528,
+            "partial_dollar_calendar": -0.04663998029922438,
+            "interval": null
+          }
+        },
+        {
+          "lag": 6,
+          "usd": {
+            "n": 283,
+            "start": "2003-02",
+            "end": "2026-08",
+            "correlation": -0.03783715999079855,
+            "partial_dollar": -0.06844410893614322,
+            "partial_dollar_calendar": 0.004748759913017451,
+            "interval": null
+          },
+          "fixed": {
+            "n": 283,
+            "start": "2003-02",
+            "end": "2026-08",
+            "correlation": -0.17636340489700478,
+            "partial_dollar": -0.2213084658025193,
+            "partial_dollar_calendar": -0.13595611698035748,
+            "interval": null
+          }
+        }
+      ],
+      "silver": [
+        {
+          "lag": 0,
+          "usd": {
+            "n": 119,
+            "start": "2016-10",
+            "end": "2026-08",
+            "correlation": 0.3888056922573761,
+            "partial_dollar": 0.014236995498692742,
+            "partial_dollar_calendar": 0.11609586885869064,
+            "interval": null
+          },
+          "fixed": {
+            "n": 119,
+            "start": "2016-10",
+            "end": "2026-08",
+            "correlation": -0.06920788847151473,
+            "partial_dollar": -0.08819062934389092,
+            "partial_dollar_calendar": 0.07606819233475189,
+            "interval": null
+          }
+        },
+        {
+          "lag": 1,
+          "usd": {
+            "n": 119,
+            "start": "2016-10",
+            "end": "2026-08",
+            "correlation": 0.12176945976047512,
+            "partial_dollar": 0.12767048020794686,
+            "partial_dollar_calendar": 0.10782002627860329,
+            "interval": null
+          },
+          "fixed": {
+            "n": 119,
+            "start": "2016-10",
+            "end": "2026-08",
+            "correlation": 0.10450907599898611,
+            "partial_dollar": 0.1394829179604443,
+            "partial_dollar_calendar": 0.17477786116325683,
+            "interval": null
+          }
+        },
+        {
+          "lag": 3,
+          "usd": {
+            "n": 119,
+            "start": "2016-10",
+            "end": "2026-08",
+            "correlation": -0.12646495445053008,
+            "partial_dollar": -0.12026181893419788,
+            "partial_dollar_calendar": -0.004275935942091886,
+            "interval": null
+          },
+          "fixed": {
+            "n": 119,
+            "start": "2016-10",
+            "end": "2026-08",
+            "correlation": -0.08809280244023496,
+            "partial_dollar": -0.08449160236383439,
+            "partial_dollar_calendar": 0.1566694099419722,
+            "interval": null
+          }
+        },
+        {
+          "lag": 6,
+          "usd": {
+            "n": 119,
+            "start": "2016-10",
+            "end": "2026-08",
+            "correlation": 0.0003054957946284188,
+            "partial_dollar": 0.03357778981839483,
+            "partial_dollar_calendar": 0.05787642580544187,
+            "interval": null
+          },
+          "fixed": {
+            "n": 119,
+            "start": "2016-10",
+            "end": "2026-08",
+            "correlation": -0.11895934413000503,
+            "partial_dollar": -0.1400580815478628,
+            "partial_dollar_calendar": -0.19857491711561456,
+            "interval": null
+          }
+        }
+      ],
+      "bitcoin": [
+        {
+          "lag": 0,
+          "usd": {
+            "n": 119,
+            "start": "2016-10",
+            "end": "2026-08",
+            "correlation": 0.031013794306984366,
+            "partial_dollar": -0.09290372950085259,
+            "partial_dollar_calendar": 0.05504093706014757,
+            "interval": null
+          },
+          "fixed": {
+            "n": 119,
+            "start": "2016-10",
+            "end": "2026-08",
+            "correlation": -0.10593687833234916,
+            "partial_dollar": -0.10836834438453365,
+            "partial_dollar_calendar": 0.12800711234225928,
+            "interval": null
+          }
+        },
+        {
+          "lag": 1,
+          "usd": {
+            "n": 119,
+            "start": "2016-10",
+            "end": "2026-08",
+            "correlation": 0.13272264397047104,
+            "partial_dollar": 0.1307716508741014,
+            "partial_dollar_calendar": 0.089701729333484,
+            "interval": null
+          },
+          "fixed": {
+            "n": 119,
+            "start": "2016-10",
+            "end": "2026-08",
+            "correlation": 0.15248037618547677,
+            "partial_dollar": 0.15746941000887837,
+            "partial_dollar_calendar": 0.059881402587192496,
+            "interval": null
+          }
+        },
+        {
+          "lag": 3,
+          "usd": {
+            "n": 119,
+            "start": "2016-10",
+            "end": "2026-08",
+            "correlation": 0.2013611405327894,
+            "partial_dollar": 0.20900205023221577,
+            "partial_dollar_calendar": 0.2926805501437049,
+            "interval": null
+          },
+          "fixed": {
+            "n": 119,
+            "start": "2016-10",
+            "end": "2026-08",
+            "correlation": -0.15310535431673025,
+            "partial_dollar": -0.15052949199265875,
+            "partial_dollar_calendar": -0.04732412459885133,
+            "interval": null
+          }
+        },
+        {
+          "lag": 6,
+          "usd": {
+            "n": 119,
+            "start": "2016-10",
+            "end": "2026-08",
+            "correlation": -0.026884540012866612,
+            "partial_dollar": -0.020117551665573295,
+            "partial_dollar_calendar": 0.04789529697285835,
+            "interval": null
+          },
+          "fixed": {
+            "n": 119,
+            "start": "2016-10",
+            "end": "2026-08",
+            "correlation": -0.03559312673376873,
+            "partial_dollar": -0.03614277540844535,
+            "partial_dollar_calendar": 0.06906699154789976,
+            "interval": null
+          }
+        }
+      ]
+    },
+    "periods": {
+      "gold": [
+        {
+          "label": "2003–2012",
+          "usd": {
+            "n": 119,
+            "start": "2003-02",
+            "end": "2012-12",
+            "correlation": 0.38280868921847544,
+            "partial_dollar": -0.1085645315797019,
+            "partial_dollar_calendar": 0.02700309712118814,
+            "interval": null
+          },
+          "fixed": {
+            "n": 119,
+            "start": "2003-02",
+            "end": "2012-12",
+            "correlation": -0.015654060350126765,
+            "partial_dollar": -0.03842507194669756,
+            "partial_dollar_calendar": 0.18789987074716802,
+            "interval": null
+          }
+        },
+        {
+          "label": "2013–2019",
+          "usd": {
+            "n": 84,
+            "start": "2013-01",
+            "end": "2019-12",
+            "correlation": 0.18566060314585617,
+            "partial_dollar": -0.10626299221911428,
+            "partial_dollar_calendar": -0.1835134967270973,
+            "interval": null
+          },
+          "fixed": {
+            "n": 84,
+            "start": "2013-01",
+            "end": "2019-12",
+            "correlation": 0.043946994954494695,
+            "partial_dollar": 0.01722129466342682,
+            "partial_dollar_calendar": 0.03357386303158023,
+            "interval": null
+          }
+        },
+        {
+          "label": "2020–2026",
+          "usd": {
+            "n": 80,
+            "start": "2020-01",
+            "end": "2026-08",
+            "correlation": 0.428040521082741,
+            "partial_dollar": 0.08755998740504115,
+            "partial_dollar_calendar": 0.17042012415926985,
+            "interval": null
+          },
+          "fixed": {
+            "n": 80,
+            "start": "2020-01",
+            "end": "2026-08",
+            "correlation": -0.02903401280715192,
+            "partial_dollar": -0.0014418133400694586,
+            "partial_dollar_calendar": 0.11280267764681981,
+            "interval": null
+          }
+        }
+      ],
+      "silver": [
+        {
+          "label": "2003–2012",
+          "usd": {
+            "n": 0,
+            "start": null,
+            "end": null,
+            "correlation": null,
+            "partial_dollar": null,
+            "partial_dollar_calendar": null,
+            "interval": null
+          },
+          "fixed": {
+            "n": 0,
+            "start": null,
+            "end": null,
+            "correlation": null,
+            "partial_dollar": null,
+            "partial_dollar_calendar": null,
+            "interval": null
+          }
+        },
+        {
+          "label": "2013–2019",
+          "usd": {
+            "n": 39,
+            "start": "2016-10",
+            "end": "2019-12",
+            "correlation": 0.35777701984064103,
+            "partial_dollar": 0.048288877201042,
+            "partial_dollar_calendar": 0.016334523629257212,
+            "interval": null
+          },
+          "fixed": {
+            "n": 39,
+            "start": "2016-10",
+            "end": "2019-12",
+            "correlation": 0.15379837444388542,
+            "partial_dollar": 0.051302040862808276,
+            "partial_dollar_calendar": 0.2251611566938934,
+            "interval": null
+          }
+        },
+        {
+          "label": "2020–2026",
+          "usd": {
+            "n": 80,
+            "start": "2020-01",
+            "end": "2026-08",
+            "correlation": 0.41098331476506855,
+            "partial_dollar": 0.02771982622462281,
+            "partial_dollar_calendar": 0.14072695516614095,
+            "interval": null
+          },
+          "fixed": {
+            "n": 80,
+            "start": "2020-01",
+            "end": "2026-08",
+            "correlation": -0.10872906210788896,
+            "partial_dollar": -0.09546192809910019,
+            "partial_dollar_calendar": 0.056391385267743684,
+            "interval": null
+          }
+        }
+      ],
+      "bitcoin": [
+        {
+          "label": "2003–2012",
+          "usd": {
+            "n": 0,
+            "start": null,
+            "end": null,
+            "correlation": null,
+            "partial_dollar": null,
+            "partial_dollar_calendar": null,
+            "interval": null
+          },
+          "fixed": {
+            "n": 0,
+            "start": null,
+            "end": null,
+            "correlation": null,
+            "partial_dollar": null,
+            "partial_dollar_calendar": null,
+            "interval": null
+          }
+        },
+        {
+          "label": "2013–2019",
+          "usd": {
+            "n": 39,
+            "start": "2016-10",
+            "end": "2019-12",
+            "correlation": -0.05873329255425675,
+            "partial_dollar": -0.1476390629448412,
+            "partial_dollar_calendar": 0.21991405859248775,
+            "interval": null
+          },
+          "fixed": {
+            "n": 39,
+            "start": "2016-10",
+            "end": "2019-12",
+            "correlation": -0.2856147470738312,
+            "partial_dollar": -0.306070383916534,
+            "partial_dollar_calendar": 0.3185726938045625,
+            "interval": null
+          }
+        },
+        {
+          "label": "2020–2026",
+          "usd": {
+            "n": 80,
+            "start": "2020-01",
+            "end": "2026-08",
+            "correlation": 0.09635508874398507,
+            "partial_dollar": -0.048257518211717476,
+            "partial_dollar_calendar": 0.012331179038684683,
+            "interval": null
+          },
+          "fixed": {
+            "n": 80,
+            "start": "2020-01",
+            "end": "2026-08",
+            "correlation": -0.036092805604873074,
+            "partial_dollar": -0.02699940211621879,
+            "partial_dollar_calendar": 0.12004144118998171,
+            "interval": null
+          }
+        }
+      ]
+    },
+    "method": {
+      "frequency": "monthly, non-overlapping log changes / asset log returns",
+      "control": "contemporaneous dollar-index log return; partial correlation, not causality",
+      "seasonalSensitivity": "remove full-sample calendar-month means from money/asset/dollar changes; descriptive only",
+      "interval": "95% circular moving-block bootstrap, 6-month blocks, 600 repetitions, seed 20261008",
+      "lagPolicy": "preselected lags 0/1/3/6 months; common target-month intersection across every lag and both FX methods; no optimized chart shifts; latest revisions do not support an investable forecast",
+      "prices": "same month, last own valid observation within 7 days of month end; US M2 monthly average versus other stocks at month end"
+    },
+    "priceSource": {
+      "file": "data/market/wind_daily.csv",
+      "provider": "Wind 已保存生产输入",
+      "fields": {
+        "gold_price": "SPTAUUSDOZ.IDC",
+        "dollar_index": "USDX.FX"
+      },
+      "first": "2003-01-02",
+      "last": "2026-10-06",
+      "rows": 5978
+    }
+  },
+  "liquiditySources": {
+    "title": "三大经济体 M2 研究组合",
+    "as_of": "2026-10-08",
+    "scope": [
+      "United States M2",
+      "China M2",
+      "euro-area M2 (changing composition)"
+    ],
+    "not_global_total": true,
+    "not_central_bank_balance_sheets": true,
+    "formula_current_fx": "US M2 USD + China M2 CNY × USD/CNY + euro-area M2 EUR × USD/EUR",
+    "formula_fixed_fx": "same local-currency balances; CNY and EUR exchange rates fixed at 2020-12 last valid trading observation",
+    "no_arbitrary_weights_or_deductions": true,
+    "seasonal_adjustment": "all non-seasonally-adjusted",
+    "period_alignment_limit": "US M2 is monthly average; Chinese/ECB M2 are end-month stocks. Same-month alignment is an approximation, not synchronous point-in-time liquidity.",
+    "vintage_limit": "Current retrieved revisions, not a historical release-vintage panel. Do not claim an investable historical predictor or optimize a lead/lag.",
+    "comparability_limit": "National M2 definitions differ, euro-area membership changes, China M2 statistical scope changed in 2011/2018. Fixed FX removes translation changes only, not local-definition/reclassification effects.",
+    "fixed_fx_month": "2020-12",
+    "fixed_usd_per_cny": 0.1532567049808429,
+    "fixed_usd_per_eur": 1.223,
+    "fx_period_basis": "FRED H.10 daily New York noon buying rate, last valid observation of each completed calendar month",
+    "decomposition": "YoY symmetric midpoint exact identity, each region Δ(MF)=mean(F)ΔM+mean(M)ΔF; aggregate contributions divided by prior-year dollar total",
+    "missing_policy": "no zero fill, no interpolation, no cross-month forward fill; aggregate requires every constituent and same-month FX",
+    "common_history": {
+      "first": "2000-01-31",
+      "last": "2026-08-31",
+      "observations": 320
+    },
+    "latest": {
+      "date": "2026-08-31",
+      "month": "2026-08",
+      "us_m2_usd_bn": 23284.3,
+      "cn_m2_cny_bn": 356808.36,
+      "ea_m2_eur_bn": 16441.0004632149,
+      "usd_per_cny": 0.1488161673884251,
+      "usd_per_eur": 1.1617,
+      "cny_fx_date": "2026-08-31",
+      "eur_fx_date": "2026-08-31",
+      "us_period_basis": "monthly average",
+      "cn_period_basis": "month end",
+      "ea_period_basis": "month end",
+      "m2_current_fx_usd_bn": 95482.66286546619,
+      "m2_fixed_2020_12_fx_usd_bn": 98074.9171297302,
+      "us_share_current_fx_pct": 24.38589300008031,
+      "cn_share_current_fx_pct": 55.61098845993122,
+      "ea_share_current_fx_pct": 20.003118539988463,
+      "m2_current_fx_yoy_pct": 9.677532752779339,
+      "m2_fixed_fx_yoy_pct": 6.3463577053365805,
+      "money_balance_contribution_yoy_pp": 6.431042546271145,
+      "fx_translation_contribution_yoy_pp": 3.2464902065081955,
+      "us_m2_yoy_pct": 5.678728821636536,
+      "cn_m2_yoy_pct": 7.477854357569447,
+      "ea_m2_yoy_pct": 4.126878926996791,
+      "total_usd_bn": 95482.66286546619,
+      "total_fixed_usd_bn": 98074.9171297302,
+      "local_contribution_pct": 6.431042546271145,
+      "fx_contribution_pct": 3.2464902065081955
+    },
+    "sources": [
+      {
+        "file": "raw/us_m2.csv",
+        "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=M2NS",
+        "series": "M2NS",
+        "sha256": "23263ce038c5cf79d36a4c9f9f35b398e1fe7c38a3b8e46d1e98394a4834db32",
+        "bytes": 14606
+      },
+      {
+        "file": "raw/cny_per_usd.csv",
+        "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DEXCHUS",
+        "series": "DEXCHUS",
+        "sha256": "c6ff45baac8cf5d5a10d616a54c79784e85cee07fd1e57d1421c5be3b02622a7",
+        "bytes": 211783
+      },
+      {
+        "file": "raw/usd_per_eur.csv",
+        "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DEXUSEU",
+        "series": "DEXUSEU",
+        "sha256": "81324d84a8772ee71420e54e21ae12a1995a6a49c6dfa4480c0bc6450aacdc1f",
+        "bytes": 128665
+      },
+      {
+        "file": "raw/ea_m2.csv",
+        "url": "https://data-api.ecb.europa.eu/service/data/BSI/M.U2.N.V.M20.X.1.U2.2300.Z01.E?startPeriod=2000-01&endPeriod=2026-09&format=csvdata",
+        "series": "BSI.M.U2.N.V.M20.X.1.U2.2300.Z01.E",
+        "sha256": "55da6b9c381189e2f819ec2d3593d1b055aa9a6f32212731e9ffdec591ea843e",
+        "bytes": 170858
+      },
+      {
+        "file": "raw/china_m2_wind.csv",
+        "url": "Wind EDB via tkf_wind",
+        "series": "M0001384",
+        "sha256": "e12202279b5cc4a435265fb303ebf7a6d1a4b0d7b406ab8e447046dcc3816eaa",
+        "bytes": 7937
+      }
+    ],
+    "documentation": [
+      {
+        "name": "US M2NS definitions and monthly frequency",
+        "url": "https://fred.stlouisfed.org/series/M2NS"
+      },
+      {
+        "name": "Federal Reserve H.6 definitions and monthly-average basis",
+        "url": "https://www.federalreserve.gov/releases/h6/current/default.htm"
+      },
+      {
+        "name": "Federal Reserve H.6 monthly-average basis",
+        "url": "https://www.federalreserve.gov/releases/h6/about.htm"
+      },
+      {
+        "name": "ECB official M2 dimensions",
+        "url": "https://data.ecb.europa.eu/data/datasets/BSI/BSI.M.U2.N.V.M20.X.1.U2.2300.Z01.E"
+      },
+      {
+        "name": "FRED H.10 CNY/USD",
+        "url": "https://fred.stlouisfed.org/series/DEXCHUS"
+      },
+      {
+        "name": "FRED H.10 USD/EUR",
+        "url": "https://fred.stlouisfed.org/series/DEXUSEU"
+      },
+      {
+        "name": "PBC official 2016 balances, unit and 2011 scope note",
+        "url": "https://www.pbc.gov.cn/diaochatongjisi/fileDir/resource/cms/2017/01/2017011815321483353.pdf"
+      }
+    ],
+    "rejected_sources": [
+      {
+        "name": "FRED MYAGM2CNM189N",
+        "reason": "China M2 discontinued/frozen in 2019; cannot represent current China history"
+      },
+      {
+        "name": "NBS official monthly API",
+        "reason": "HTTP 403 on this retrieval; no data used"
+      },
+      {
+        "name": "old workbook gold/M2 valuation",
+        "reason": "mixed denominator formula across 2024 and extra gold-reserve scaling; no reuse of percentile or level"
+      }
+    ]
+  },
+  "assetSources": {
+    "as_of": "2026-10-08",
+    "retrieved_at": "2026-10-08T05:48:54.508692+00:00",
+    "scope": "仅设计原型研究，未修改正式输入或发布",
+    "assets": {
+      "gold": {
+        "provider": "Wind 已保存生产输入",
+        "code": "SPTAUUSDOZ.IDC",
+        "unit": "美元/金衡盎司",
+        "field": "close",
+        "options": "Days=Trading;TradingCalendar=NYSE;Fill=Blank",
+        "raw_file": "raw/gold_anchor_wind_daily.csv",
+        "anchor_input": "data/market/wind_daily.csv",
+        "quote_time": "Vendor close 精确钟点未核实；NYSE 仅为请求日历",
+        "first_date": "2016-09-01",
+        "last_date": "2026-10-06",
+        "latest_value": 4164.29,
+        "valid_count": 2537,
+        "missing_count": 0,
+        "raw_sha256": "38a287a7c3f419bf883fedf1b3f457231de6246203b2c2d40a23f5261b746c73"
+      },
+      "silver": {
+        "provider": "Wind/TkfWindPy",
+        "code": "SPTAGUSDOZ.IDC",
+        "verified_sec_name": "伦敦银现",
+        "unit": "美元/金衡盎司",
+        "field": "close",
+        "options": "Days=Trading;TradingCalendar=NYSE;Fill=Blank",
+        "raw_file": "raw/silver_wind.json",
+        "quote_time": "Vendor close 精确钟点未核实；NYSE 仅为请求日历",
+        "first_date": "2016-09-01",
+        "last_date": "2026-10-07",
+        "latest_value": 59.7535,
+        "valid_count": 2538,
+        "missing_count": 0,
+        "raw_sha256": "af5f0d6223f2f0e42cd614817c2cc0374db0ebbd482e1ecb93f47fa499c5576f"
+      },
+      "bitcoin": {
+        "provider": "Coinbase via FRED",
+        "code": "CBBTCUSD",
+        "unit": "美元/BTC",
+        "frequency": "每日，7天",
+        "raw_file": "raw/bitcoin_fred.csv",
+        "download_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=CBBTCUSD&cosd=2016-09-01&coed=2026-10-07",
+        "definition_url": "https://fred.stlouisfed.org/series/CBBTCUSD",
+        "quote_time": "5 PM PST；官方备注未明确夏令时处理",
+        "reproduction_note": "FRED notes: Reproduction of Coinbase data in any form is prohibited except with prior written permission of Coinbase. This artifact remains local research.",
+        "first_date": "2016-09-01",
+        "last_date": "2026-10-07",
+        "latest_value": 83239.49,
+        "valid_count": 3688,
+        "missing_count": 1,
+        "raw_sha256": "32bedd89f70a18b739122d9b07266d5d1b49411bee8d0350ac04803e50609c7b"
+      },
+      "copper": {
+        "provider": "IMF via FRED",
+        "code": "PCOPPUSDM",
+        "unit": "美元/公吨",
+        "frequency": "月频",
+        "period_average": true,
+        "raw_file": "raw/copper_fred.csv",
+        "download_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=PCOPPUSDM&cosd=2016-09-01&coed=2026-10-07",
+        "definition_url": "https://fred.stlouisfed.org/series/PCOPPUSDM",
+        "period_label": "原始首日标签规范为该统计月份月末；非日度收盘",
+        "wind_candidate_audit": {
+          "candidates": [
+            "LMCAD03.LME",
+            "LMCADY.LME",
+            "LMCADS03.LME"
+          ],
+          "ErrorCode": 0,
+          "sec_name": null,
+          "accepted": false
+        },
+        "first_date": "2016-09-30",
+        "last_date": "2026-07-31",
+        "latest_value": 13542.82086956522,
+        "valid_count": 119,
+        "missing_count": 0,
+        "raw_sha256": "c46af954b8507f13a430e03f12bcafb8b37547d5173661536baf0c5c48efda51"
+      },
+      "dollar_index": {
+        "provider": "Wind 已保存生产输入",
+        "code": "USDX.FX",
+        "unit": "指数点",
+        "raw_file": "raw/gold_anchor_wind_daily.csv",
+        "anchor_input": "data/market/wind_daily.csv",
+        "first_date": "2016-09-01",
+        "last_date": "2026-10-06",
+        "latest_value": 101.8409,
+        "valid_count": 2537,
+        "missing_count": 0,
+        "raw_sha256": "38a287a7c3f419bf883fedf1b3f457231de6246203b2c2d40a23f5261b746c73"
+      }
+    },
+    "gold_silver_ratio": {
+      "first_date": "2016-09-01",
+      "last_date": "2026-10-06",
+      "latest_value": 67.88754666536248,
+      "gold": 4164.29,
+      "silver": 61.341,
+      "definition": "同日美元/金衡盎司黄金价格 ÷ 白银价格；无填充",
+      "valid_count": 2537
+    },
+    "alignment": {
+      "daily": "共同日期端点；相邻间隔超过7天则不算收益",
+      "weekly": "已完成周的周五，缺失时允许周四；两资产使用同一日期",
+      "monthly": "已完成月份最后4天内的最后共同日期；非重叠月度对数收益",
+      "timezone_boundary": "同日标签不保证同一时刻；黄金/白银 vendor close 未验证精确钟点，BTC备注5 PM PST"
+    },
+    "separate_check": {
+      "provider": "Coinbase Exchange BTC-USD",
+      "frequency": "UTC 日K",
+      "definition_url": "https://docs.cdp.coinbase.com/api-reference/exchange-api/rest-api/products/get-product-candles",
+      "raw_file": "raw/coinbase_btc_usd_sample.json",
+      "main_series": false
+    }
+  },
+  "assetStudy": {
+    "gold_silver": {
+      "weekly": {
+        "fixed": {
+          "1y": {
+            "n": 52,
+            "start": "2025-10-10",
+            "end": "2026-10-02",
+            "pearson": 0.8115077104567822,
+            "spearman": 0.8453000939127465
+          },
+          "3y": {
+            "n": 156,
+            "start": "2023-10-13",
+            "end": "2026-10-02",
+            "pearson": 0.7611998586109966,
+            "spearman": 0.7959981666166174
+          },
+          "5y": {
+            "n": 261,
+            "start": "2021-10-08",
+            "end": "2026-10-02",
+            "pearson": 0.7659073210182514,
+            "spearman": 0.7936083044795864
+          },
+          "10y": {
+            "n": 521,
+            "start": "2016-10-14",
+            "end": "2026-10-02",
+            "pearson": 0.7849357925214612,
+            "spearman": 0.7998879085483096
+          }
+        }
+      },
+      "annual_weekly": {
+        "2017": {
+          "n": 52,
+          "start": "2017-01-06",
+          "end": "2017-12-29",
+          "pearson": 0.9001456735333994,
+          "spearman": 0.9055750021343806
+        },
+        "2018": {
+          "n": 52,
+          "start": "2018-01-05",
+          "end": "2018-12-28",
+          "pearson": 0.6879330125503343,
+          "spearman": 0.7110902416118843
+        },
+        "2019": {
+          "n": 52,
+          "start": "2019-01-04",
+          "end": "2019-12-27",
+          "pearson": 0.7330632253923728,
+          "spearman": 0.7115171177324341
+        },
+        "2020": {
+          "n": 53,
+          "start": "2020-01-03",
+          "end": "2020-12-31",
+          "pearson": 0.8526061249175352,
+          "spearman": 0.8600225770037091
+        },
+        "2021": {
+          "n": 52,
+          "start": "2021-01-08",
+          "end": "2021-12-31",
+          "pearson": 0.7967262335778437,
+          "spearman": 0.771962776402288
+        },
+        "2022": {
+          "n": 52,
+          "start": "2022-01-07",
+          "end": "2022-12-30",
+          "pearson": 0.7846601495790752,
+          "spearman": 0.8215657816101767
+        },
+        "2023": {
+          "n": 52,
+          "start": "2023-01-06",
+          "end": "2023-12-29",
+          "pearson": 0.7710584216984294,
+          "spearman": 0.7272261589686673
+        },
+        "2024": {
+          "n": 52,
+          "start": "2024-01-05",
+          "end": "2024-12-27",
+          "pearson": 0.7229712950641894,
+          "spearman": 0.7371296849654231
+        },
+        "2025": {
+          "n": 52,
+          "start": "2025-01-03",
+          "end": "2025-12-26",
+          "pearson": 0.6341497530734359,
+          "spearman": 0.6759156492785794
+        },
+        "2026": {
+          "n": 40,
+          "start": "2026-01-02",
+          "end": "2026-10-02",
+          "pearson": 0.8183069445024161,
+          "spearman": 0.8388367729831144
+        }
+      },
+      "daily_lag_sensitivity": {
+        "-1": {
+          "n": 2511,
+          "pearson": 0.006728321567005327,
+          "definition": "右侧资产对数收益位移 -1 个共同观测；用于日切敏感性，不能解释为预测因果"
+        },
+        "0": {
+          "n": 2511,
+          "pearson": 0.7830662077056827,
+          "definition": "右侧资产对数收益位移 +0 个共同观测；用于日切敏感性，不能解释为预测因果"
+        },
+        "1": {
+          "n": 2510,
+          "pearson": 0.0007310034085724035,
+          "definition": "右侧资产对数收益位移 +1 个共同观测；用于日切敏感性，不能解释为预测因果"
+        }
+      }
+    },
+    "gold_bitcoin": {
+      "weekly": {
+        "fixed": {
+          "1y": {
+            "n": 52,
+            "start": "2025-10-10",
+            "end": "2026-10-02",
+            "pearson": 0.09732648398681869,
+            "spearman": 0.008793648083326219
+          },
+          "3y": {
+            "n": 156,
+            "start": "2023-10-13",
+            "end": "2026-10-02",
+            "pearson": 0.05498823634583468,
+            "spearman": 0.0058478607893031566
+          },
+          "5y": {
+            "n": 261,
+            "start": "2021-10-08",
+            "end": "2026-10-02",
+            "pearson": 0.116480454793311,
+            "spearman": 0.06348836738412943
+          },
+          "10y": {
+            "n": 521,
+            "start": "2016-10-14",
+            "end": "2026-10-02",
+            "pearson": 0.1391667023924036,
+            "spearman": 0.0801570977393335
+          }
+        }
+      },
+      "annual_weekly": {
+        "2017": {
+          "n": 52,
+          "start": "2017-01-06",
+          "end": "2017-12-29",
+          "pearson": -0.0120634604728337,
+          "spearman": 0.07521557244087766
+        },
+        "2018": {
+          "n": 52,
+          "start": "2018-01-05",
+          "end": "2018-12-28",
+          "pearson": 0.15296061029706218,
+          "spearman": 0.11850081106462905
+        },
+        "2019": {
+          "n": 52,
+          "start": "2019-01-04",
+          "end": "2019-12-27",
+          "pearson": 0.2616814485201379,
+          "spearman": 0.15051652010586528
+        },
+        "2020": {
+          "n": 53,
+          "start": "2020-01-03",
+          "end": "2020-12-31",
+          "pearson": 0.4568761767430849,
+          "spearman": 0.21940009675858732
+        },
+        "2021": {
+          "n": 52,
+          "start": "2021-01-08",
+          "end": "2021-12-31",
+          "pearson": -0.04885018794174099,
+          "spearman": -0.05600614701613592
+        },
+        "2022": {
+          "n": 52,
+          "start": "2022-01-07",
+          "end": "2022-12-30",
+          "pearson": 0.09696044744692632,
+          "spearman": 0.19192350379919748
+        },
+        "2023": {
+          "n": 52,
+          "start": "2023-01-06",
+          "end": "2023-12-29",
+          "pearson": 0.19575168455468017,
+          "spearman": -0.0025612567232988987
+        },
+        "2024": {
+          "n": 52,
+          "start": "2024-01-05",
+          "end": "2024-12-27",
+          "pearson": 0.003593060550892592,
+          "spearman": -0.05276188849995731
+        },
+        "2025": {
+          "n": 52,
+          "start": "2025-01-03",
+          "end": "2025-12-26",
+          "pearson": 0.08305703449843153,
+          "spearman": 0.03688209681550414
+        },
+        "2026": {
+          "n": 40,
+          "start": "2026-01-02",
+          "end": "2026-10-02",
+          "pearson": 0.17172595774251842,
+          "spearman": 0.11632270168855535
+        }
+      },
+      "daily_lag_sensitivity": {
+        "-1": {
+          "n": 2510,
+          "pearson": 0.010225717063428211,
+          "definition": "右侧资产对数收益位移 -1 个共同观测；用于日切敏感性，不能解释为预测因果"
+        },
+        "0": {
+          "n": 2510,
+          "pearson": 0.1200599402163019,
+          "definition": "右侧资产对数收益位移 +0 个共同观测；用于日切敏感性，不能解释为预测因果"
+        },
+        "1": {
+          "n": 2509,
+          "pearson": -0.013217834449825897,
+          "definition": "右侧资产对数收益位移 +1 个共同观测；用于日切敏感性，不能解释为预测因果"
+        }
+      }
+    },
+    "silver_bitcoin": {
+      "weekly": {
+        "fixed": {
+          "1y": {
+            "n": 52,
+            "start": "2025-10-10",
+            "end": "2026-10-02",
+            "pearson": 0.2434015217181164,
+            "spearman": 0.15452915563903355
+          },
+          "3y": {
+            "n": 156,
+            "start": "2023-10-13",
+            "end": "2026-10-02",
+            "pearson": 0.12321155292622168,
+            "spearman": 0.06845158129316749
+          },
+          "5y": {
+            "n": 261,
+            "start": "2021-10-08",
+            "end": "2026-10-02",
+            "pearson": 0.1583025328112192,
+            "spearman": 0.12532110339428054
+          },
+          "10y": {
+            "n": 521,
+            "start": "2016-10-14",
+            "end": "2026-10-02",
+            "pearson": 0.1502780247864866,
+            "spearman": 0.11081364308248946
+          }
+        }
+      },
+      "annual_weekly": {
+        "2017": {
+          "n": 52,
+          "start": "2017-01-06",
+          "end": "2017-12-29",
+          "pearson": 0.01555190429384535,
+          "spearman": 0.0992913856398873
+        },
+        "2018": {
+          "n": 52,
+          "start": "2018-01-05",
+          "end": "2018-12-28",
+          "pearson": 0.21671686968297185,
+          "spearman": 0.21497481430888757
+        },
+        "2019": {
+          "n": 52,
+          "start": "2019-01-04",
+          "end": "2019-12-27",
+          "pearson": 0.006516195911487435,
+          "spearman": -0.06189703747972338
+        },
+        "2020": {
+          "n": 53,
+          "start": "2020-01-03",
+          "end": "2020-12-31",
+          "pearson": 0.39814770775899694,
+          "spearman": 0.20786969843573616
+        },
+        "2021": {
+          "n": 52,
+          "start": "2021-01-08",
+          "end": "2021-12-31",
+          "pearson": 0.09542743934974054,
+          "spearman": 0.13728336036882097
+        },
+        "2022": {
+          "n": 52,
+          "start": "2022-01-07",
+          "end": "2022-12-30",
+          "pearson": 0.15700990262223885,
+          "spearman": 0.22846409971826176
+        },
+        "2023": {
+          "n": 52,
+          "start": "2023-01-06",
+          "end": "2023-12-29",
+          "pearson": 0.08472378385806284,
+          "spearman": -0.0018782549304191924
+        },
+        "2024": {
+          "n": 52,
+          "start": "2024-01-05",
+          "end": "2024-12-27",
+          "pearson": 0.09035796618708156,
+          "spearman": 0.01195253137539486
+        },
+        "2025": {
+          "n": 52,
+          "start": "2025-01-03",
+          "end": "2025-12-26",
+          "pearson": 0.10050283063475589,
+          "spearman": 0.10099889012208657
+        },
+        "2026": {
+          "n": 40,
+          "start": "2026-01-02",
+          "end": "2026-10-02",
+          "pearson": 0.32545459099510937,
+          "spearman": 0.2649155722326454
+        }
+      },
+      "daily_lag_sensitivity": {
+        "-1": {
+          "n": 2511,
+          "pearson": 0.03000553136210923,
+          "definition": "右侧资产对数收益位移 -1 个共同观测；用于日切敏感性，不能解释为预测因果"
+        },
+        "0": {
+          "n": 2511,
+          "pearson": 0.15102681894235967,
+          "definition": "右侧资产对数收益位移 +0 个共同观测；用于日切敏感性，不能解释为预测因果"
+        },
+        "1": {
+          "n": 2510,
+          "pearson": -0.01907681601154273,
+          "definition": "右侧资产对数收益位移 +1 个共同观测；用于日切敏感性，不能解释为预测因果"
+        }
+      }
+    }
+  },
+  "oldValuation": {
+    "status": "口径断点，停止展示历史分位",
+    "breakDate": "2024-01",
+    "denominator": "美国 M2 + (中国、欧元区、英国、日本折美元 M2)/3",
+    "numerator": "金价 × 全球黄金矿产储量 / 10000",
+    "unitConcern": "公式未将吨换算为金衡盎司；不是黄金市值/M2的经济比例",
+    "source": "2609 工作簿 · 中长期估值指标 I/J/K 列"
+  },
+  "yoyStudy": {
+    "overlapping": {
+      "n": 272,
+      "start": "2004-01",
+      "end": "2026-08",
+      "targetMonths": [
+        "2004-01",
+        "2004-02",
+        "2004-03",
+        "2004-04",
+        "2004-05",
+        "2004-06",
+        "2004-07",
+        "2004-08",
+        "2004-09",
+        "2004-10",
+        "2004-11",
+        "2004-12",
+        "2005-01",
+        "2005-02",
+        "2005-03",
+        "2005-04",
+        "2005-05",
+        "2005-06",
+        "2005-07",
+        "2005-08",
+        "2005-09",
+        "2005-10",
+        "2005-11",
+        "2005-12",
+        "2006-01",
+        "2006-02",
+        "2006-03",
+        "2006-04",
+        "2006-05",
+        "2006-06",
+        "2006-07",
+        "2006-08",
+        "2006-09",
+        "2006-10",
+        "2006-11",
+        "2006-12",
+        "2007-01",
+        "2007-02",
+        "2007-03",
+        "2007-04",
+        "2007-05",
+        "2007-06",
+        "2007-07",
+        "2007-08",
+        "2007-09",
+        "2007-10",
+        "2007-11",
+        "2007-12",
+        "2008-01",
+        "2008-02",
+        "2008-03",
+        "2008-04",
+        "2008-05",
+        "2008-06",
+        "2008-07",
+        "2008-08",
+        "2008-09",
+        "2008-10",
+        "2008-11",
+        "2008-12",
+        "2009-01",
+        "2009-02",
+        "2009-03",
+        "2009-04",
+        "2009-05",
+        "2009-06",
+        "2009-07",
+        "2009-08",
+        "2009-09",
+        "2009-10",
+        "2009-11",
+        "2009-12",
+        "2010-01",
+        "2010-02",
+        "2010-03",
+        "2010-04",
+        "2010-05",
+        "2010-06",
+        "2010-07",
+        "2010-08",
+        "2010-09",
+        "2010-10",
+        "2010-11",
+        "2010-12",
+        "2011-01",
+        "2011-02",
+        "2011-03",
+        "2011-04",
+        "2011-05",
+        "2011-06",
+        "2011-07",
+        "2011-08",
+        "2011-09",
+        "2011-10",
+        "2011-11",
+        "2011-12",
+        "2012-01",
+        "2012-02",
+        "2012-03",
+        "2012-04",
+        "2012-05",
+        "2012-06",
+        "2012-07",
+        "2012-08",
+        "2012-09",
+        "2012-10",
+        "2012-11",
+        "2012-12",
+        "2013-01",
+        "2013-02",
+        "2013-03",
+        "2013-04",
+        "2013-05",
+        "2013-06",
+        "2013-07",
+        "2013-08",
+        "2013-09",
+        "2013-10",
+        "2013-11",
+        "2013-12",
+        "2014-01",
+        "2014-02",
+        "2014-03",
+        "2014-04",
+        "2014-05",
+        "2014-06",
+        "2014-07",
+        "2014-08",
+        "2014-09",
+        "2014-10",
+        "2014-11",
+        "2014-12",
+        "2015-01",
+        "2015-02",
+        "2015-03",
+        "2015-04",
+        "2015-05",
+        "2015-06",
+        "2015-07",
+        "2015-08",
+        "2015-09",
+        "2015-10",
+        "2015-11",
+        "2015-12",
+        "2016-01",
+        "2016-02",
+        "2016-03",
+        "2016-04",
+        "2016-05",
+        "2016-06",
+        "2016-07",
+        "2016-08",
+        "2016-09",
+        "2016-10",
+        "2016-11",
+        "2016-12",
+        "2017-01",
+        "2017-02",
+        "2017-03",
+        "2017-04",
+        "2017-05",
+        "2017-06",
+        "2017-07",
+        "2017-08",
+        "2017-09",
+        "2017-10",
+        "2017-11",
+        "2017-12",
+        "2018-01",
+        "2018-02",
+        "2018-03",
+        "2018-04",
+        "2018-05",
+        "2018-06",
+        "2018-07",
+        "2018-08",
+        "2018-09",
+        "2018-10",
+        "2018-11",
+        "2018-12",
+        "2019-01",
+        "2019-02",
+        "2019-03",
+        "2019-04",
+        "2019-05",
+        "2019-06",
+        "2019-07",
+        "2019-08",
+        "2019-09",
+        "2019-10",
+        "2019-11",
+        "2019-12",
+        "2020-01",
+        "2020-02",
+        "2020-03",
+        "2020-04",
+        "2020-05",
+        "2020-06",
+        "2020-07",
+        "2020-08",
+        "2020-09",
+        "2020-10",
+        "2020-11",
+        "2020-12",
+        "2021-01",
+        "2021-02",
+        "2021-03",
+        "2021-04",
+        "2021-05",
+        "2021-06",
+        "2021-07",
+        "2021-08",
+        "2021-09",
+        "2021-10",
+        "2021-11",
+        "2021-12",
+        "2022-01",
+        "2022-02",
+        "2022-03",
+        "2022-04",
+        "2022-05",
+        "2022-06",
+        "2022-07",
+        "2022-08",
+        "2022-09",
+        "2022-10",
+        "2022-11",
+        "2022-12",
+        "2023-01",
+        "2023-02",
+        "2023-03",
+        "2023-04",
+        "2023-05",
+        "2023-06",
+        "2023-07",
+        "2023-08",
+        "2023-09",
+        "2023-10",
+        "2023-11",
+        "2023-12",
+        "2024-01",
+        "2024-02",
+        "2024-03",
+        "2024-04",
+        "2024-05",
+        "2024-06",
+        "2024-07",
+        "2024-08",
+        "2024-09",
+        "2024-10",
+        "2024-11",
+        "2024-12",
+        "2025-01",
+        "2025-02",
+        "2025-03",
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07",
+        "2026-08"
+      ],
+      "usd": {
+        "n": 272,
+        "start": "2004-01",
+        "end": "2026-08",
+        "correlation": 0.3069028801018844,
+        "partial_dollar": -0.07460146455315605
+      },
+      "fixed": {
+        "n": 272,
+        "start": "2004-01",
+        "end": "2026-08",
+        "correlation": -0.013859978127864355,
+        "partial_dollar": -0.014580136343501745
+      }
+    },
+    "annual": {
+      "n": 22,
+      "start": "2004-12",
+      "end": "2025-12",
+      "targetMonths": [
+        "2004-12",
+        "2005-12",
+        "2006-12",
+        "2007-12",
+        "2008-12",
+        "2009-12",
+        "2010-12",
+        "2011-12",
+        "2012-12",
+        "2013-12",
+        "2014-12",
+        "2015-12",
+        "2016-12",
+        "2017-12",
+        "2018-12",
+        "2019-12",
+        "2020-12",
+        "2021-12",
+        "2022-12",
+        "2023-12",
+        "2024-12",
+        "2025-12"
+      ],
+      "usd": {
+        "n": 22,
+        "start": "2004-12",
+        "end": "2025-12",
+        "correlation": 0.3104358496873503,
+        "partial_dollar": -0.1294100963433675
+      },
+      "fixed": {
+        "n": 22,
+        "start": "2004-12",
+        "end": "2025-12",
+        "correlation": 0.018883873105187014,
+        "partial_dollar": -0.039246904119295975
+      }
+    },
+    "method": {
+      "scope": "美国、中国、欧元区 M2 的研究组合，不等于全球总量；与美元计价黄金比较。",
+      "change": "X_t / X_(t-12) - 1；黄金、两种 M2 篮子和美元指数均使用算术同比。",
+      "units": "fraction；显示百分比时乘 100。相关系数本身无单位。",
+      "fx": "usd 为当期汇率折算；fixed 固定 2020-12 汇率。两个口径使用相同目标月份。",
+      "control": "控制同期美元指数算术同比；分别对 X/Y 关于截距和美元同比回归后，计算残差的 Pearson 相关。",
+      "overlapping": "逐月计算 12 个月同比，相邻观测共享 11 个月变化；月份数不代表独立观察数。",
+      "annual": "预先固定每年 12 月的同比，即上年 12 月至本年 12 月；年度区间互不重叠，但不保证统计独立。",
+      "prices": "只用已完成月份的自身最后有效价格，距月末不超过 7 天；无插值或跨月填充。美国 M2 月均，中欧 M2 月末，按月近似对齐。",
+      "sample": "黄金、美元指数、当期与固定汇率 M2 同比的有效月份交集；年度结果仅保留交集中的 12 月。",
+      "interval": "本补充不新增置信区间，不将重叠同比的样本数当作独立样本数。",
+      "boundary": "与原研究的非重叠月度对数变化分开；当前修订数据未按历史发布日期回放，相关不是因果、预测或交易信号。"
+    }
+  },
+  "asOf": "2026-10-08",
+  "rolling": {
+    "gold": [
+      [
+        "2006-01-31",
+        0.1463396864039527
+      ],
+      [
+        "2006-02-28",
+        0.13438414314908995
+      ],
+      [
+        "2006-03-31",
+        0.20287469469013725
+      ],
+      [
+        "2006-04-30",
+        0.2623871346122274
+      ],
+      [
+        "2006-05-31",
+        0.28079407244826937
+      ],
+      [
+        "2006-06-30",
+        0.2728852361155291
+      ],
+      [
+        "2006-07-31",
+        0.2616940605342
+      ],
+      [
+        "2006-08-31",
+        0.2693368540089592
+      ],
+      [
+        "2006-09-30",
+        0.23946306754212152
+      ],
+      [
+        "2006-10-31",
+        0.23114981821742986
+      ],
+      [
+        "2006-11-30",
+        0.24912451572356145
+      ],
+      [
+        "2006-12-31",
+        0.15287762271782146
+      ],
+      [
+        "2007-01-31",
+        0.11637548146151783
+      ],
+      [
+        "2007-02-28",
+        0.10460920371938748
+      ],
+      [
+        "2007-03-31",
+        0.04901721388086464
+      ],
+      [
+        "2007-04-30",
+        0.07326857357281251
+      ],
+      [
+        "2007-05-31",
+        0.09982610626342882
+      ],
+      [
+        "2007-06-30",
+        0.07490957269478894
+      ],
+      [
+        "2007-07-31",
+        0.05834623221004135
+      ],
+      [
+        "2007-08-31",
+        0.09058480953445326
+      ],
+      [
+        "2007-09-30",
+        0.11057202352903776
+      ],
+      [
+        "2007-10-31",
+        0.10249142394372196
+      ],
+      [
+        "2007-11-30",
+        0.09113457210955445
+      ],
+      [
+        "2007-12-31",
+        0.16425210894680103
+      ],
+      [
+        "2008-01-31",
+        0.14453488970610287
+      ],
+      [
+        "2008-02-29",
+        0.14847870964769067
+      ],
+      [
+        "2008-03-31",
+        0.1274215561491261
+      ],
+      [
+        "2008-04-30",
+        0.10881189235088798
+      ],
+      [
+        "2008-05-31",
+        0.07175054583472396
+      ],
+      [
+        "2008-06-30",
+        0.05644058814526351
+      ],
+      [
+        "2008-07-31",
+        0.060710084828610754
+      ],
+      [
+        "2008-08-31",
+        0.12877936080263763
+      ],
+      [
+        "2008-09-30",
+        0.10845367320676455
+      ],
+      [
+        "2008-10-31",
+        0.02810406701035318
+      ],
+      [
+        "2008-11-30",
+        0.04041773173183615
+      ],
+      [
+        "2008-12-31",
+        0.08351962684580837
+      ],
+      [
+        "2009-01-31",
+        0.1535515316557176
+      ],
+      [
+        "2009-02-28",
+        0.14265373658908273
+      ],
+      [
+        "2009-03-31",
+        0.0955541907374081
+      ],
+      [
+        "2009-04-30",
+        0.06744160279235527
+      ],
+      [
+        "2009-05-31",
+        0.006474529713962997
+      ],
+      [
+        "2009-06-30",
+        -0.006383053609916207
+      ],
+      [
+        "2009-07-31",
+        -0.005886187079902341
+      ],
+      [
+        "2009-08-31",
+        -0.00973706015523327
+      ],
+      [
+        "2009-09-30",
+        -0.014427990770964185
+      ],
+      [
+        "2009-10-31",
+        -0.025725737748821826
+      ],
+      [
+        "2009-11-30",
+        -0.049755741456921236
+      ],
+      [
+        "2009-12-31",
+        -0.0600339572031273
+      ],
+      [
+        "2010-01-31",
+        -0.04271236260155594
+      ],
+      [
+        "2010-02-28",
+        -0.04437666270016926
+      ],
+      [
+        "2010-03-31",
+        -0.03302990036380889
+      ],
+      [
+        "2010-04-30",
+        -0.03852439993774858
+      ],
+      [
+        "2010-05-31",
+        -0.06797273990033054
+      ],
+      [
+        "2010-06-30",
+        -0.05419689089763455
+      ],
+      [
+        "2010-07-31",
+        0.0011980255105781652
+      ],
+      [
+        "2010-08-31",
+        0.000680807182108853
+      ],
+      [
+        "2010-09-30",
+        -0.021198401180993996
+      ],
+      [
+        "2010-10-31",
+        -0.018658369173475735
+      ],
+      [
+        "2010-11-30",
+        -0.01392922367400479
+      ],
+      [
+        "2010-12-31",
+        -0.031936520554682636
+      ],
+      [
+        "2011-01-31",
+        -0.014887340543674821
+      ],
+      [
+        "2011-02-28",
+        -0.03726170684592346
+      ],
+      [
+        "2011-03-31",
+        -0.014141761078992777
+      ],
+      [
+        "2011-04-30",
+        -0.029522674376545474
+      ],
+      [
+        "2011-05-31",
+        -0.015320635479550952
+      ],
+      [
+        "2011-06-30",
+        -0.031278528234002394
+      ],
+      [
+        "2011-07-31",
+        -0.07482821916497903
+      ],
+      [
+        "2011-08-31",
+        -0.11054648452057511
+      ],
+      [
+        "2011-09-30",
+        -0.08701518382217562
+      ],
+      [
+        "2011-10-31",
+        -0.01746370742585065
+      ],
+      [
+        "2011-11-30",
+        -0.034115902614566936
+      ],
+      [
+        "2011-12-31",
+        -0.2500752717142543
+      ],
+      [
+        "2012-01-31",
+        -0.3117838350323207
+      ],
+      [
+        "2012-02-29",
+        -0.30572718952422245
+      ],
+      [
+        "2012-03-31",
+        -0.29801597814370184
+      ],
+      [
+        "2012-04-30",
+        -0.26826433963990326
+      ],
+      [
+        "2012-05-31",
+        -0.2227162994549907
+      ],
+      [
+        "2012-06-30",
+        -0.1762739927172992
+      ],
+      [
+        "2012-07-31",
+        -0.16413188117723254
+      ],
+      [
+        "2012-08-31",
+        -0.1853534084846984
+      ],
+      [
+        "2012-09-30",
+        -0.1624672157698417
+      ],
+      [
+        "2012-10-31",
+        -0.12836827493186845
+      ],
+      [
+        "2012-11-30",
+        -0.13086862249898645
+      ],
+      [
+        "2012-12-31",
+        -0.11239879366936141
+      ],
+      [
+        "2013-01-31",
+        -0.11795106033966248
+      ],
+      [
+        "2013-02-28",
+        -0.08530302983142342
+      ],
+      [
+        "2013-03-31",
+        -0.07564445088502621
+      ],
+      [
+        "2013-04-30",
+        -0.024497413463729557
+      ],
+      [
+        "2013-05-31",
+        0.009338108097491152
+      ],
+      [
+        "2013-06-30",
+        0.007952599452638232
+      ],
+      [
+        "2013-07-31",
+        -0.061789010900062696
+      ],
+      [
+        "2013-08-31",
+        -0.06974418235007261
+      ],
+      [
+        "2013-09-30",
+        -0.06816289914618107
+      ],
+      [
+        "2013-10-31",
+        -0.059767140762650765
+      ],
+      [
+        "2013-11-30",
+        -0.05496945360488354
+      ],
+      [
+        "2013-12-31",
+        -0.08704279325490812
+      ],
+      [
+        "2014-01-31",
+        -0.11380488941788214
+      ],
+      [
+        "2014-02-28",
+        -0.10130227423758535
+      ],
+      [
+        "2014-03-31",
+        -0.12900960352570953
+      ],
+      [
+        "2014-04-30",
+        -0.10503196838631601
+      ],
+      [
+        "2014-05-31",
+        -0.10664462091805918
+      ],
+      [
+        "2014-06-30",
+        -0.07465786595773558
+      ],
+      [
+        "2014-07-31",
+        -0.007774673731530113
+      ],
+      [
+        "2014-08-31",
+        -0.04067416056839774
+      ],
+      [
+        "2014-09-30",
+        -0.0386696049526495
+      ],
+      [
+        "2014-10-31",
+        -0.0736347377769525
+      ],
+      [
+        "2014-11-30",
+        -0.07384618153563728
+      ],
+      [
+        "2014-12-31",
+        0.053984522244376575
+      ],
+      [
+        "2015-01-31",
+        0.10837940941692725
+      ],
+      [
+        "2015-02-28",
+        0.10390154777547177
+      ],
+      [
+        "2015-03-31",
+        0.11193284543205216
+      ],
+      [
+        "2015-04-30",
+        0.11895753642729427
+      ],
+      [
+        "2015-05-31",
+        0.10656472932373134
+      ],
+      [
+        "2015-06-30",
+        0.07706898245444109
+      ],
+      [
+        "2015-07-31",
+        0.07766862546268577
+      ],
+      [
+        "2015-08-31",
+        0.07416053413760254
+      ],
+      [
+        "2015-09-30",
+        0.04280635256984528
+      ],
+      [
+        "2015-10-31",
+        0.01668046704655686
+      ],
+      [
+        "2015-11-30",
+        0.002409233216149784
+      ],
+      [
+        "2015-12-31",
+        0.024514024107964907
+      ],
+      [
+        "2016-01-31",
+        0.04995879941988587
+      ],
+      [
+        "2016-02-29",
+        -0.008335641317161031
+      ],
+      [
+        "2016-03-31",
+        -0.041538942693827276
+      ],
+      [
+        "2016-04-30",
+        -0.11678762302873477
+      ],
+      [
+        "2016-05-31",
+        -0.1391901850213886
+      ],
+      [
+        "2016-06-30",
+        -0.07254739335591891
+      ],
+      [
+        "2016-07-31",
+        -0.017012616203129226
+      ],
+      [
+        "2016-08-31",
+        -0.015667983304796827
+      ],
+      [
+        "2016-09-30",
+        -0.010202320895145008
+      ],
+      [
+        "2016-10-31",
+        0.005047252833164127
+      ],
+      [
+        "2016-11-30",
+        -0.015543574944289608
+      ],
+      [
+        "2016-12-31",
+        0.017548091176766988
+      ],
+      [
+        "2017-01-31",
+        0.046460648902170214
+      ],
+      [
+        "2017-02-28",
+        0.04818848857202082
+      ],
+      [
+        "2017-03-31",
+        0.09334145643753146
+      ],
+      [
+        "2017-04-30",
+        0.08101524451486089
+      ],
+      [
+        "2017-05-31",
+        0.07380253185611395
+      ],
+      [
+        "2017-06-30",
+        0.004980105214706048
+      ],
+      [
+        "2017-07-31",
+        -0.07207759780286986
+      ],
+      [
+        "2017-08-31",
+        -0.06622970331106673
+      ],
+      [
+        "2017-09-30",
+        -0.09117655705536566
+      ],
+      [
+        "2017-10-31",
+        -0.11514440325290924
+      ],
+      [
+        "2017-11-30",
+        -0.11370892047665854
+      ],
+      [
+        "2017-12-31",
+        -0.1360659763556382
+      ],
+      [
+        "2018-01-31",
+        -0.13797346629839852
+      ],
+      [
+        "2018-02-28",
+        -0.11066959941197874
+      ],
+      [
+        "2018-03-31",
+        -0.08882299626368062
+      ],
+      [
+        "2018-04-30",
+        -0.07645403953995679
+      ],
+      [
+        "2018-05-31",
+        -0.06558168991516501
+      ],
+      [
+        "2018-06-30",
+        -0.08858679598144056
+      ],
+      [
+        "2018-07-31",
+        -0.024677044293553666
+      ],
+      [
+        "2018-08-31",
+        0.0008831678352549623
+      ],
+      [
+        "2018-09-30",
+        -0.009816774078523154
+      ],
+      [
+        "2018-10-31",
+        -0.023497842000740853
+      ],
+      [
+        "2018-11-30",
+        0.022702880642951517
+      ],
+      [
+        "2018-12-31",
+        0.05098566449889444
+      ],
+      [
+        "2019-01-31",
+        0.03125843495436243
+      ],
+      [
+        "2019-02-28",
+        0.08227908923420614
+      ],
+      [
+        "2019-03-31",
+        0.06543408005098166
+      ],
+      [
+        "2019-04-30",
+        0.09476238275265443
+      ],
+      [
+        "2019-05-31",
+        0.08025273809120984
+      ],
+      [
+        "2019-06-30",
+        0.08395429749113205
+      ],
+      [
+        "2019-07-31",
+        0.09222189690739527
+      ],
+      [
+        "2019-08-31",
+        0.14391590199978516
+      ],
+      [
+        "2019-09-30",
+        0.14156599318802562
+      ],
+      [
+        "2019-10-31",
+        0.09740608171452879
+      ],
+      [
+        "2019-11-30",
+        0.1323411510424452
+      ],
+      [
+        "2019-12-31",
+        0.18578467444229588
+      ],
+      [
+        "2020-01-31",
+        0.16768811400853287
+      ],
+      [
+        "2020-02-29",
+        0.18814616888778216
+      ],
+      [
+        "2020-03-31",
+        0.08793613256759002
+      ],
+      [
+        "2020-04-30",
+        0.23036542865475504
+      ],
+      [
+        "2020-05-31",
+        0.24291586264812684
+      ],
+      [
+        "2020-06-30",
+        0.2849933849615256
+      ],
+      [
+        "2020-07-31",
+        0.19163482609209395
+      ],
+      [
+        "2020-08-31",
+        0.1972737625997141
+      ],
+      [
+        "2020-09-30",
+        0.1536142095462367
+      ],
+      [
+        "2020-10-31",
+        0.15170998203936387
+      ],
+      [
+        "2020-11-30",
+        0.11064896193841928
+      ],
+      [
+        "2020-12-31",
+        0.12166898511662375
+      ],
+      [
+        "2021-01-31",
+        0.11797421465553803
+      ],
+      [
+        "2021-02-28",
+        0.08865743919865139
+      ],
+      [
+        "2021-03-31",
+        0.0636987122223788
+      ],
+      [
+        "2021-04-30",
+        0.03561188534741774
+      ],
+      [
+        "2021-05-31",
+        0.004565043859168549
+      ],
+      [
+        "2021-06-30",
+        -0.015230277811130637
+      ],
+      [
+        "2021-07-31",
+        -0.04584085891498343
+      ],
+      [
+        "2021-08-31",
+        -0.05407264420649559
+      ],
+      [
+        "2021-09-30",
+        -0.06648299633309225
+      ],
+      [
+        "2021-10-31",
+        -0.060616501459393644
+      ],
+      [
+        "2021-11-30",
+        -0.0610502562906873
+      ],
+      [
+        "2021-12-31",
+        -0.05366469119125165
+      ],
+      [
+        "2022-01-31",
+        -0.06111082169678551
+      ],
+      [
+        "2022-02-28",
+        -0.10285012788616778
+      ],
+      [
+        "2022-03-31",
+        -0.08811900450067611
+      ],
+      [
+        "2022-04-30",
+        -0.0789928486487834
+      ],
+      [
+        "2022-05-31",
+        -0.0486127091798794
+      ],
+      [
+        "2022-06-30",
+        -0.09033945389300649
+      ],
+      [
+        "2022-07-31",
+        -0.07010758855803155
+      ],
+      [
+        "2022-08-31",
+        -0.051519219324892396
+      ],
+      [
+        "2022-09-30",
+        -0.05275020876223049
+      ],
+      [
+        "2022-10-31",
+        -0.006059183312481593
+      ],
+      [
+        "2022-11-30",
+        -0.014397250807081749
+      ],
+      [
+        "2022-12-31",
+        -0.027799146345011214
+      ],
+      [
+        "2023-01-31",
+        -0.015915188604026225
+      ],
+      [
+        "2023-02-28",
+        0.02317923816129039
+      ],
+      [
+        "2023-03-31",
+        0.06942526536405179
+      ],
+      [
+        "2023-04-30",
+        -0.04453986009330616
+      ],
+      [
+        "2023-05-31",
+        -0.05740995668257275
+      ],
+      [
+        "2023-06-30",
+        -0.10040965393776852
+      ],
+      [
+        "2023-07-31",
+        -0.07159440689864477
+      ],
+      [
+        "2023-08-31",
+        -0.06551311636396812
+      ],
+      [
+        "2023-09-30",
+        -0.037294408193342274
+      ],
+      [
+        "2023-10-31",
+        -0.12134579670400633
+      ],
+      [
+        "2023-11-30",
+        -0.07967504405431744
+      ],
+      [
+        "2023-12-31",
+        -0.114527815967463
+      ],
+      [
+        "2024-01-31",
+        -0.10733882826093469
+      ],
+      [
+        "2024-02-29",
+        -0.08313166834035533
+      ],
+      [
+        "2024-03-31",
+        0.04614940666982302
+      ],
+      [
+        "2024-04-30",
+        0.029429108097510755
+      ],
+      [
+        "2024-05-31",
+        0.017697410853440915
+      ],
+      [
+        "2024-06-30",
+        0.09863112973992416
+      ],
+      [
+        "2024-07-31",
+        0.05401649372493483
+      ],
+      [
+        "2024-08-31",
+        0.05658058249891142
+      ],
+      [
+        "2024-09-30",
+        0.11273161248397073
+      ],
+      [
+        "2024-10-31",
+        0.09819579041325051
+      ],
+      [
+        "2024-11-30",
+        0.07987420376306285
+      ],
+      [
+        "2024-12-31",
+        0.0579241256943404
+      ],
+      [
+        "2025-01-31",
+        0.0931476315667857
+      ],
+      [
+        "2025-02-28",
+        0.10477196771472345
+      ],
+      [
+        "2025-03-31",
+        0.1939146720985522
+      ],
+      [
+        "2025-04-30",
+        0.15934146578998398
+      ],
+      [
+        "2025-05-31",
+        0.15860367012718907
+      ],
+      [
+        "2025-06-30",
+        0.19124109944121503
+      ],
+      [
+        "2025-07-31",
+        0.18955038312640107
+      ],
+      [
+        "2025-08-31",
+        0.19598078737022634
+      ],
+      [
+        "2025-09-30",
+        0.23020326441774933
+      ],
+      [
+        "2025-10-31",
+        0.18524418433565057
+      ],
+      [
+        "2025-11-30",
+        0.17882203694646812
+      ],
+      [
+        "2025-12-31",
+        0.17672843663296722
+      ],
+      [
+        "2026-01-31",
+        0.22030668791117902
+      ],
+      [
+        "2026-02-28",
+        0.18622621616061627
+      ],
+      [
+        "2026-03-31",
+        0.008642152223461288
+      ],
+      [
+        "2026-04-30",
+        0.014888640102757427
+      ],
+      [
+        "2026-05-31",
+        0.003766833929502644
+      ],
+      [
+        "2026-06-30",
+        -0.01071364167099418
+      ],
+      [
+        "2026-07-31",
+        -0.0007543071007421352
+      ],
+      [
+        "2026-08-31",
+        -0.0221144373647105
+      ]
+    ],
+    "silver": [
+      [
+        "2019-09-30",
+        0.20986838830107438
+      ],
+      [
+        "2019-10-31",
+        0.1420677204920521
+      ],
+      [
+        "2019-11-30",
+        0.14634411391284366
+      ],
+      [
+        "2019-12-31",
+        0.19485232803191677
+      ],
+      [
+        "2020-01-31",
+        0.14348062560441563
+      ],
+      [
+        "2020-02-29",
+        0.18035751046283988
+      ],
+      [
+        "2020-03-31",
+        -0.26941084755296996
+      ],
+      [
+        "2020-04-30",
+        -0.15591942829848518
+      ],
+      [
+        "2020-05-31",
+        -0.013727608942134232
+      ],
+      [
+        "2020-06-30",
+        0.009957449337112895
+      ],
+      [
+        "2020-07-31",
+        -0.08281894560855985
+      ],
+      [
+        "2020-08-31",
+        -0.1004095424141437
+      ],
+      [
+        "2020-09-30",
+        -0.1406664694002265
+      ],
+      [
+        "2020-10-31",
+        -0.14489439548089375
+      ],
+      [
+        "2020-11-30",
+        -0.15395275662662403
+      ],
+      [
+        "2020-12-31",
+        -0.13353701760784564
+      ],
+      [
+        "2021-01-31",
+        -0.13286853183964223
+      ],
+      [
+        "2021-02-28",
+        -0.15384910789446463
+      ],
+      [
+        "2021-03-31",
+        -0.18854380302124824
+      ],
+      [
+        "2021-04-30",
+        -0.2057299173924721
+      ],
+      [
+        "2021-05-31",
+        -0.21496186371019818
+      ],
+      [
+        "2021-06-30",
+        -0.22338398605501572
+      ],
+      [
+        "2021-07-31",
+        -0.22423006366698736
+      ],
+      [
+        "2021-08-31",
+        -0.228468155602126
+      ],
+      [
+        "2021-09-30",
+        -0.23315767798495232
+      ],
+      [
+        "2021-10-31",
+        -0.2720962557107851
+      ],
+      [
+        "2021-11-30",
+        -0.27170283536412815
+      ],
+      [
+        "2021-12-31",
+        -0.27177166838245626
+      ],
+      [
+        "2022-01-31",
+        -0.2761669849558634
+      ],
+      [
+        "2022-02-28",
+        -0.30896128452244814
+      ],
+      [
+        "2022-03-31",
+        -0.29621264133287073
+      ],
+      [
+        "2022-04-30",
+        -0.2715921996130846
+      ],
+      [
+        "2022-05-31",
+        -0.2618020005769466
+      ],
+      [
+        "2022-06-30",
+        -0.280887503220314
+      ],
+      [
+        "2022-07-31",
+        -0.2643199782798477
+      ],
+      [
+        "2022-08-31",
+        -0.23521242014137564
+      ],
+      [
+        "2022-09-30",
+        -0.25215625571931083
+      ],
+      [
+        "2022-10-31",
+        -0.22808146204610213
+      ],
+      [
+        "2022-11-30",
+        -0.22954454589666826
+      ],
+      [
+        "2022-12-31",
+        -0.24123630975365637
+      ],
+      [
+        "2023-01-31",
+        -0.24258514425679945
+      ],
+      [
+        "2023-02-28",
+        -0.2116706873386848
+      ],
+      [
+        "2023-03-31",
+        -0.03990014660003105
+      ],
+      [
+        "2023-04-30",
+        -0.10123147645142731
+      ],
+      [
+        "2023-05-31",
+        -0.16914199575581074
+      ],
+      [
+        "2023-06-30",
+        -0.18913757525271307
+      ],
+      [
+        "2023-07-31",
+        -0.17441837722142375
+      ],
+      [
+        "2023-08-31",
+        -0.16285476716415578
+      ],
+      [
+        "2023-09-30",
+        -0.10634479570836962
+      ],
+      [
+        "2023-10-31",
+        -0.11692467358651955
+      ],
+      [
+        "2023-11-30",
+        -0.08792468118223118
+      ],
+      [
+        "2023-12-31",
+        -0.1403753967768759
+      ],
+      [
+        "2024-01-31",
+        -0.14957833314573918
+      ],
+      [
+        "2024-02-29",
+        -0.1473368923480894
+      ],
+      [
+        "2024-03-31",
+        -0.015281925342623022
+      ],
+      [
+        "2024-04-30",
+        -0.045787326958977345
+      ],
+      [
+        "2024-05-31",
+        -0.08803335320093339
+      ],
+      [
+        "2024-06-30",
+        -0.06849841674124645
+      ],
+      [
+        "2024-07-31",
+        -0.06911823535039538
+      ],
+      [
+        "2024-08-31",
+        -0.06577077813170762
+      ],
+      [
+        "2024-09-30",
+        -0.014920564758030516
+      ],
+      [
+        "2024-10-31",
+        -0.01444226198609013
+      ],
+      [
+        "2024-11-30",
+        -0.02073490322935906
+      ],
+      [
+        "2024-12-31",
+        -0.03465596647395531
+      ],
+      [
+        "2025-01-31",
+        -0.007558188193034293
+      ],
+      [
+        "2025-02-28",
+        0.0019175875714549494
+      ],
+      [
+        "2025-03-31",
+        0.05156511179339186
+      ],
+      [
+        "2025-04-30",
+        0.05268747234877611
+      ],
+      [
+        "2025-05-31",
+        0.04562399130254164
+      ],
+      [
+        "2025-06-30",
+        0.12123710674255085
+      ],
+      [
+        "2025-07-31",
+        0.11854565163276225
+      ],
+      [
+        "2025-08-31",
+        0.12819608777946323
+      ],
+      [
+        "2025-09-30",
+        0.14492340279231847
+      ],
+      [
+        "2025-10-31",
+        0.13500873190124785
+      ],
+      [
+        "2025-11-30",
+        0.13335570242643383
+      ],
+      [
+        "2025-12-31",
+        0.19139759902269501
+      ],
+      [
+        "2026-01-31",
+        0.2600019410996219
+      ],
+      [
+        "2026-02-28",
+        0.23171314906457732
+      ],
+      [
+        "2026-03-31",
+        0.061273708899707735
+      ],
+      [
+        "2026-04-30",
+        0.08021707693450632
+      ],
+      [
+        "2026-05-31",
+        0.05686383569361271
+      ],
+      [
+        "2026-06-30",
+        0.02906000145734162
+      ],
+      [
+        "2026-07-31",
+        0.0730445394391181
+      ],
+      [
+        "2026-08-31",
+        0.056282970013168045
+      ]
+    ],
+    "bitcoin": [
+      [
+        "2019-09-30",
+        -0.2630537880166961
+      ],
+      [
+        "2019-10-31",
+        -0.2587728888587436
+      ],
+      [
+        "2019-11-30",
+        -0.2764070086793737
+      ],
+      [
+        "2019-12-31",
+        -0.3195930412780398
+      ],
+      [
+        "2020-01-31",
+        -0.29502016348509513
+      ],
+      [
+        "2020-02-29",
+        -0.27631857321498593
+      ],
+      [
+        "2020-03-31",
+        -0.33789814026745973
+      ],
+      [
+        "2020-04-30",
+        -0.2131983211921759
+      ],
+      [
+        "2020-05-31",
+        -0.15736874125907827
+      ],
+      [
+        "2020-06-30",
+        -0.16714568246677544
+      ],
+      [
+        "2020-07-31",
+        -0.17300873549104623
+      ],
+      [
+        "2020-08-31",
+        -0.18466065188099456
+      ],
+      [
+        "2020-09-30",
+        -0.19724583198067575
+      ],
+      [
+        "2020-10-31",
+        -0.1847286760043533
+      ],
+      [
+        "2020-11-30",
+        -0.16149725774295076
+      ],
+      [
+        "2020-12-31",
+        -0.14252889263194157
+      ],
+      [
+        "2021-01-31",
+        -0.14802167058556698
+      ],
+      [
+        "2021-02-28",
+        -0.14248838495001873
+      ],
+      [
+        "2021-03-31",
+        -0.10550140701050355
+      ],
+      [
+        "2021-04-30",
+        -0.06575184736279169
+      ],
+      [
+        "2021-05-31",
+        -0.06887136024187074
+      ],
+      [
+        "2021-06-30",
+        -0.06277311215335593
+      ],
+      [
+        "2021-07-31",
+        -0.06279908208870966
+      ],
+      [
+        "2021-08-31",
+        -0.07701564549472484
+      ],
+      [
+        "2021-09-30",
+        -0.08726414095005658
+      ],
+      [
+        "2021-10-31",
+        -0.14020833044365175
+      ],
+      [
+        "2021-11-30",
+        -0.15766301403371993
+      ],
+      [
+        "2021-12-31",
+        -0.17526986766838512
+      ],
+      [
+        "2022-01-31",
+        -0.1754700688919705
+      ],
+      [
+        "2022-02-28",
+        -0.17676273265353926
+      ],
+      [
+        "2022-03-31",
+        -0.17699315832013662
+      ],
+      [
+        "2022-04-30",
+        -0.11096497275803242
+      ],
+      [
+        "2022-05-31",
+        -0.03412605964797856
+      ],
+      [
+        "2022-06-30",
+        -0.08940319759348023
+      ],
+      [
+        "2022-07-31",
+        -0.12073386636568786
+      ],
+      [
+        "2022-08-31",
+        -0.10460224821616558
+      ],
+      [
+        "2022-09-30",
+        -0.11154359426066857
+      ],
+      [
+        "2022-10-31",
+        -0.10489817320358828
+      ],
+      [
+        "2022-11-30",
+        -0.09740777672744116
+      ],
+      [
+        "2022-12-31",
+        -0.09046204488181218
+      ],
+      [
+        "2023-01-31",
+        -0.07532495378426944
+      ],
+      [
+        "2023-02-28",
+        -0.08111707803486468
+      ],
+      [
+        "2023-03-31",
+        0.06964285182593775
+      ],
+      [
+        "2023-04-30",
+        -0.023191035235559515
+      ],
+      [
+        "2023-05-31",
+        -0.020399841448675748
+      ],
+      [
+        "2023-06-30",
+        0.0025978622690975006
+      ],
+      [
+        "2023-07-31",
+        0.04349861100061634
+      ],
+      [
+        "2023-08-31",
+        0.05712934216010226
+      ],
+      [
+        "2023-09-30",
+        0.07131002990828411
+      ],
+      [
+        "2023-10-31",
+        0.03992310660130072
+      ],
+      [
+        "2023-11-30",
+        -0.005930425384380382
+      ],
+      [
+        "2023-12-31",
+        -0.04493492043290339
+      ],
+      [
+        "2024-01-31",
+        -0.054863866175073155
+      ],
+      [
+        "2024-02-29",
+        -0.09892176107971964
+      ],
+      [
+        "2024-03-31",
+        -0.14817901397024924
+      ],
+      [
+        "2024-04-30",
+        -0.08817513003057616
+      ],
+      [
+        "2024-05-31",
+        -0.09741449291312958
+      ],
+      [
+        "2024-06-30",
+        -0.09431257673624124
+      ],
+      [
+        "2024-07-31",
+        -0.08127616127974063
+      ],
+      [
+        "2024-08-31",
+        -0.08710594555406914
+      ],
+      [
+        "2024-09-30",
+        -0.07280144817987964
+      ],
+      [
+        "2024-10-31",
+        -0.06769151967890025
+      ],
+      [
+        "2024-11-30",
+        -0.016986625712671906
+      ],
+      [
+        "2024-12-31",
+        0.028800019963741305
+      ],
+      [
+        "2025-01-31",
+        0.06656336254397108
+      ],
+      [
+        "2025-02-28",
+        0.07581139822320675
+      ],
+      [
+        "2025-03-31",
+        0.05707679533864645
+      ],
+      [
+        "2025-04-30",
+        0.02704625016931243
+      ],
+      [
+        "2025-05-31",
+        0.01097017309945764
+      ],
+      [
+        "2025-06-30",
+        0.1675839816387194
+      ],
+      [
+        "2025-07-31",
+        0.17622188476562356
+      ],
+      [
+        "2025-08-31",
+        0.17897000054268597
+      ],
+      [
+        "2025-09-30",
+        0.18862871230159406
+      ],
+      [
+        "2025-10-31",
+        0.2101065283388326
+      ],
+      [
+        "2025-11-30",
+        0.20256301966985568
+      ],
+      [
+        "2025-12-31",
+        0.19009946844990874
+      ],
+      [
+        "2026-01-31",
+        0.08345670421486327
+      ],
+      [
+        "2026-02-28",
+        0.07808984023692526
+      ],
+      [
+        "2026-03-31",
+        0.03670748937998658
+      ],
+      [
+        "2026-04-30",
+        0.02037538949070203
+      ],
+      [
+        "2026-05-31",
+        0.006431766345858021
+      ],
+      [
+        "2026-06-30",
+        -0.043463035790723005
+      ],
+      [
+        "2026-07-31",
+        -0.07963478001452536
+      ],
+      [
+        "2026-08-31",
+        -0.1071100389559643
+      ]
+    ]
+  },
+  "assetRelations": {
+    "silver": {
+      "value": 0.8115077104567822,
+      "date": "2026-10-02",
+      "rows": [
+        [
+          "2017-09-01",
+          0.8773902417381502
+        ],
+        [
+          "2017-09-08",
+          0.8805053778319547
+        ],
+        [
+          "2017-09-15",
+          0.8804761819336727
+        ],
+        [
+          "2017-09-22",
+          0.8802846865228132
+        ],
+        [
+          "2017-09-29",
+          0.8797158812130131
+        ],
+        [
+          "2017-10-06",
+          0.8596163146141701
+        ],
+        [
+          "2017-10-13",
+          0.863430678056676
+        ],
+        [
+          "2017-10-20",
+          0.8659131995486035
+        ],
+        [
+          "2017-10-27",
+          0.8656384527821573
+        ],
+        [
+          "2017-11-03",
+          0.8609066392422008
+        ],
+        [
+          "2017-11-10",
+          0.8587008413615254
+        ],
+        [
+          "2017-11-17",
+          0.8594756006991988
+        ],
+        [
+          "2017-11-24",
+          0.8736139550432382
+        ],
+        [
+          "2017-12-01",
+          0.8770905682212937
+        ],
+        [
+          "2017-12-08",
+          0.8964542972860602
+        ],
+        [
+          "2017-12-15",
+          0.8913752825222746
+        ],
+        [
+          "2017-12-22",
+          0.8957415463941548
+        ],
+        [
+          "2017-12-29",
+          0.9001456735333994
+        ],
+        [
+          "2018-01-05",
+          0.8989368061466771
+        ],
+        [
+          "2018-01-12",
+          0.8951189380183942
+        ],
+        [
+          "2018-01-19",
+          0.8948667247854981
+        ],
+        [
+          "2018-01-26",
+          0.9105210466371506
+        ],
+        [
+          "2018-02-02",
+          0.9096711566244529
+        ],
+        [
+          "2018-02-09",
+          0.9083879500393086
+        ],
+        [
+          "2018-02-16",
+          0.9061908843187743
+        ],
+        [
+          "2018-02-23",
+          0.9004593262553935
+        ],
+        [
+          "2018-03-02",
+          0.8981120394114259
+        ],
+        [
+          "2018-03-09",
+          0.8911578277803652
+        ],
+        [
+          "2018-03-16",
+          0.8909173708516632
+        ],
+        [
+          "2018-03-23",
+          0.8830111520047533
+        ],
+        [
+          "2018-03-29",
+          0.8868378422121832
+        ],
+        [
+          "2018-04-06",
+          0.8914562581472868
+        ],
+        [
+          "2018-04-13",
+          0.8896621222140668
+        ],
+        [
+          "2018-04-20",
+          0.8682181339123108
+        ],
+        [
+          "2018-04-27",
+          0.8653392182392169
+        ],
+        [
+          "2018-05-04",
+          0.8482440852297755
+        ],
+        [
+          "2018-05-11",
+          0.8503565841939162
+        ],
+        [
+          "2018-05-18",
+          0.8418286698269757
+        ],
+        [
+          "2018-05-25",
+          0.842200036410521
+        ],
+        [
+          "2018-06-01",
+          0.8404578434355853
+        ],
+        [
+          "2018-06-08",
+          0.8352813519587498
+        ],
+        [
+          "2018-06-15",
+          0.8339947243610252
+        ],
+        [
+          "2018-06-22",
+          0.8340689940532535
+        ],
+        [
+          "2018-06-29",
+          0.8389144650596375
+        ],
+        [
+          "2018-07-06",
+          0.8320182399927158
+        ],
+        [
+          "2018-07-13",
+          0.8305167330076528
+        ],
+        [
+          "2018-07-20",
+          0.8236461987182075
+        ],
+        [
+          "2018-07-27",
+          0.8204651036534244
+        ],
+        [
+          "2018-08-03",
+          0.8214758829639985
+        ],
+        [
+          "2018-08-10",
+          0.807556353218762
+        ],
+        [
+          "2018-08-17",
+          0.8155267112047216
+        ],
+        [
+          "2018-08-24",
+          0.8052903717298954
+        ],
+        [
+          "2018-08-31",
+          0.7844108662062022
+        ],
+        [
+          "2018-09-07",
+          0.7739795802006327
+        ],
+        [
+          "2018-09-14",
+          0.7716734552808352
+        ],
+        [
+          "2018-09-21",
+          0.7633563385828224
+        ],
+        [
+          "2018-09-28",
+          0.7287932061999555
+        ],
+        [
+          "2018-10-05",
+          0.7291279986516622
+        ],
+        [
+          "2018-10-12",
+          0.6988500839515447
+        ],
+        [
+          "2018-10-19",
+          0.6905327379990456
+        ],
+        [
+          "2018-10-26",
+          0.6912155192294895
+        ],
+        [
+          "2018-11-02",
+          0.6916053319969141
+        ],
+        [
+          "2018-11-09",
+          0.7083054363344702
+        ],
+        [
+          "2018-11-16",
+          0.7023577066221413
+        ],
+        [
+          "2018-11-23",
+          0.6993086934957427
+        ],
+        [
+          "2018-11-30",
+          0.7083623358663583
+        ],
+        [
+          "2018-12-07",
+          0.7054224483952545
+        ],
+        [
+          "2018-12-14",
+          0.7023417284813707
+        ],
+        [
+          "2018-12-21",
+          0.6888326263454191
+        ],
+        [
+          "2018-12-28",
+          0.6879330125503343
+        ],
+        [
+          "2019-01-04",
+          0.678141269288851
+        ],
+        [
+          "2019-01-11",
+          0.682827687615249
+        ],
+        [
+          "2019-01-18",
+          0.6819784543356396
+        ],
+        [
+          "2019-01-25",
+          0.6872626826614423
+        ],
+        [
+          "2019-02-01",
+          0.6883517292213578
+        ],
+        [
+          "2019-02-08",
+          0.683595669700873
+        ],
+        [
+          "2019-02-15",
+          0.6736598763947638
+        ],
+        [
+          "2019-02-22",
+          0.6773027236157068
+        ],
+        [
+          "2019-03-01",
+          0.7150080321656112
+        ],
+        [
+          "2019-03-08",
+          0.7152152231554814
+        ],
+        [
+          "2019-03-15",
+          0.71125507508209
+        ],
+        [
+          "2019-03-22",
+          0.7194931577374186
+        ],
+        [
+          "2019-03-29",
+          0.7269505663542434
+        ],
+        [
+          "2019-04-05",
+          0.7275536801029484
+        ],
+        [
+          "2019-04-12",
+          0.721930743367949
+        ],
+        [
+          "2019-04-18",
+          0.7557893719790325
+        ],
+        [
+          "2019-04-26",
+          0.7605328553535644
+        ],
+        [
+          "2019-05-03",
+          0.7673733409961639
+        ],
+        [
+          "2019-05-10",
+          0.757590323843819
+        ],
+        [
+          "2019-05-17",
+          0.7652828779895596
+        ],
+        [
+          "2019-05-24",
+          0.7672890199932678
+        ],
+        [
+          "2019-05-31",
+          0.7560931318084971
+        ],
+        [
+          "2019-06-07",
+          0.778326590325036
+        ],
+        [
+          "2019-06-14",
+          0.7779662863235162
+        ],
+        [
+          "2019-06-21",
+          0.7842601957345668
+        ],
+        [
+          "2019-06-28",
+          0.7778743393612311
+        ],
+        [
+          "2019-07-05",
+          0.7808860041202391
+        ],
+        [
+          "2019-07-12",
+          0.7812949096384547
+        ],
+        [
+          "2019-07-19",
+          0.7219847064282153
+        ],
+        [
+          "2019-07-26",
+          0.713347256926132
+        ],
+        [
+          "2019-08-02",
+          0.6923022843644565
+        ],
+        [
+          "2019-08-09",
+          0.7228991111135729
+        ],
+        [
+          "2019-08-16",
+          0.705433560036397
+        ],
+        [
+          "2019-08-23",
+          0.7139892277032764
+        ],
+        [
+          "2019-08-30",
+          0.6378802814546943
+        ],
+        [
+          "2019-09-06",
+          0.6387180864667107
+        ],
+        [
+          "2019-09-13",
+          0.651838030132802
+        ],
+        [
+          "2019-09-20",
+          0.662466504585478
+        ],
+        [
+          "2019-09-27",
+          0.6998625925857083
+        ],
+        [
+          "2019-10-04",
+          0.7031443074425918
+        ],
+        [
+          "2019-10-11",
+          0.7050711141151526
+        ],
+        [
+          "2019-10-18",
+          0.7057938826731329
+        ],
+        [
+          "2019-10-25",
+          0.7054226011632541
+        ],
+        [
+          "2019-11-01",
+          0.7060006438752346
+        ],
+        [
+          "2019-11-08",
+          0.7424319724574387
+        ],
+        [
+          "2019-11-15",
+          0.741435188063844
+        ],
+        [
+          "2019-11-22",
+          0.7404269024133046
+        ],
+        [
+          "2019-11-29",
+          0.7398288047559172
+        ],
+        [
+          "2019-12-06",
+          0.7299820762317653
+        ],
+        [
+          "2019-12-13",
+          0.7328622539832316
+        ],
+        [
+          "2019-12-20",
+          0.7334879707357517
+        ],
+        [
+          "2019-12-27",
+          0.7330632253923728
+        ],
+        [
+          "2020-01-03",
+          0.7322598785810613
+        ],
+        [
+          "2020-01-10",
+          0.7323042632426032
+        ],
+        [
+          "2020-01-17",
+          0.7308137802370087
+        ],
+        [
+          "2020-01-24",
+          0.7254182754819551
+        ],
+        [
+          "2020-01-31",
+          0.7188401919184719
+        ],
+        [
+          "2020-02-07",
+          0.7231999193277939
+        ],
+        [
+          "2020-02-14",
+          0.7227154447760769
+        ],
+        [
+          "2020-02-21",
+          0.7394655535165519
+        ],
+        [
+          "2020-02-28",
+          0.7595437095707975
+        ],
+        [
+          "2020-03-06",
+          0.7582194501528156
+        ],
+        [
+          "2020-03-13",
+          0.852308794692515
+        ],
+        [
+          "2020-03-20",
+          0.8017653627795256
+        ],
+        [
+          "2020-03-27",
+          0.8385871584147068
+        ],
+        [
+          "2020-04-03",
+          0.8376654647714988
+        ],
+        [
+          "2020-04-09",
+          0.8441254338569832
+        ],
+        [
+          "2020-04-17",
+          0.8488490363323216
+        ],
+        [
+          "2020-04-24",
+          0.8428234697796466
+        ],
+        [
+          "2020-05-01",
+          0.8416914152161241
+        ],
+        [
+          "2020-05-08",
+          0.835377020552213
+        ],
+        [
+          "2020-05-15",
+          0.8334905910904269
+        ],
+        [
+          "2020-05-22",
+          0.8242897559928092
+        ],
+        [
+          "2020-05-29",
+          0.8163717058036368
+        ],
+        [
+          "2020-06-05",
+          0.8138048655462174
+        ],
+        [
+          "2020-06-12",
+          0.8067969734341944
+        ],
+        [
+          "2020-06-19",
+          0.8100403446932627
+        ],
+        [
+          "2020-06-26",
+          0.8098416059336516
+        ],
+        [
+          "2020-07-02",
+          0.8085064105181269
+        ],
+        [
+          "2020-07-10",
+          0.8077293460037293
+        ],
+        [
+          "2020-07-17",
+          0.8152201267995837
+        ],
+        [
+          "2020-07-24",
+          0.8222764779408782
+        ],
+        [
+          "2020-07-31",
+          0.831557625705419
+        ],
+        [
+          "2020-08-07",
+          0.8185264300983593
+        ],
+        [
+          "2020-08-14",
+          0.8249656762272959
+        ],
+        [
+          "2020-08-21",
+          0.8240375978622937
+        ],
+        [
+          "2020-08-28",
+          0.8358357746211751
+        ],
+        [
+          "2020-09-04",
+          0.8362894565651156
+        ],
+        [
+          "2020-09-11",
+          0.8346458269112035
+        ],
+        [
+          "2020-09-18",
+          0.8340093456574444
+        ],
+        [
+          "2020-09-25",
+          0.8442990202642296
+        ],
+        [
+          "2020-10-02",
+          0.8451773972210445
+        ],
+        [
+          "2020-10-09",
+          0.8462215918017066
+        ],
+        [
+          "2020-10-16",
+          0.847880644300047
+        ],
+        [
+          "2020-10-23",
+          0.847031903781096
+        ],
+        [
+          "2020-10-30",
+          0.8482958736875561
+        ],
+        [
+          "2020-11-06",
+          0.8469486294128381
+        ],
+        [
+          "2020-11-13",
+          0.8467925381623855
+        ],
+        [
+          "2020-11-20",
+          0.8477573504129029
+        ],
+        [
+          "2020-11-27",
+          0.8495584278375458
+        ],
+        [
+          "2020-12-04",
+          0.8520589008885888
+        ],
+        [
+          "2020-12-11",
+          0.8518910331299482
+        ],
+        [
+          "2020-12-18",
+          0.8527071262317437
+        ],
+        [
+          "2020-12-24",
+          0.8524899166006294
+        ],
+        [
+          "2020-12-31",
+          0.855893675689871
+        ],
+        [
+          "2021-01-08",
+          0.8570396064404352
+        ],
+        [
+          "2021-01-15",
+          0.8576583452737125
+        ],
+        [
+          "2021-01-22",
+          0.8584130512480883
+        ],
+        [
+          "2021-01-29",
+          0.8509229348281981
+        ],
+        [
+          "2021-02-05",
+          0.8482124564856349
+        ],
+        [
+          "2021-02-12",
+          0.849145189067845
+        ],
+        [
+          "2021-02-19",
+          0.8476095470814765
+        ],
+        [
+          "2021-02-26",
+          0.841611438205993
+        ],
+        [
+          "2021-03-05",
+          0.855410481015517
+        ],
+        [
+          "2021-03-12",
+          0.829288372086685
+        ],
+        [
+          "2021-03-19",
+          0.8546231690834352
+        ],
+        [
+          "2021-03-26",
+          0.8386093572387919
+        ],
+        [
+          "2021-04-01",
+          0.8382413798282043
+        ],
+        [
+          "2021-04-09",
+          0.8346104096300592
+        ],
+        [
+          "2021-04-16",
+          0.8350101903728061
+        ],
+        [
+          "2021-04-23",
+          0.8511779141526598
+        ],
+        [
+          "2021-04-30",
+          0.8506756541635837
+        ],
+        [
+          "2021-05-07",
+          0.8526927106773996
+        ],
+        [
+          "2021-05-14",
+          0.8475420316600498
+        ],
+        [
+          "2021-05-21",
+          0.844610248697507
+        ],
+        [
+          "2021-05-28",
+          0.8489704950271572
+        ],
+        [
+          "2021-06-04",
+          0.8508691028755826
+        ],
+        [
+          "2021-06-11",
+          0.8656682345644217
+        ],
+        [
+          "2021-06-18",
+          0.867533390481601
+        ],
+        [
+          "2021-06-25",
+          0.8700502208627912
+        ],
+        [
+          "2021-07-02",
+          0.8701004590370484
+        ],
+        [
+          "2021-07-09",
+          0.8618305011718663
+        ],
+        [
+          "2021-07-16",
+          0.8596118776026495
+        ],
+        [
+          "2021-07-23",
+          0.8470421303983193
+        ],
+        [
+          "2021-07-30",
+          0.8406391997166857
+        ],
+        [
+          "2021-08-06",
+          0.8594313840860462
+        ],
+        [
+          "2021-08-13",
+          0.8407701458130149
+        ],
+        [
+          "2021-08-20",
+          0.836420387629761
+        ],
+        [
+          "2021-08-27",
+          0.8384284808778726
+        ],
+        [
+          "2021-09-03",
+          0.8372869562615661
+        ],
+        [
+          "2021-09-10",
+          0.8413076400916242
+        ],
+        [
+          "2021-09-17",
+          0.8428568081511043
+        ],
+        [
+          "2021-09-24",
+          0.837219108839668
+        ],
+        [
+          "2021-10-01",
+          0.8335755098356368
+        ],
+        [
+          "2021-10-08",
+          0.8327187125060436
+        ],
+        [
+          "2021-10-15",
+          0.8304709079749591
+        ],
+        [
+          "2021-10-22",
+          0.8335559001740783
+        ],
+        [
+          "2021-10-29",
+          0.8334860251932179
+        ],
+        [
+          "2021-11-05",
+          0.8142111200626376
+        ],
+        [
+          "2021-11-12",
+          0.8168799806758393
+        ],
+        [
+          "2021-11-19",
+          0.8168029460833598
+        ],
+        [
+          "2021-11-26",
+          0.8136201954594003
+        ],
+        [
+          "2021-12-03",
+          0.8014555724614564
+        ],
+        [
+          "2021-12-10",
+          0.8004574321568072
+        ],
+        [
+          "2021-12-17",
+          0.7968142747809271
+        ],
+        [
+          "2021-12-23",
+          0.7965579551034271
+        ],
+        [
+          "2021-12-31",
+          0.7967262335778437
+        ],
+        [
+          "2022-01-07",
+          0.7961402068432255
+        ],
+        [
+          "2022-01-14",
+          0.7966298269559843
+        ],
+        [
+          "2022-01-21",
+          0.7845826300501111
+        ],
+        [
+          "2022-01-28",
+          0.8261107567347657
+        ],
+        [
+          "2022-02-04",
+          0.8344096499834684
+        ],
+        [
+          "2022-02-11",
+          0.8421522012044624
+        ],
+        [
+          "2022-02-18",
+          0.8553094163931442
+        ],
+        [
+          "2022-02-25",
+          0.8556955188639256
+        ],
+        [
+          "2022-03-04",
+          0.8589506304702182
+        ],
+        [
+          "2022-03-11",
+          0.8574960237128346
+        ],
+        [
+          "2022-03-18",
+          0.8550895944979381
+        ],
+        [
+          "2022-03-25",
+          0.8600336030888801
+        ],
+        [
+          "2022-04-01",
+          0.862973283382297
+        ],
+        [
+          "2022-04-08",
+          0.8618466519275646
+        ],
+        [
+          "2022-04-14",
+          0.8599998247146078
+        ],
+        [
+          "2022-04-22",
+          0.8640004716515678
+        ],
+        [
+          "2022-04-29",
+          0.8665544773298529
+        ],
+        [
+          "2022-05-06",
+          0.8586258893222033
+        ],
+        [
+          "2022-05-13",
+          0.8647333759298068
+        ],
+        [
+          "2022-05-20",
+          0.8719766408973723
+        ],
+        [
+          "2022-05-27",
+          0.8704178920178856
+        ],
+        [
+          "2022-06-03",
+          0.8713160573476386
+        ],
+        [
+          "2022-06-10",
+          0.8726947232571522
+        ],
+        [
+          "2022-06-17",
+          0.8638100226674675
+        ],
+        [
+          "2022-06-24",
+          0.863923174010597
+        ],
+        [
+          "2022-07-01",
+          0.8557974411715926
+        ],
+        [
+          "2022-07-08",
+          0.8479544970882655
+        ],
+        [
+          "2022-07-15",
+          0.8516117770758288
+        ],
+        [
+          "2022-07-22",
+          0.8477341800999939
+        ],
+        [
+          "2022-07-29",
+          0.8413119563327551
+        ],
+        [
+          "2022-08-05",
+          0.8316704428804694
+        ],
+        [
+          "2022-08-12",
+          0.8441496575956805
+        ],
+        [
+          "2022-08-19",
+          0.8576444485428343
+        ],
+        [
+          "2022-08-26",
+          0.853747195834043
+        ],
+        [
+          "2022-09-02",
+          0.856531797151045
+        ],
+        [
+          "2022-09-09",
+          0.8452836073230221
+        ],
+        [
+          "2022-09-16",
+          0.7900945308891735
+        ],
+        [
+          "2022-09-23",
+          0.7937883845385316
+        ],
+        [
+          "2022-09-30",
+          0.7934328527992089
+        ],
+        [
+          "2022-10-07",
+          0.8000342871414678
+        ],
+        [
+          "2022-10-14",
+          0.8095945396714224
+        ],
+        [
+          "2022-10-21",
+          0.8006086594739442
+        ],
+        [
+          "2022-10-28",
+          0.8003262420404827
+        ],
+        [
+          "2022-11-04",
+          0.8083614657811516
+        ],
+        [
+          "2022-11-11",
+          0.7888737653984711
+        ],
+        [
+          "2022-11-18",
+          0.7891491762996745
+        ],
+        [
+          "2022-11-25",
+          0.7797969371891014
+        ],
+        [
+          "2022-12-02",
+          0.7868773438866957
+        ],
+        [
+          "2022-12-09",
+          0.7870314552495836
+        ],
+        [
+          "2022-12-16",
+          0.7873991093953652
+        ],
+        [
+          "2022-12-23",
+          0.7866695884311511
+        ],
+        [
+          "2022-12-30",
+          0.7846601495790752
+        ],
+        [
+          "2023-01-06",
+          0.7672152432376239
+        ],
+        [
+          "2023-01-13",
+          0.7616012239620181
+        ],
+        [
+          "2023-01-20",
+          0.7634420042809382
+        ],
+        [
+          "2023-01-27",
+          0.7545508771071923
+        ],
+        [
+          "2023-02-03",
+          0.7645902101564602
+        ],
+        [
+          "2023-02-10",
+          0.7569961372066702
+        ],
+        [
+          "2023-02-17",
+          0.7580949984523252
+        ],
+        [
+          "2023-02-24",
+          0.7647942364815209
+        ],
+        [
+          "2023-03-03",
+          0.7546234066691029
+        ],
+        [
+          "2023-03-10",
+          0.7440114010846909
+        ],
+        [
+          "2023-03-17",
+          0.7738559652603253
+        ],
+        [
+          "2023-03-24",
+          0.764949132520254
+        ],
+        [
+          "2023-03-31",
+          0.7515550831535366
+        ],
+        [
+          "2023-04-06",
+          0.7559309859753548
+        ],
+        [
+          "2023-04-14",
+          0.7521748717969822
+        ],
+        [
+          "2023-04-21",
+          0.7455258973575055
+        ],
+        [
+          "2023-04-28",
+          0.7401559330636572
+        ],
+        [
+          "2023-05-05",
+          0.7407705113490715
+        ],
+        [
+          "2023-05-12",
+          0.7155301158332281
+        ],
+        [
+          "2023-05-19",
+          0.7116390656228078
+        ],
+        [
+          "2023-05-26",
+          0.7123416702614507
+        ],
+        [
+          "2023-06-02",
+          0.7117407278723907
+        ],
+        [
+          "2023-06-09",
+          0.7146034070051972
+        ],
+        [
+          "2023-06-16",
+          0.7158637889953566
+        ],
+        [
+          "2023-06-23",
+          0.7206043796144731
+        ],
+        [
+          "2023-06-30",
+          0.7226158960773043
+        ],
+        [
+          "2023-07-07",
+          0.7266727171648385
+        ],
+        [
+          "2023-07-14",
+          0.7212095857199565
+        ],
+        [
+          "2023-07-21",
+          0.7238605254676508
+        ],
+        [
+          "2023-07-28",
+          0.7183385435936892
+        ],
+        [
+          "2023-08-04",
+          0.7252444074244241
+        ],
+        [
+          "2023-08-11",
+          0.7266406220862883
+        ],
+        [
+          "2023-08-18",
+          0.7021775024579558
+        ],
+        [
+          "2023-08-25",
+          0.7026689265938493
+        ],
+        [
+          "2023-09-01",
+          0.6918926977132607
+        ],
+        [
+          "2023-09-08",
+          0.7011058875655657
+        ],
+        [
+          "2023-09-15",
+          0.7482789934381633
+        ],
+        [
+          "2023-09-22",
+          0.7395413501147771
+        ],
+        [
+          "2023-09-29",
+          0.7538499448386025
+        ],
+        [
+          "2023-10-06",
+          0.7499828488551049
+        ],
+        [
+          "2023-10-13",
+          0.7318558781174791
+        ],
+        [
+          "2023-10-20",
+          0.7433774977172072
+        ],
+        [
+          "2023-10-27",
+          0.7365035690177352
+        ],
+        [
+          "2023-11-03",
+          0.7325088682298224
+        ],
+        [
+          "2023-11-10",
+          0.7453990998522452
+        ],
+        [
+          "2023-11-17",
+          0.748268026624809
+        ],
+        [
+          "2023-11-24",
+          0.7513822535392085
+        ],
+        [
+          "2023-12-01",
+          0.7544129770304001
+        ],
+        [
+          "2023-12-08",
+          0.7739508378460365
+        ],
+        [
+          "2023-12-15",
+          0.7714599799728656
+        ],
+        [
+          "2023-12-22",
+          0.7732809065243826
+        ],
+        [
+          "2023-12-29",
+          0.7710584216984294
+        ],
+        [
+          "2024-01-05",
+          0.7846332911901508
+        ],
+        [
+          "2024-01-12",
+          0.787885959693938
+        ],
+        [
+          "2024-01-19",
+          0.7909429312146091
+        ],
+        [
+          "2024-01-26",
+          0.7889929245769214
+        ],
+        [
+          "2024-02-02",
+          0.7768893342852576
+        ],
+        [
+          "2024-02-09",
+          0.7768152675928907
+        ],
+        [
+          "2024-02-16",
+          0.7632504802946685
+        ],
+        [
+          "2024-02-23",
+          0.7479826917951092
+        ],
+        [
+          "2024-03-01",
+          0.7419507271930708
+        ],
+        [
+          "2024-03-08",
+          0.7587300960579917
+        ],
+        [
+          "2024-03-15",
+          0.6984797084662165
+        ],
+        [
+          "2024-03-22",
+          0.7041999266344906
+        ],
+        [
+          "2024-03-28",
+          0.7102166631234433
+        ],
+        [
+          "2024-04-05",
+          0.7344878676067245
+        ],
+        [
+          "2024-04-12",
+          0.7374340816875571
+        ],
+        [
+          "2024-04-19",
+          0.7405386097374271
+        ],
+        [
+          "2024-04-26",
+          0.7506145225687144
+        ],
+        [
+          "2024-05-03",
+          0.751193232395824
+        ],
+        [
+          "2024-05-10",
+          0.7728719821838045
+        ],
+        [
+          "2024-05-17",
+          0.765177168600023
+        ],
+        [
+          "2024-05-24",
+          0.7672014803691187
+        ],
+        [
+          "2024-05-31",
+          0.7678461213474854
+        ],
+        [
+          "2024-06-07",
+          0.7726117991935992
+        ],
+        [
+          "2024-06-14",
+          0.7714931664039021
+        ],
+        [
+          "2024-06-21",
+          0.7658365103093114
+        ],
+        [
+          "2024-06-28",
+          0.7667163505479326
+        ],
+        [
+          "2024-07-05",
+          0.7745806951313583
+        ],
+        [
+          "2024-07-12",
+          0.7779000356241766
+        ],
+        [
+          "2024-07-19",
+          0.7743020720814805
+        ],
+        [
+          "2024-07-26",
+          0.7728797664540196
+        ],
+        [
+          "2024-08-02",
+          0.7710657265439019
+        ],
+        [
+          "2024-08-09",
+          0.7659330108215396
+        ],
+        [
+          "2024-08-16",
+          0.7782009432342728
+        ],
+        [
+          "2024-08-23",
+          0.778955109444775
+        ],
+        [
+          "2024-08-30",
+          0.7814115383437179
+        ],
+        [
+          "2024-09-06",
+          0.7783761357994592
+        ],
+        [
+          "2024-09-13",
+          0.7851843508331088
+        ],
+        [
+          "2024-09-20",
+          0.7885276938117951
+        ],
+        [
+          "2024-09-27",
+          0.7778462139731741
+        ],
+        [
+          "2024-10-04",
+          0.7705923435369875
+        ],
+        [
+          "2024-10-11",
+          0.7746557784537769
+        ],
+        [
+          "2024-10-18",
+          0.7786689674160654
+        ],
+        [
+          "2024-10-25",
+          0.7831241504057581
+        ],
+        [
+          "2024-11-01",
+          0.7870513378704114
+        ],
+        [
+          "2024-11-08",
+          0.7869258760358563
+        ],
+        [
+          "2024-11-15",
+          0.768258270376383
+        ],
+        [
+          "2024-11-22",
+          0.7492503549067452
+        ],
+        [
+          "2024-11-29",
+          0.7433282854950409
+        ],
+        [
+          "2024-12-06",
+          0.7162441817022889
+        ],
+        [
+          "2024-12-13",
+          0.7171502053782527
+        ],
+        [
+          "2024-12-20",
+          0.7206948057663037
+        ],
+        [
+          "2024-12-27",
+          0.7229712950641894
+        ],
+        [
+          "2025-01-03",
+          0.7203310167853634
+        ],
+        [
+          "2025-01-10",
+          0.7221096779759361
+        ],
+        [
+          "2025-01-17",
+          0.7187905979537608
+        ],
+        [
+          "2025-01-24",
+          0.7157255004904004
+        ],
+        [
+          "2025-01-31",
+          0.7177261698446883
+        ],
+        [
+          "2025-02-07",
+          0.7168154558241011
+        ],
+        [
+          "2025-02-14",
+          0.7323525217513226
+        ],
+        [
+          "2025-02-21",
+          0.7371851837625538
+        ],
+        [
+          "2025-02-28",
+          0.7502309823508996
+        ],
+        [
+          "2025-03-07",
+          0.746186492010548
+        ],
+        [
+          "2025-03-14",
+          0.7723002986088117
+        ],
+        [
+          "2025-03-21",
+          0.7640739661526684
+        ],
+        [
+          "2025-03-28",
+          0.774665345820728
+        ],
+        [
+          "2025-04-04",
+          0.7290083119892455
+        ],
+        [
+          "2025-04-11",
+          0.7518531486943434
+        ],
+        [
+          "2025-04-17",
+          0.7448848779525182
+        ],
+        [
+          "2025-04-25",
+          0.7309355430936649
+        ],
+        [
+          "2025-05-02",
+          0.7326284958891706
+        ],
+        [
+          "2025-05-09",
+          0.7280321346706922
+        ],
+        [
+          "2025-05-16",
+          0.7240614265807507
+        ],
+        [
+          "2025-05-23",
+          0.7220189669157259
+        ],
+        [
+          "2025-05-30",
+          0.7210760759001494
+        ],
+        [
+          "2025-06-06",
+          0.6843564293988823
+        ],
+        [
+          "2025-06-13",
+          0.6747411146424978
+        ],
+        [
+          "2025-06-20",
+          0.6726278978604284
+        ],
+        [
+          "2025-06-27",
+          0.6593951661998585
+        ],
+        [
+          "2025-07-03",
+          0.6535352843245261
+        ],
+        [
+          "2025-07-11",
+          0.6515611134714302
+        ],
+        [
+          "2025-07-18",
+          0.6534403415819273
+        ],
+        [
+          "2025-07-25",
+          0.652130035289814
+        ],
+        [
+          "2025-08-01",
+          0.6441969841918764
+        ],
+        [
+          "2025-08-08",
+          0.6420169299267676
+        ],
+        [
+          "2025-08-15",
+          0.6319067438874334
+        ],
+        [
+          "2025-08-22",
+          0.6364512662765314
+        ],
+        [
+          "2025-08-29",
+          0.636782650898418
+        ],
+        [
+          "2025-09-05",
+          0.6391897181665376
+        ],
+        [
+          "2025-09-12",
+          0.6322662862908277
+        ],
+        [
+          "2025-09-19",
+          0.63216917555835
+        ],
+        [
+          "2025-09-26",
+          0.6318500569306409
+        ],
+        [
+          "2025-10-03",
+          0.6424843893691901
+        ],
+        [
+          "2025-10-10",
+          0.6497994892870274
+        ],
+        [
+          "2025-10-17",
+          0.6459513664770479
+        ],
+        [
+          "2025-10-24",
+          0.6682893511590329
+        ],
+        [
+          "2025-10-31",
+          0.6603924392483639
+        ],
+        [
+          "2025-11-07",
+          0.6528302288208357
+        ],
+        [
+          "2025-11-14",
+          0.6438711351211105
+        ],
+        [
+          "2025-11-21",
+          0.6483768104624893
+        ],
+        [
+          "2025-11-28",
+          0.6502881993274776
+        ],
+        [
+          "2025-12-05",
+          0.6426264312473972
+        ],
+        [
+          "2025-12-12",
+          0.647203356021364
+        ],
+        [
+          "2025-12-19",
+          0.6249302681713139
+        ],
+        [
+          "2025-12-26",
+          0.6341497530734359
+        ],
+        [
+          "2026-01-02",
+          0.6692280747769667
+        ],
+        [
+          "2026-01-09",
+          0.6806702347149998
+        ],
+        [
+          "2026-01-16",
+          0.6679956549294491
+        ],
+        [
+          "2026-01-23",
+          0.7085534763605106
+        ],
+        [
+          "2026-01-30",
+          0.6902482046944068
+        ],
+        [
+          "2026-02-06",
+          0.6616016129248199
+        ],
+        [
+          "2026-02-13",
+          0.6593346307804876
+        ],
+        [
+          "2026-02-20",
+          0.6545896100787432
+        ],
+        [
+          "2026-02-27",
+          0.6521575137658578
+        ],
+        [
+          "2026-03-06",
+          0.6643135540772129
+        ],
+        [
+          "2026-03-13",
+          0.6710226383835486
+        ],
+        [
+          "2026-03-20",
+          0.7263185492456676
+        ],
+        [
+          "2026-03-27",
+          0.7245535080499449
+        ],
+        [
+          "2026-04-02",
+          0.7325395255354539
+        ],
+        [
+          "2026-04-10",
+          0.7271558058349537
+        ],
+        [
+          "2026-04-17",
+          0.7324500262600436
+        ],
+        [
+          "2026-04-24",
+          0.7397333861639288
+        ],
+        [
+          "2026-05-01",
+          0.7356741138724306
+        ],
+        [
+          "2026-05-08",
+          0.7388492175262885
+        ],
+        [
+          "2026-05-15",
+          0.7495211832324006
+        ],
+        [
+          "2026-05-22",
+          0.7561115968325337
+        ],
+        [
+          "2026-05-29",
+          0.7550103346675116
+        ],
+        [
+          "2026-06-05",
+          0.7758594122423632
+        ],
+        [
+          "2026-06-12",
+          0.7803872528636758
+        ],
+        [
+          "2026-06-18",
+          0.7792393486457825
+        ],
+        [
+          "2026-06-26",
+          0.7908456777010315
+        ],
+        [
+          "2026-07-02",
+          0.7907725598383936
+        ],
+        [
+          "2026-07-10",
+          0.7910319877742926
+        ],
+        [
+          "2026-07-17",
+          0.7946565374055019
+        ],
+        [
+          "2026-07-24",
+          0.7943443480180883
+        ],
+        [
+          "2026-07-31",
+          0.798138176269843
+        ],
+        [
+          "2026-08-07",
+          0.8013766470896639
+        ],
+        [
+          "2026-08-14",
+          0.8024033402511965
+        ],
+        [
+          "2026-08-21",
+          0.8026857260603603
+        ],
+        [
+          "2026-08-28",
+          0.8044793192876728
+        ],
+        [
+          "2026-09-04",
+          0.8078359067573924
+        ],
+        [
+          "2026-09-11",
+          0.8083937638183327
+        ],
+        [
+          "2026-09-18",
+          0.8082080595651465
+        ],
+        [
+          "2026-09-25",
+          0.8082730718738611
+        ],
+        [
+          "2026-10-02",
+          0.8115077104567822
+        ]
+      ],
+      "window": "52 个非重叠周度样本：资产与黄金的同期对数收益；共同周五，缺失时允许共同周四",
+      "expected": "同期历史联动，不是因果驱动",
+      "frequency": "weekly"
+    },
+    "bitcoin": {
+      "value": 0.09732648398681869,
+      "date": "2026-10-02",
+      "rows": [
+        [
+          "2017-09-01",
+          0.16971805520030359
+        ],
+        [
+          "2017-09-08",
+          0.13069576204359787
+        ],
+        [
+          "2017-09-15",
+          0.15796229908544096
+        ],
+        [
+          "2017-09-22",
+          0.18128710572109888
+        ],
+        [
+          "2017-09-29",
+          0.1602005018098346
+        ],
+        [
+          "2017-10-06",
+          0.15765610569530128
+        ],
+        [
+          "2017-10-13",
+          0.1986166175474647
+        ],
+        [
+          "2017-10-20",
+          0.2006019159506257
+        ],
+        [
+          "2017-10-27",
+          0.20032553986512167
+        ],
+        [
+          "2017-11-03",
+          0.19605412738064493
+        ],
+        [
+          "2017-11-10",
+          0.19072639306891873
+        ],
+        [
+          "2017-11-17",
+          0.20807822334854098
+        ],
+        [
+          "2017-11-24",
+          0.19544358853740568
+        ],
+        [
+          "2017-12-01",
+          0.16572437553137084
+        ],
+        [
+          "2017-12-08",
+          0.04021202246395278
+        ],
+        [
+          "2017-12-15",
+          0.02950903520801596
+        ],
+        [
+          "2017-12-22",
+          -0.007472202216861658
+        ],
+        [
+          "2017-12-29",
+          -0.0120634604728337
+        ],
+        [
+          "2018-01-05",
+          0.01827548084043202
+        ],
+        [
+          "2018-01-12",
+          0.01296857055798438
+        ],
+        [
+          "2018-01-19",
+          0.025520439744599582
+        ],
+        [
+          "2018-01-26",
+          0.013221487892015675
+        ],
+        [
+          "2018-02-02",
+          0.040111527602077264
+        ],
+        [
+          "2018-02-09",
+          0.05274754817573835
+        ],
+        [
+          "2018-02-16",
+          0.07504543240239361
+        ],
+        [
+          "2018-02-23",
+          0.07034043827556617
+        ],
+        [
+          "2018-03-02",
+          0.07600876545115495
+        ],
+        [
+          "2018-03-09",
+          0.02562522950055055
+        ],
+        [
+          "2018-03-16",
+          0.05165544605815828
+        ],
+        [
+          "2018-03-23",
+          0.0764434541488348
+        ],
+        [
+          "2018-03-29",
+          0.11380933976842036
+        ],
+        [
+          "2018-04-06",
+          0.10721254961606769
+        ],
+        [
+          "2018-04-13",
+          0.13137323353870173
+        ],
+        [
+          "2018-04-20",
+          0.1249935501408925
+        ],
+        [
+          "2018-04-27",
+          0.13349961335395108
+        ],
+        [
+          "2018-05-04",
+          0.16833438550304772
+        ],
+        [
+          "2018-05-11",
+          0.1643624977043539
+        ],
+        [
+          "2018-05-18",
+          0.1502698058178827
+        ],
+        [
+          "2018-05-25",
+          0.13317510404966043
+        ],
+        [
+          "2018-06-01",
+          0.12899306106103609
+        ],
+        [
+          "2018-06-08",
+          0.14084765343764288
+        ],
+        [
+          "2018-06-15",
+          0.15398303948181538
+        ],
+        [
+          "2018-06-22",
+          0.1569172409540591
+        ],
+        [
+          "2018-06-29",
+          0.14375178461370375
+        ],
+        [
+          "2018-07-06",
+          0.14847681736059823
+        ],
+        [
+          "2018-07-13",
+          0.17630712555175623
+        ],
+        [
+          "2018-07-20",
+          0.13359990095937388
+        ],
+        [
+          "2018-07-27",
+          0.12536773320825392
+        ],
+        [
+          "2018-08-03",
+          0.1334650730291938
+        ],
+        [
+          "2018-08-10",
+          0.08323733468382807
+        ],
+        [
+          "2018-08-17",
+          0.07330915997655837
+        ],
+        [
+          "2018-08-24",
+          0.0697266156560381
+        ],
+        [
+          "2018-08-31",
+          0.03763985257056391
+        ],
+        [
+          "2018-09-07",
+          0.06822625097449986
+        ],
+        [
+          "2018-09-14",
+          0.03800236692947396
+        ],
+        [
+          "2018-09-21",
+          0.03288318656596649
+        ],
+        [
+          "2018-09-28",
+          0.05380991632980589
+        ],
+        [
+          "2018-10-05",
+          0.052287641284129306
+        ],
+        [
+          "2018-10-12",
+          -0.027144338892215493
+        ],
+        [
+          "2018-10-19",
+          -0.011304785896731584
+        ],
+        [
+          "2018-10-26",
+          -0.013075839611626163
+        ],
+        [
+          "2018-11-02",
+          -0.005616439729592647
+        ],
+        [
+          "2018-11-09",
+          0.0003899402907793559
+        ],
+        [
+          "2018-11-16",
+          -0.05161970521658043
+        ],
+        [
+          "2018-11-23",
+          -0.053771484030159855
+        ],
+        [
+          "2018-11-30",
+          -0.03852894727257866
+        ],
+        [
+          "2018-12-07",
+          0.07176535759008622
+        ],
+        [
+          "2018-12-14",
+          0.0661454186760889
+        ],
+        [
+          "2018-12-21",
+          0.15696947351313173
+        ],
+        [
+          "2018-12-28",
+          0.15296061029706218
+        ],
+        [
+          "2019-01-04",
+          0.12251415083894034
+        ],
+        [
+          "2019-01-11",
+          0.16757663175430138
+        ],
+        [
+          "2019-01-18",
+          0.1604403017322702
+        ],
+        [
+          "2019-01-25",
+          0.16536816104865565
+        ],
+        [
+          "2019-02-01",
+          0.125139046346392
+        ],
+        [
+          "2019-02-08",
+          0.12377570007983
+        ],
+        [
+          "2019-02-15",
+          0.05442336106395789
+        ],
+        [
+          "2019-02-22",
+          0.07118025959462576
+        ],
+        [
+          "2019-03-01",
+          0.08816635403257671
+        ],
+        [
+          "2019-03-08",
+          0.1026469690673925
+        ],
+        [
+          "2019-03-15",
+          0.093691952343515
+        ],
+        [
+          "2019-03-22",
+          0.06045591956293748
+        ],
+        [
+          "2019-03-29",
+          -0.021303229987035963
+        ],
+        [
+          "2019-04-05",
+          -0.011925021954622838
+        ],
+        [
+          "2019-04-12",
+          -0.05089881415647168
+        ],
+        [
+          "2019-04-18",
+          -0.044075207364809806
+        ],
+        [
+          "2019-04-26",
+          -0.04364264494828805
+        ],
+        [
+          "2019-05-03",
+          -0.041502292565423315
+        ],
+        [
+          "2019-05-10",
+          -0.016697307327914808
+        ],
+        [
+          "2019-05-17",
+          -0.04347716517233285
+        ],
+        [
+          "2019-05-24",
+          -0.018436086017528358
+        ],
+        [
+          "2019-05-31",
+          0.004238982805010292
+        ],
+        [
+          "2019-06-07",
+          -0.03200614418850917
+        ],
+        [
+          "2019-06-14",
+          -0.09357069421150889
+        ],
+        [
+          "2019-06-21",
+          0.017203941539216262
+        ],
+        [
+          "2019-06-28",
+          0.0369633048803383
+        ],
+        [
+          "2019-07-05",
+          0.0552915953390529
+        ],
+        [
+          "2019-07-12",
+          0.048512672363767696
+        ],
+        [
+          "2019-07-19",
+          0.06857353072415293
+        ],
+        [
+          "2019-07-26",
+          0.0962074938689795
+        ],
+        [
+          "2019-08-02",
+          0.09086176668265385
+        ],
+        [
+          "2019-08-09",
+          0.1289622547105569
+        ],
+        [
+          "2019-08-16",
+          0.13900074024552528
+        ],
+        [
+          "2019-08-23",
+          0.1382352194059767
+        ],
+        [
+          "2019-08-30",
+          0.15563599521493024
+        ],
+        [
+          "2019-09-06",
+          0.12520234116344897
+        ],
+        [
+          "2019-09-13",
+          0.12474228288319884
+        ],
+        [
+          "2019-09-20",
+          0.11569480165300655
+        ],
+        [
+          "2019-09-27",
+          0.1659278334998924
+        ],
+        [
+          "2019-10-04",
+          0.1670172969625192
+        ],
+        [
+          "2019-10-11",
+          0.17323361236719587
+        ],
+        [
+          "2019-10-18",
+          0.17361471240749224
+        ],
+        [
+          "2019-10-25",
+          0.17893224846070943
+        ],
+        [
+          "2019-11-01",
+          0.17975958759968264
+        ],
+        [
+          "2019-11-08",
+          0.20250938092814252
+        ],
+        [
+          "2019-11-15",
+          0.21896960895035347
+        ],
+        [
+          "2019-11-22",
+          0.23849040636892893
+        ],
+        [
+          "2019-11-29",
+          0.2326434822898183
+        ],
+        [
+          "2019-12-06",
+          0.2999587405748275
+        ],
+        [
+          "2019-12-13",
+          0.2817601499935966
+        ],
+        [
+          "2019-12-20",
+          0.2643408298104616
+        ],
+        [
+          "2019-12-27",
+          0.2616814485201379
+        ],
+        [
+          "2020-01-03",
+          0.2544625510015399
+        ],
+        [
+          "2020-01-10",
+          0.25532525191814776
+        ],
+        [
+          "2020-01-17",
+          0.24378249091451684
+        ],
+        [
+          "2020-01-24",
+          0.2443424524850619
+        ],
+        [
+          "2020-01-31",
+          0.2602324766552901
+        ],
+        [
+          "2020-02-07",
+          0.25382097468115894
+        ],
+        [
+          "2020-02-14",
+          0.25756753333722926
+        ],
+        [
+          "2020-02-21",
+          0.19825971338249523
+        ],
+        [
+          "2020-02-28",
+          0.23846453986147773
+        ],
+        [
+          "2020-03-06",
+          0.2390452964369261
+        ],
+        [
+          "2020-03-13",
+          0.5344767471992491
+        ],
+        [
+          "2020-03-20",
+          0.5059542660875177
+        ],
+        [
+          "2020-03-27",
+          0.46109450514723416
+        ],
+        [
+          "2020-04-03",
+          0.47712857633572187
+        ],
+        [
+          "2020-04-09",
+          0.48451753950084525
+        ],
+        [
+          "2020-04-17",
+          0.49193862545013384
+        ],
+        [
+          "2020-04-24",
+          0.4966600437793518
+        ],
+        [
+          "2020-05-01",
+          0.4697334134889397
+        ],
+        [
+          "2020-05-08",
+          0.4677046495898135
+        ],
+        [
+          "2020-05-15",
+          0.47851132120177564
+        ],
+        [
+          "2020-05-22",
+          0.48144915045241254
+        ],
+        [
+          "2020-05-29",
+          0.4767713621097776
+        ],
+        [
+          "2020-06-05",
+          0.4819869892135147
+        ],
+        [
+          "2020-06-12",
+          0.48054559432089716
+        ],
+        [
+          "2020-06-19",
+          0.4571812527343421
+        ],
+        [
+          "2020-06-26",
+          0.4663098445537306
+        ],
+        [
+          "2020-07-02",
+          0.46285275856217445
+        ],
+        [
+          "2020-07-10",
+          0.4626437728727937
+        ],
+        [
+          "2020-07-17",
+          0.4699798677885557
+        ],
+        [
+          "2020-07-24",
+          0.4676967340958715
+        ],
+        [
+          "2020-07-31",
+          0.4868048125954443
+        ],
+        [
+          "2020-08-07",
+          0.4707518798832537
+        ],
+        [
+          "2020-08-14",
+          0.4615282369968167
+        ],
+        [
+          "2020-08-21",
+          0.46222846086173347
+        ],
+        [
+          "2020-08-28",
+          0.45990673050559794
+        ],
+        [
+          "2020-09-03",
+          0.48116004951414176
+        ],
+        [
+          "2020-09-11",
+          0.4836969422794823
+        ],
+        [
+          "2020-09-18",
+          0.4865017250894902
+        ],
+        [
+          "2020-09-25",
+          0.47527069282804696
+        ],
+        [
+          "2020-10-02",
+          0.4716833286912478
+        ],
+        [
+          "2020-10-09",
+          0.47577261117374525
+        ],
+        [
+          "2020-10-16",
+          0.4701082125872244
+        ],
+        [
+          "2020-10-23",
+          0.46002360994166697
+        ],
+        [
+          "2020-10-30",
+          0.45321235142749466
+        ],
+        [
+          "2020-11-06",
+          0.4624584634932263
+        ],
+        [
+          "2020-11-13",
+          0.4456739469186791
+        ],
+        [
+          "2020-11-20",
+          0.4276552258417554
+        ],
+        [
+          "2020-11-27",
+          0.44823300602002836
+        ],
+        [
+          "2020-12-04",
+          0.4536349610077696
+        ],
+        [
+          "2020-12-11",
+          0.4580972154474458
+        ],
+        [
+          "2020-12-18",
+          0.4604362730449052
+        ],
+        [
+          "2020-12-24",
+          0.4636815242884094
+        ],
+        [
+          "2020-12-31",
+          0.4618007618994796
+        ],
+        [
+          "2021-01-08",
+          0.3697225728127335
+        ],
+        [
+          "2021-01-15",
+          0.3781416183695357
+        ],
+        [
+          "2021-01-22",
+          0.3670006477171329
+        ],
+        [
+          "2021-01-29",
+          0.3642064684644952
+        ],
+        [
+          "2021-02-05",
+          0.35291708271298144
+        ],
+        [
+          "2021-02-12",
+          0.3464774149522506
+        ],
+        [
+          "2021-02-19",
+          0.3481623496923013
+        ],
+        [
+          "2021-02-26",
+          0.3510244625085159
+        ],
+        [
+          "2021-03-05",
+          0.35293663400090586
+        ],
+        [
+          "2021-03-12",
+          0.11765968389925105
+        ],
+        [
+          "2021-03-19",
+          0.12850590349857433
+        ],
+        [
+          "2021-03-26",
+          0.16854020205538853
+        ],
+        [
+          "2021-04-01",
+          0.1695919216824862
+        ],
+        [
+          "2021-04-09",
+          0.1562034361062158
+        ],
+        [
+          "2021-04-16",
+          0.1578689384172499
+        ],
+        [
+          "2021-04-23",
+          0.14730617468968574
+        ],
+        [
+          "2021-04-30",
+          0.16510226116354046
+        ],
+        [
+          "2021-05-07",
+          0.1498214212811014
+        ],
+        [
+          "2021-05-14",
+          0.15586250065051566
+        ],
+        [
+          "2021-05-21",
+          0.09329541969294097
+        ],
+        [
+          "2021-05-28",
+          0.086698947123238
+        ],
+        [
+          "2021-06-04",
+          0.08522387910116282
+        ],
+        [
+          "2021-06-11",
+          0.09554705689418444
+        ],
+        [
+          "2021-06-18",
+          0.12269959867947712
+        ],
+        [
+          "2021-06-25",
+          0.11519640051363876
+        ],
+        [
+          "2021-07-02",
+          0.1168156507364254
+        ],
+        [
+          "2021-07-09",
+          0.11473146484470349
+        ],
+        [
+          "2021-07-16",
+          0.11458389038575195
+        ],
+        [
+          "2021-07-23",
+          0.11083415943641334
+        ],
+        [
+          "2021-07-30",
+          0.07867658099236917
+        ],
+        [
+          "2021-08-06",
+          0.0827897479499753
+        ],
+        [
+          "2021-08-13",
+          0.09016861694256265
+        ],
+        [
+          "2021-08-20",
+          0.0902674346742227
+        ],
+        [
+          "2021-08-27",
+          0.0869238105116843
+        ],
+        [
+          "2021-09-03",
+          0.06751273370106538
+        ],
+        [
+          "2021-09-10",
+          0.08964041518392962
+        ],
+        [
+          "2021-09-17",
+          0.08433933047776954
+        ],
+        [
+          "2021-09-24",
+          0.06918653287338186
+        ],
+        [
+          "2021-10-01",
+          0.08259614440558684
+        ],
+        [
+          "2021-10-08",
+          0.08017270951533402
+        ],
+        [
+          "2021-10-15",
+          0.0852956822239144
+        ],
+        [
+          "2021-10-22",
+          0.07647229899542397
+        ],
+        [
+          "2021-10-29",
+          0.07862987551616046
+        ],
+        [
+          "2021-11-05",
+          0.03387139873212805
+        ],
+        [
+          "2021-11-12",
+          0.045660063814993
+        ],
+        [
+          "2021-11-19",
+          0.06644903827327146
+        ],
+        [
+          "2021-11-26",
+          0.05048657434083975
+        ],
+        [
+          "2021-12-03",
+          0.03553655417085044
+        ],
+        [
+          "2021-12-10",
+          0.0350027145906337
+        ],
+        [
+          "2021-12-17",
+          -0.02090719222443913
+        ],
+        [
+          "2021-12-23",
+          -0.015409944191968193
+        ],
+        [
+          "2021-12-31",
+          -0.04885018794174099
+        ],
+        [
+          "2022-01-07",
+          0.06067815914341545
+        ],
+        [
+          "2022-01-14",
+          0.05329020112558011
+        ],
+        [
+          "2022-01-21",
+          0.05501770463109176
+        ],
+        [
+          "2022-01-28",
+          0.04830700854013124
+        ],
+        [
+          "2022-02-04",
+          0.0802367509658567
+        ],
+        [
+          "2022-02-11",
+          0.07527599983858436
+        ],
+        [
+          "2022-02-18",
+          0.10955727456415679
+        ],
+        [
+          "2022-02-25",
+          0.05128427141064301
+        ],
+        [
+          "2022-03-04",
+          0.06648136607787215
+        ],
+        [
+          "2022-03-11",
+          0.04294065766060007
+        ],
+        [
+          "2022-03-18",
+          0.0026599542251877217
+        ],
+        [
+          "2022-03-25",
+          0.010156000595513862
+        ],
+        [
+          "2022-04-01",
+          0.0027847048037320066
+        ],
+        [
+          "2022-04-08",
+          -0.005704074250463713
+        ],
+        [
+          "2022-04-14",
+          -0.023886321288958234
+        ],
+        [
+          "2022-04-22",
+          -0.027071658527106097
+        ],
+        [
+          "2022-04-29",
+          -0.013114431408706995
+        ],
+        [
+          "2022-05-06",
+          -0.009349422049025904
+        ],
+        [
+          "2022-05-13",
+          0.08788318239085594
+        ],
+        [
+          "2022-05-20",
+          0.16920915797279487
+        ],
+        [
+          "2022-05-27",
+          0.17607900670674684
+        ],
+        [
+          "2022-06-03",
+          0.17835339792784405
+        ],
+        [
+          "2022-06-10",
+          0.17685796355034838
+        ],
+        [
+          "2022-06-17",
+          0.21720881835831526
+        ],
+        [
+          "2022-06-24",
+          0.2273623229663898
+        ],
+        [
+          "2022-07-01",
+          0.23253723954513755
+        ],
+        [
+          "2022-07-08",
+          0.16378941481053888
+        ],
+        [
+          "2022-07-15",
+          0.17049547721836958
+        ],
+        [
+          "2022-07-22",
+          0.18588199906738323
+        ],
+        [
+          "2022-07-29",
+          0.18932361429955738
+        ],
+        [
+          "2022-08-05",
+          0.20242380590973444
+        ],
+        [
+          "2022-08-12",
+          0.20153965378968294
+        ],
+        [
+          "2022-08-19",
+          0.24262412120671958
+        ],
+        [
+          "2022-08-26",
+          0.24346660953095697
+        ],
+        [
+          "2022-09-02",
+          0.23952329744148015
+        ],
+        [
+          "2022-09-09",
+          0.22357499511571102
+        ],
+        [
+          "2022-09-16",
+          0.25401345179717916
+        ],
+        [
+          "2022-09-23",
+          0.25427685068053724
+        ],
+        [
+          "2022-09-30",
+          0.25057104840966293
+        ],
+        [
+          "2022-10-07",
+          0.2613807832582745
+        ],
+        [
+          "2022-10-14",
+          0.2500017883946314
+        ],
+        [
+          "2022-10-21",
+          0.25237989271946426
+        ],
+        [
+          "2022-10-28",
+          0.24502283957027915
+        ],
+        [
+          "2022-11-04",
+          0.25735478370394943
+        ],
+        [
+          "2022-11-11",
+          0.09631222267680037
+        ],
+        [
+          "2022-11-18",
+          0.08850678748161475
+        ],
+        [
+          "2022-11-25",
+          0.07332408075671425
+        ],
+        [
+          "2022-12-02",
+          0.08870210286656041
+        ],
+        [
+          "2022-12-09",
+          0.08957915601234108
+        ],
+        [
+          "2022-12-16",
+          0.0902380989359432
+        ],
+        [
+          "2022-12-23",
+          0.084885402823948
+        ],
+        [
+          "2022-12-30",
+          0.09696044744692632
+        ],
+        [
+          "2023-01-06",
+          0.08896374589134452
+        ],
+        [
+          "2023-01-13",
+          0.13184554177748342
+        ],
+        [
+          "2023-01-20",
+          0.1498738194935362
+        ],
+        [
+          "2023-01-27",
+          0.16380502121518317
+        ],
+        [
+          "2023-02-03",
+          0.14259045306471993
+        ],
+        [
+          "2023-02-10",
+          0.1346209491338911
+        ],
+        [
+          "2023-02-17",
+          0.12465983863568586
+        ],
+        [
+          "2023-02-24",
+          0.13198916692471105
+        ],
+        [
+          "2023-03-03",
+          0.12298493517170575
+        ],
+        [
+          "2023-03-10",
+          0.11496790697404524
+        ],
+        [
+          "2023-03-17",
+          0.31540445176663584
+        ],
+        [
+          "2023-03-24",
+          0.306471982047823
+        ],
+        [
+          "2023-03-31",
+          0.31465913653089683
+        ],
+        [
+          "2023-04-06",
+          0.3222596409341267
+        ],
+        [
+          "2023-04-14",
+          0.32600950137077234
+        ],
+        [
+          "2023-04-21",
+          0.33631152589003305
+        ],
+        [
+          "2023-04-28",
+          0.33512619731513454
+        ],
+        [
+          "2023-05-05",
+          0.3321341548217567
+        ],
+        [
+          "2023-05-12",
+          0.2750967676761994
+        ],
+        [
+          "2023-05-19",
+          0.27533565850837827
+        ],
+        [
+          "2023-05-26",
+          0.2742325751858167
+        ],
+        [
+          "2023-06-02",
+          0.2754934484202666
+        ],
+        [
+          "2023-06-09",
+          0.2764753108673141
+        ],
+        [
+          "2023-06-16",
+          0.2485873349079024
+        ],
+        [
+          "2023-06-23",
+          0.20763181753839757
+        ],
+        [
+          "2023-06-30",
+          0.1996941022148939
+        ],
+        [
+          "2023-07-07",
+          0.2653008364774963
+        ],
+        [
+          "2023-07-14",
+          0.25506761500435876
+        ],
+        [
+          "2023-07-21",
+          0.24894204949142723
+        ],
+        [
+          "2023-07-28",
+          0.2418795112677578
+        ],
+        [
+          "2023-08-04",
+          0.24429906395268097
+        ],
+        [
+          "2023-08-11",
+          0.23495906980205924
+        ],
+        [
+          "2023-08-18",
+          0.19742979473124284
+        ],
+        [
+          "2023-08-25",
+          0.1931902082041712
+        ],
+        [
+          "2023-09-01",
+          0.18753012499610086
+        ],
+        [
+          "2023-09-08",
+          0.18780640777084195
+        ],
+        [
+          "2023-09-15",
+          0.16273925107550005
+        ],
+        [
+          "2023-09-22",
+          0.15618080167080672
+        ],
+        [
+          "2023-09-29",
+          0.14471601053998087
+        ],
+        [
+          "2023-10-06",
+          0.1411665214231985
+        ],
+        [
+          "2023-10-13",
+          0.09366351810181124
+        ],
+        [
+          "2023-10-20",
+          0.11737043808780864
+        ],
+        [
+          "2023-10-27",
+          0.1385928153443928
+        ],
+        [
+          "2023-11-03",
+          0.13338550417661507
+        ],
+        [
+          "2023-11-10",
+          0.29080338974609604
+        ],
+        [
+          "2023-11-17",
+          0.27295838233651226
+        ],
+        [
+          "2023-11-24",
+          0.27426243845203474
+        ],
+        [
+          "2023-12-01",
+          0.2686676222667154
+        ],
+        [
+          "2023-12-08",
+          0.19847281682931178
+        ],
+        [
+          "2023-12-15",
+          0.18946090166568963
+        ],
+        [
+          "2023-12-22",
+          0.19384537020969325
+        ],
+        [
+          "2023-12-29",
+          0.19575168455468017
+        ],
+        [
+          "2024-01-05",
+          0.1921871180751401
+        ],
+        [
+          "2024-01-12",
+          0.14801848663953088
+        ],
+        [
+          "2024-01-19",
+          0.15379205339020452
+        ],
+        [
+          "2024-01-26",
+          0.15432175195018175
+        ],
+        [
+          "2024-02-02",
+          0.16358337109564816
+        ],
+        [
+          "2024-02-09",
+          0.15217431281799682
+        ],
+        [
+          "2024-02-16",
+          0.16900261372274042
+        ],
+        [
+          "2024-02-23",
+          0.1445488614484787
+        ],
+        [
+          "2024-03-01",
+          0.21006775610475575
+        ],
+        [
+          "2024-03-08",
+          0.24903215796847725
+        ],
+        [
+          "2024-03-15",
+          0.014808740387660004
+        ],
+        [
+          "2024-03-22",
+          0.007585243917110227
+        ],
+        [
+          "2024-03-28",
+          0.05324704654971283
+        ],
+        [
+          "2024-04-05",
+          0.02240831980510344
+        ],
+        [
+          "2024-04-12",
+          0.026714558514016887
+        ],
+        [
+          "2024-04-19",
+          -0.020819782701424233
+        ],
+        [
+          "2024-04-26",
+          -0.013191563723129046
+        ],
+        [
+          "2024-05-03",
+          -0.0029204559726431277
+        ],
+        [
+          "2024-05-10",
+          -0.03102162504836982
+        ],
+        [
+          "2024-05-17",
+          -0.009521424283836255
+        ],
+        [
+          "2024-05-24",
+          -0.02113262981344507
+        ],
+        [
+          "2024-05-31",
+          -0.01759855001710101
+        ],
+        [
+          "2024-06-07",
+          -0.01734678307562124
+        ],
+        [
+          "2024-06-14",
+          -0.03306214352357065
+        ],
+        [
+          "2024-06-21",
+          0.022757337581954605
+        ],
+        [
+          "2024-06-28",
+          0.02306948122693354
+        ],
+        [
+          "2024-07-05",
+          -0.006441918873931678
+        ],
+        [
+          "2024-07-12",
+          -0.0034583856064067313
+        ],
+        [
+          "2024-07-19",
+          -0.01963131785255516
+        ],
+        [
+          "2024-07-26",
+          -0.022516700381970147
+        ],
+        [
+          "2024-08-02",
+          -0.05817786863571183
+        ],
+        [
+          "2024-08-09",
+          -0.05604785799770068
+        ],
+        [
+          "2024-08-16",
+          -0.11355006076349132
+        ],
+        [
+          "2024-08-23",
+          -0.11391881508498058
+        ],
+        [
+          "2024-08-30",
+          -0.09565142219001067
+        ],
+        [
+          "2024-09-06",
+          -0.08493342342162877
+        ],
+        [
+          "2024-09-13",
+          -0.047343129560064305
+        ],
+        [
+          "2024-09-20",
+          -0.04240608510582672
+        ],
+        [
+          "2024-09-27",
+          -0.045889105846296664
+        ],
+        [
+          "2024-10-04",
+          -0.030671750084361647
+        ],
+        [
+          "2024-10-11",
+          0.007707837602063316
+        ],
+        [
+          "2024-10-18",
+          0.0004198531799927253
+        ],
+        [
+          "2024-10-25",
+          -0.014295948579055426
+        ],
+        [
+          "2024-11-01",
+          -0.015506350508694113
+        ],
+        [
+          "2024-11-08",
+          -0.019899808763126404
+        ],
+        [
+          "2024-11-15",
+          -0.12438023593012722
+        ],
+        [
+          "2024-11-22",
+          -0.07481036022237789
+        ],
+        [
+          "2024-11-29",
+          -0.06485855055343838
+        ],
+        [
+          "2024-12-06",
+          -0.008283575995244038
+        ],
+        [
+          "2024-12-13",
+          -0.0060240327952343345
+        ],
+        [
+          "2024-12-20",
+          0.0007850535914255965
+        ],
+        [
+          "2024-12-27",
+          0.003593060550892592
+        ],
+        [
+          "2025-01-03",
+          0.010452461032534914
+        ],
+        [
+          "2025-01-10",
+          -0.002858441745896275
+        ],
+        [
+          "2025-01-17",
+          -0.013177368564776368
+        ],
+        [
+          "2025-01-24",
+          -0.01940574993534253
+        ],
+        [
+          "2025-01-31",
+          -0.02354522890314793
+        ],
+        [
+          "2025-02-07",
+          -0.02193174459269
+        ],
+        [
+          "2025-02-14",
+          -0.0066121014155910655
+        ],
+        [
+          "2025-02-21",
+          -0.007988988576771832
+        ],
+        [
+          "2025-02-28",
+          0.00589780421319364
+        ],
+        [
+          "2025-03-07",
+          -0.04698073661466688
+        ],
+        [
+          "2025-03-14",
+          -0.051277852741326145
+        ],
+        [
+          "2025-03-21",
+          -0.05630539468399332
+        ],
+        [
+          "2025-03-28",
+          -0.1048824427619197
+        ],
+        [
+          "2025-04-04",
+          -0.08236707772825161
+        ],
+        [
+          "2025-04-11",
+          -0.06023989882605073
+        ],
+        [
+          "2025-04-17",
+          -0.052807824084517285
+        ],
+        [
+          "2025-04-25",
+          -0.07082252019728599
+        ],
+        [
+          "2025-05-02",
+          -0.07986651086982627
+        ],
+        [
+          "2025-05-09",
+          -0.042998769492059774
+        ],
+        [
+          "2025-05-16",
+          -0.04712242067121282
+        ],
+        [
+          "2025-05-23",
+          -0.015829003769242823
+        ],
+        [
+          "2025-05-30",
+          -0.0035793224785555444
+        ],
+        [
+          "2025-06-06",
+          0.0019771817522328985
+        ],
+        [
+          "2025-06-13",
+          0.005568626938414206
+        ],
+        [
+          "2025-06-20",
+          0.014689521024735572
+        ],
+        [
+          "2025-06-27",
+          -0.010426527702896253
+        ],
+        [
+          "2025-07-03",
+          0.011781366861289997
+        ],
+        [
+          "2025-07-11",
+          0.013668936863964313
+        ],
+        [
+          "2025-07-18",
+          0.036167846752324644
+        ],
+        [
+          "2025-07-25",
+          0.03900320009902701
+        ],
+        [
+          "2025-08-01",
+          0.06767653733774379
+        ],
+        [
+          "2025-08-08",
+          0.06543752464648678
+        ],
+        [
+          "2025-08-15",
+          0.08548779600666817
+        ],
+        [
+          "2025-08-22",
+          0.08833620412987192
+        ],
+        [
+          "2025-08-29",
+          0.056428426750557155
+        ],
+        [
+          "2025-09-05",
+          0.04209300949309421
+        ],
+        [
+          "2025-09-12",
+          0.009479172504863015
+        ],
+        [
+          "2025-09-19",
+          0.0008299205133147749
+        ],
+        [
+          "2025-09-26",
+          -0.017155569352114472
+        ],
+        [
+          "2025-10-03",
+          0.015732225148450237
+        ],
+        [
+          "2025-10-10",
+          -0.029711854332578218
+        ],
+        [
+          "2025-10-17",
+          -0.07615740128130535
+        ],
+        [
+          "2025-10-24",
+          -0.09265885862244476
+        ],
+        [
+          "2025-10-31",
+          -0.0749848375806244
+        ],
+        [
+          "2025-11-07",
+          -0.030720013337957448
+        ],
+        [
+          "2025-11-14",
+          0.09756998994664055
+        ],
+        [
+          "2025-11-21",
+          0.058343016814023395
+        ],
+        [
+          "2025-11-28",
+          0.08572524118618448
+        ],
+        [
+          "2025-12-05",
+          0.09961453354905678
+        ],
+        [
+          "2025-12-12",
+          0.10359235623282416
+        ],
+        [
+          "2025-12-19",
+          0.09177814014421606
+        ],
+        [
+          "2025-12-26",
+          0.08305703449843153
+        ],
+        [
+          "2026-01-02",
+          0.05133605048725238
+        ],
+        [
+          "2026-01-09",
+          0.0588710969040795
+        ],
+        [
+          "2026-01-16",
+          0.07793883946861646
+        ],
+        [
+          "2026-01-23",
+          0.005434046939696943
+        ],
+        [
+          "2026-01-30",
+          0.031692088240753445
+        ],
+        [
+          "2026-02-06",
+          0.017933480298955494
+        ],
+        [
+          "2026-02-13",
+          0.01822785019316638
+        ],
+        [
+          "2026-02-20",
+          0.018257620121954057
+        ],
+        [
+          "2026-02-27",
+          -0.0450789077043588
+        ],
+        [
+          "2026-03-06",
+          -0.06263696671900466
+        ],
+        [
+          "2026-03-13",
+          -0.07866793974838002
+        ],
+        [
+          "2026-03-20",
+          -0.06608577611888183
+        ],
+        [
+          "2026-03-27",
+          -0.05942842883547608
+        ],
+        [
+          "2026-04-02",
+          -0.05078486321159022
+        ],
+        [
+          "2026-04-10",
+          -0.05966226503597575
+        ],
+        [
+          "2026-04-17",
+          -0.052734184833293556
+        ],
+        [
+          "2026-04-24",
+          -0.05183907115136952
+        ],
+        [
+          "2026-05-01",
+          -0.05055711815373185
+        ],
+        [
+          "2026-05-08",
+          -0.06877836183800638
+        ],
+        [
+          "2026-05-15",
+          -0.06985845647896397
+        ],
+        [
+          "2026-05-22",
+          -0.08986263568616075
+        ],
+        [
+          "2026-05-29",
+          -0.09816114395840927
+        ],
+        [
+          "2026-06-05",
+          0.014844388553447297
+        ],
+        [
+          "2026-06-12",
+          -0.0032615781034786183
+        ],
+        [
+          "2026-06-18",
+          -0.00883218646435634
+        ],
+        [
+          "2026-06-26",
+          0.026187136078236344
+        ],
+        [
+          "2026-07-02",
+          0.025431270932692616
+        ],
+        [
+          "2026-07-10",
+          0.018516190496523154
+        ],
+        [
+          "2026-07-17",
+          0.016359468471122497
+        ],
+        [
+          "2026-07-24",
+          0.01816813368991436
+        ],
+        [
+          "2026-07-31",
+          0.020431465360301458
+        ],
+        [
+          "2026-08-07",
+          0.046485434143843055
+        ],
+        [
+          "2026-08-14",
+          0.05114113033633059
+        ],
+        [
+          "2026-08-21",
+          0.13576717737534663
+        ],
+        [
+          "2026-08-28",
+          0.14180226190766132
+        ],
+        [
+          "2026-09-04",
+          0.1344033305075716
+        ],
+        [
+          "2026-09-11",
+          0.13336629121820803
+        ],
+        [
+          "2026-09-18",
+          0.13382392021262288
+        ],
+        [
+          "2026-09-25",
+          0.13099764130143735
+        ],
+        [
+          "2026-10-02",
+          0.09732648398681869
+        ]
+      ],
+      "window": "52 个非重叠周度样本：资产与黄金的同期对数收益；共同周五，缺失时允许共同周四",
+      "expected": "同期历史联动，不是因果驱动",
+      "frequency": "weekly"
+    }
+  },
+  "publicationAuthorization": "用户于2026-10-12明确确认有原Coinbase/FRED数据的转载授权。仅用于本网站；不代表所有读者获得上游再转载授权。"
+}

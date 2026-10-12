@@ -28,10 +28,11 @@ class CombinedRefreshPipelineTest(unittest.TestCase):
             updater.run_refresh_pipeline(etf_page=page, refresh_gold=True)
 
         self.assertEqual(
-            commands[:3],
+            commands[:4],
             [
                 [sys.executable, "scripts/refresh_wind_data.py"],
                 [sys.executable, "scripts/refresh_market_data.py"],
+                [sys.executable, "scripts/refresh_gold_context.py"],
                 [
                     sys.executable,
                     "scripts/build_site.py",
@@ -40,11 +41,14 @@ class CombinedRefreshPipelineTest(unittest.TestCase):
                 ],
             ],
         )
-        self.assertEqual(commands[3], updater.TEST_COMMAND)
+        self.assertEqual(commands[4], updater.TEST_COMMAND)
 
     def test_combined_mode_allows_gold_and_etf_outputs_but_rejects_other_changes(self):
         allowed_entries = [
             (" M", "data/market/wind_daily.csv"),
+            (" M", "data/market/gold_context_monthly.csv"),
+            (" M", "data/market/gold_context_assets.csv"),
+            (" M", "data/market/gold_context_sources.json"),
             (" M", "data/etf_tracking.html"),
             (" M", "site/index.html"),
         ]
