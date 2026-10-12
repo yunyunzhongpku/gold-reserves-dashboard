@@ -2,7 +2,7 @@
 import math
 import unittest
 from datetime import date
-from scripts.gold_page.snapshot import series, make_snapshot, render_html
+from scripts.gold_page.snapshot import series, monthly_changes, make_snapshot, render_html
 from unittest.mock import patch
 
 
@@ -26,6 +26,41 @@ class FormalGoldPageTest(unittest.TestCase):
     def test_leap_day_range_uses_calendar_months(self):
         rows = [{"date": "2024-02-29", "x": 2.0}]
         self.assertEqual(series(rows, "x", date(2026, 2, 28)), [["2024-02-29", 2.0]])
+
+    def test_reserve_changes_require_adjacent_valid_months(self):
+        rows = [{"date": stamp, "stock": value} for stamp, value in (
+            ("2023-12-31", 100.0), ("2024-01-31", 110.0),
+            ("2024-02-29", 110.0), ("2024-03-31", 105.0),
+            ("2024-05-31", 120.0), ("2024-06-30", None),
+            ("2024-07-31", 125.0), ("2024-08-31", math.inf),
+            ("2024-09-30", 130.0), ("2024-10-31", 135.0))]
+        result = monthly_changes(rows, "stock", date(2024, 9, 30))
+        self.assertEqual([row[1] for row in result],
+                         [None, 10.0, 0.0, -5.0, None, None, None, None, None])
+
+    def test_reserve_change_uses_month_before_display_boundary(self):
+        rows = [{"date": "2016-01-31", "stock": 100.0},
+                {"date": "2016-02-29", "stock": 110.0}]
+        self.assertEqual(monthly_changes(rows, "stock", date(2026, 2, 28)),
+                         [["2016-02-29", 10.0]])
+
+    def test_reserve_dual_axis_payload_reconciles_each_series(self):
+        for metric in self.snapshot["metrics"]:
+            if metric["id"] not in {"china_stock", "global_stock"}:
+                continue
+            with self.subTest(metric=metric["id"]):
+                changes = dict(metric["monthlyChange"]["rows"])
+                for previous, current in zip(metric["rows"], metric["rows"][1:]):
+                    prior_date, current_date = map(date.fromisoformat, (previous[0], current[0]))
+                    consecutive = (current_date.year * 12 + current_date.month
+                                   - prior_date.year * 12 - prior_date.month == 1)
+                    if consecutive and previous[1] is not None and current[1] is not None:
+                        self.assertAlmostEqual(changes[current[0]], current[1] - previous[1])
+                    else:
+                        self.assertIsNone(changes[current[0]])
+                self.assertEqual(metric["monthlyChange"]["date"], metric["date"])
+                self.assertEqual(metric["monthlyChange"]["value"], changes[metric["date"]])
+                self.assertEqual(metric["monthlyChange"]["unit"], "吨")
 
     def test_real_snapshot_uses_own_observations(self):
         snapshot = make_snapshot()

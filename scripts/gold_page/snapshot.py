@@ -23,6 +23,26 @@ def series(rows, key, today):
     ]
 
 
+def monthly_changes(rows, key, today):
+    """Difference adjacent calendar months only, before trimming display history."""
+    changes = []
+    previous = None
+    for row in rows:
+        current_date = date.fromisoformat(row["date"])
+        value = None
+        if previous is not None:
+            previous_date = date.fromisoformat(previous["date"])
+            consecutive = (current_date.year * 12 + current_date.month
+                           - previous_date.year * 12 - previous_date.month == 1)
+            current, prior = row.get(key), previous.get(key)
+            if (consecutive and b.is_number(current) and b.is_number(prior)
+                    and math.isfinite(current) and math.isfinite(prior)):
+                value = current - prior
+        changes.append({"date": row["date"], "change": value})
+        previous = row
+    return series(changes, "change", today)
+
+
 def make_snapshot(today=None):
     today = today or date.today()
     d = b.read_dashboard_data(today=today)
@@ -109,6 +129,13 @@ def make_snapshot(today=None):
                         "frequency": frequency, "state": state, "delta": delta, "since": since,
                         "window": window, "note": note, "source": source, "sourceUrl": url,
                         "file": " + ".join(files), "key": key, "relation": relation})
+        if mid in {"china_stock", "global_stock"}:
+            changes = monthly_changes(rows, key, today)
+            metrics[-1]["monthlyChange"] = {
+                "rows": changes, "date": last[0], "value": dict(changes).get(last[0]),
+                "unit": unit, "key": "china_mom_change" if mid == "china_stock" else "global_mom_change",
+                "note": "月度净增＝当月总量−上月总量；仅连续且有效的月份计算，缺失不补零。存量差额不等同于当月购金交易量。",
+            }
     states = [l["state"] for l in d["driver_layers"] if l.get("data_quality") not in {"missing", "very-stale"} and l["state"] in {"supportive", "headwind", "neutral"}]
     snapshot = {"asOf": technical["latest"]["date"], "snapshotDate": today.isoformat(),
                 "builtAt": datetime.now().strftime("%Y-%m-%d %H:%M"),

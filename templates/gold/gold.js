@@ -42,9 +42,10 @@
   }
 
   function drawChart(host, metric, range, options = {}) {
+    const secondary = options.secondary;
     const width = Math.max(140, Math.min(options.wide ? 980 : 450, host.clientWidth || (options.wide ? 980 : 350)));
     const height = options.wide ? Math.max(200, Math.min(265, width * .34)) : metric.researchId === "assets" ? 140 : 190;
-    const pad = {left:metric.unit === "张" ? 46 : 47, right:15, top:14, bottom:29};
+    const pad = {left:metric.unit === "张" ? 46 : 47, right:secondary ? 57 : 15, top:secondary ? 28 : 14, bottom:29};
     const plotWidth = width - pad.left - pad.right;
     const plotHeight = height - pad.top - pad.bottom;
     const [start, end] = bounds(range);
@@ -66,10 +67,28 @@
     }
     const x = (iso) => pad.left + (stamp(iso) - start) / (end - start) * plotWidth;
     const y = (value) => pad.top + (high - value) / (high - low) * plotHeight;
+    const secondaryRows = secondary ? secondary.rows.filter((row) => stamp(row[0]) >= start && stamp(row[0]) <= end && finite(row[1])) : [];
+    let rightLow = Math.min(0, ...secondaryRows.map((row) => row[1]));
+    let rightHigh = Math.max(0, ...secondaryRows.map((row) => row[1]));
+    const rightMargin = (rightHigh - rightLow || 1) * .12;
+    if (rightLow < 0) rightLow -= rightMargin;
+    if (rightHigh > 0) rightHigh += rightMargin;
+    if (rightLow === rightHigh) { rightLow = -1; rightHigh = 1; }
+    const rightY = (value) => pad.top + (rightHigh - value) / (rightHigh - rightLow) * plotHeight;
     const dateText = (time) => new Date(time).toISOString().slice(range === "3m" ? 5 : 0, range === "3m" ? 10 : 7);
     const yTicks = [high, (high + low) / 2, low];
     let content = yTicks.map((value) => `<line x1="${pad.left}" y1="${y(value).toFixed(2)}" x2="${width - pad.right}" y2="${y(value).toFixed(2)}" class="chart-grid"/><text x="${pad.left - 7}" y="${(y(value) + 3).toFixed(2)}" text-anchor="end" class="chart-axis">${axisNumber(value, metric, (high - low) / 2)}</text>`).join("");
     if (low <= 0 && high >= 0) content += `<line x1="${pad.left}" y1="${y(0)}" x2="${width - pad.right}" y2="${y(0)}" class="chart-zero"/>`;
+    if (secondary) {
+      content += `<text x="${pad.left}" y="12" class="chart-axis">总量 · ${escape(metric.unit)}</text><text x="${width - pad.right}" y="12" text-anchor="end" class="chart-axis">月度净增 · ${escape(secondary.unit)}</text>`;
+      content += [...new Set([rightHigh, 0, rightLow])].map((value) => `<text data-right-axis x="${width - pad.right + 7}" y="${(rightY(value) + 3).toFixed(2)}" class="chart-axis">${axisNumber(value, secondary, (rightHigh - rightLow) / 2)}</text>`).join("");
+      content += `<line data-right-zero x1="${pad.left}" y1="${rightY(0)}" x2="${width - pad.right}" y2="${rightY(0)}" class="chart-zero"/>`;
+      const barWidth = Math.max(1.5, Math.min(options.wide ? 18 : 13, plotWidth * 22 * 86400000 / (end - start)));
+      for (const row of secondaryRows) {
+        const base = rightY(0), valueY = rightY(row[1]);
+        content += `<rect data-monthly-change="${row[0]}" x="${x(row[0]) - barWidth / 2}" y="${Math.min(base, valueY)}" width="${barWidth}" height="${Math.abs(base - valueY)}" rx="1.4" fill="${row[1] < 0 ? "#ae7461" : "#64808b"}" opacity=".65"><title>${row[0]} · 月度净增 ${signed(row[1])} ${escape(secondary.unit)}</title></rect>`;
+      }
+    }
     const tickCount = width < 260 ? 2 : options.wide && width >= 600 ? 5 : 3;
     for (let i = 0; i < tickCount; i++) {
       const ratio = i / (tickCount - 1), time = start + (end - start) * ratio;
@@ -100,13 +119,17 @@
     content += `<line data-crosshair x1="${x(latest[0])}" x2="${x(latest[0])}" y1="${pad.top}" y2="${height - pad.bottom}" stroke="#9ea99f" stroke-dasharray="2 3" opacity="0"/><circle data-dot cx="${x(latest[0])}" cy="${y(latest[1])}" r="3" fill="${color}" opacity="0"/><rect data-hit x="${pad.left}" y="${pad.top}" width="${plotWidth}" height="${plotHeight}" fill="transparent"/>`;
     const partialHistory = stamp(valid[0][0]) - start > maxGap[metric.frequency] * 86400000;
     const coverage = partialHistory ? `<p class="tiny chart-coverage">本区间实际观测始于 ${valid[0][0]}</p>` : "";
-    host.innerHTML = `<svg viewBox="0 0 ${width} ${height}" role="img" tabindex="0" aria-label="${escape(options.ariaLabel || metric.name)}，${rangeName[range]}走势，单位${escape(metric.unit)}，方向未反转。可使用左右方向键查看观测。">${content}</svg><div class="chart-tooltip" aria-live="polite"></div>${coverage}`;
+    host.innerHTML = `<svg viewBox="0 0 ${width} ${height}" role="img" tabindex="0" aria-label="${escape(options.ariaLabel || metric.name)}，${rangeName[range]}走势，${secondary ? "左轴储备总量、右轴月度净增，" : ""}单位${escape(metric.unit)}，方向未反转。可使用左右方向键查看观测。">${content}</svg><div class="chart-tooltip" aria-live="polite"></div>${coverage}`;
     const svg = host.querySelector("svg"), tooltip = host.querySelector(".chart-tooltip");
     const crosshair = host.querySelector("[data-crosshair]"), dot = host.querySelector("[data-dot]");
     let cursor = valid.length - 1;
     function show(index, active = true) {
       cursor = Math.max(0, Math.min(valid.length - 1, index));
       const row = valid[cursor], parts = [`${row[0]} · <strong>${options.label ? `${escape(options.label)} ` : ""}${format(row[1], digits(metric))} ${escape(metric.unit)}</strong>`];
+      if (secondary) {
+        const change = secondary.rows.find((point) => point[0] === row[0]);
+        parts.push(`月度净增 ${change && finite(change[1]) ? `${signed(change[1])} ${escape(secondary.unit)}` : "缺失（前月缺失或不连续）"}`);
+      }
       for (const extra of additions) {
         const pair = extra.rows.find((point) => point[0] === row[0]);
         if (pair && finite(pair[1])) parts.push(`${extra.label} ${format(pair[1])}${extra.unit ? ` ${escape(extra.unit)}` : ""}`);
@@ -148,10 +171,15 @@
     return {series:[{rows:data.liquidityComparison.goldRows, color:"#b88a36", label:"黄金同比", unit:"%", dash:""}], label:"M2 同比", zeroBaseline:true, ariaLabel:"黄金同比与固定汇率美中欧 M2 同比，同月、同一百分比纵轴"};
   }
 
+  function reserveChartOptions(metric) {
+    return metric.monthlyChange ? {secondary:metric.monthlyChange, label:"储备总量"} : {};
+  }
+
   function renderCard(metric, range, groupNumber = null) {
     const deltaUnit = metric.unit === "%" ? "个百分点" : metric.unit;
     let change = finite(metric.delta) ? `<strong>${signed(metric.delta, digits(metric))} ${deltaUnit}</strong> · ${escape(metric.window)}` : metric.id === "official_reserves" ? "月度净增 · 以零为基准" : `${frequency[metric.frequency]} · ${metric.frequency === "monthly" && ["epu","gpr"].includes(metric.id) ? "完整月均值" : "指标自身水平"}`;
     if (metric.changeText) change = escape(metric.changeText);
+    if (metric.monthlyChange) change = `月度净增 <strong>${signed(metric.monthlyChange.value)} ${escape(metric.unit)}</strong> · ${escape(metric.date || "—")}`;
     let extra = "";
     if (metric.id === "official_reserves") extra = `储备总量 ${format(metricMap.china_stock.value)} 吨`;
     if (metric.id === "cot") extra = `当前净多在近 156 个周度观测中的分位 ${format(percent(data.cotPercentile), 1)}%`;
@@ -163,8 +191,8 @@
     if (comparison) change = `共同统计期 ${data.liquidityComparison.date.slice(0,7)} · 相对 12 个月前`;
     const heading = comparison ? "黄金与 M2 · 同比增速" : metric.name;
     const value = comparison ? `<div class="growth-values"><div class="growth-gold"><small>黄金同比</small><strong>${signed(data.liquidityComparison.goldValue)}<span>%</span></strong></div><div class="growth-money"><small>固定汇率 M2 同比</small><strong>${signed(metric.value)}<span>%</span></strong></div></div>` : `<p class="metric-value">${metric.kind === "bar" ? signed(metric.value) : format(metric.value, digits(metric))}<span>${escape(metric.unit)}</span></p>`;
-    const legend = comparison ? '<div class="growth-legend"><span class="growth-gold">黄金同比</span><span class="growth-money">固定汇率 M2 同比</span><small>同一纵轴 · 零线参照</small></div>' : "";
-    const cardNote = comparison ? "本月相对十二个月前的变化。M2 采用固定汇率；两条线按共同统计月对齐，详细口径见研究。" : metric.note;
+    const legend = comparison ? '<div class="growth-legend"><span class="growth-gold">黄金同比</span><span class="growth-money">固定汇率 M2 同比</span><small>同一纵轴 · 零线参照</small></div>' : metric.monthlyChange ? '<div class="reserve-legend"><span class="reserve-stock">总量 · 左轴</span><span class="reserve-change">月度净增 · 右轴</span></div>' : "";
+    const cardNote = comparison ? "本月相对十二个月前的变化。M2 采用固定汇率；两条线按共同统计月对齐，详细口径见研究。" : metric.monthlyChange ? metric.monthlyChange.note : metric.note;
     return `<article class="metric-card" data-metric-id="${metric.id}"><div class="metric-top"><div><p class="metric-category">${escape(category)}</p><h3>${escape(heading)}</h3></div><span class="badge ${excluded ? "missing" : metric.state}">${badge}</span></div>${value}<p class="metric-change">${change}</p><p class="metric-extra">${extra || "&nbsp;"}</p><div class="chart-host metric-chart" id="chart-${metric.id}"></div>${legend}<p class="metric-note">${escape(cardNote)}</p><div class="metric-foot"><div><p class="${warning}">${freshness(metric)}</p><p>${escape(metric.source)}</p></div><a href="#explorer" data-explore="${metric.id}" aria-label="研究${escape(metric.name)}">展开研究 ↗</a></div></article>`;
   }
 
@@ -175,7 +203,7 @@
       const subLabel = (id) => labels[["missing", "very-stale"].includes(metricMap[id].quality) ? "missing" : metricMap[id].state];
       host.innerHTML = ids.slice(0,4).map((id, index) => renderCard(metricMap[id], range, index + 1)).join("") + `<div class="positioning-group"><div class="positioning-heading"><div><p class="metric-category">05 · 资金与仓位 · 两张图合为 1 组</p><h3>ETF 与 CFTC</h3></div><span class="badge ${group.state}">本组${labels[group.state]}</span></div><p class="positioning-summary">ETF：${subLabel("etf")} · CFTC：${subLabel("cot")} → 合成${labels[group.state]}。上方只计这一组。</p><div class="positioning-cards">${ids.slice(4).map((id) => renderCard(metricMap[id], range)).join("")}</div></div>`;
     } else host.innerHTML = ids.map((id) => renderCard(metricMap[id], range)).join("");
-    ids.forEach((id) => drawChart($("chart-" + id), metricMap[id], range, id === "liquidity_yoy" ? growthChartOptions() : {}));
+    ids.forEach((id) => drawChart($("chart-" + id), metricMap[id], range, id === "liquidity_yoy" ? growthChartOptions() : reserveChartOptions(metricMap[id])));
     host.querySelectorAll("[data-explore]").forEach((link) => link.addEventListener("click", (event) => {
       event.preventDefault(); returnTarget = link.dataset.explore; openExplorer(link.dataset.explore);
     }));
@@ -237,15 +265,15 @@
     if (activeView === "research") {
       $("view-panel").innerHTML = renderResearch(metric);
     } else if (activeView === "self") {
-      $("view-panel").innerHTML = `<p class="detail-description">${escape(metric.note)}</p><div class="detail-kpis"><span>最新水平 <strong>${format(metric.value, digits(metric))} ${escape(metric.unit)}</strong></span><span>观测日 <strong>${metric.date || "—"}</strong></span></div><div class="detail-chart-heading"><span>${escape(metric.name)} · ${escape(metric.unit)}</span><span class="tiny">自身纵轴 · 真实方向</span></div><div class="chart-host detail-chart" id="detail-self"></div><p class="tiny">${coverage}。各区间按真实日历日期显示。</p>`;
-      drawChart($("detail-self"), metric, detailRange, {wide:true});
+      $("view-panel").innerHTML = `<p class="detail-description">${escape(metric.monthlyChange ? metric.monthlyChange.note : metric.note)}</p><div class="detail-kpis"><span>最新水平 <strong>${format(metric.value, digits(metric))} ${escape(metric.unit)}</strong></span>${metric.monthlyChange ? `<span>月度净增 <strong>${signed(metric.monthlyChange.value)} ${escape(metric.unit)}</strong></span>` : ""}<span>观测日 <strong>${metric.date || "—"}</strong></span></div><div class="detail-chart-heading"><span>${escape(metric.name)} · ${escape(metric.unit)}</span><span class="tiny">${metric.monthlyChange ? "左轴总量 · 右轴月度净增" : "自身纵轴 · 真实方向"}</span></div><div class="chart-host detail-chart" id="detail-self"></div><p class="tiny">${coverage}。各区间按真实日历日期显示。</p>`;
+      drawChart($("detail-self"), metric, detailRange, {wide:true, ...reserveChartOptions(metric)});
     } else if (activeView === "compare") {
       if (selected === "liquidity_yoy") {
         $("view-panel").innerHTML = '<p class="detail-description">黄金与固定汇率美中欧 M2 的算术同比（%）＝（本月值 ÷ 十二个月前值 − 1）× 100。共同月份、同一百分比纵轴，以零线为参照；没有平移曲线或使用双轴。</p><div class="chart-host detail-chart" id="detail-yoy"></div><div class="growth-legend"><span class="growth-gold">黄金同比</span><span class="growth-money">固定汇率 M2 同比</span></div>';
         drawChart($("detail-yoy"), metric, detailRange, {...growthChartOptions(), wide:true});
       } else {
       $("view-panel").innerHTML = `<p class="detail-description">上下图使用同一个日历区间，纵轴分别保留指标和黄金的原始单位。分别使用各自观测，未插值填补；同向或反向变化仅供观察。</p><div class="detail-chart-heading"><span>${escape(metric.name)} · ${escape(metric.unit)}</span><span class="tiny">${frequency[metric.frequency]} · 轴未反转</span></div><div class="chart-host" id="detail-factor"></div><div class="detail-chart-heading"><span>黄金现货 · 美元 / 盎司</span><span class="tiny">日频 · 独立纵轴</span></div><div class="chart-host" id="detail-gold"></div>`;
-      drawChart($("detail-factor"), metric, detailRange, {wide:true});
+      drawChart($("detail-factor"), metric, detailRange, {wide:true, ...reserveChartOptions(metric)});
       drawChart($("detail-gold"), data.gold, detailRange, {wide:true, color:"#b88a36"});
       }
     } else {
@@ -262,7 +290,8 @@
     }
     const sources = metric.sourceUrl ? `<a href="${escape(metric.sourceUrl)}" target="_blank" rel="noopener">${escape(metric.source)}</a>` : escape(metric.source);
     const goldGrowth = selected === "liquidity_yoy" ? Object.fromEntries(data.liquidityComparison.goldRows) : null;
-    const table = rangeRows(metric, detailRange).map((row) => `<tr><td>${row[0]}</td><td>${finite(row[1]) ? format(row[1], digits(metric)) : "缺失"}</td>${goldGrowth ? `<td>${finite(goldGrowth[row[0]]) ? format(goldGrowth[row[0]]) : "缺失"}</td>` : ""}<td>${escape(metric.unit)}</td></tr>`).join("");
+    const reserveChanges = metric.monthlyChange ? Object.fromEntries(metric.monthlyChange.rows) : null;
+    const table = rangeRows(metric, detailRange).map((row) => `<tr><td>${row[0]}</td><td>${finite(row[1]) ? format(row[1], digits(metric)) : "缺失"}</td>${goldGrowth ? `<td>${finite(goldGrowth[row[0]]) ? format(goldGrowth[row[0]]) : "缺失"}</td>` : reserveChanges ? `<td>${finite(reserveChanges[row[0]]) ? signed(reserveChanges[row[0]]) : "缺失"}</td>` : ""}<td>${escape(metric.unit)}</td></tr>`).join("");
     const specific = metric.researchId === "liquidity" ? "美国 M2NS（十亿美元、月均）、中国 M0001384（亿元转十亿元、月末）、ECB M2（百万欧元转十亿欧元、月末），全部非季调。汇率采用 Fed H.10 各月最后有效观测；固定汇率基月 2020-12。数据为当前修订版，各国定义与历史统计范围不完全一致。" : metric.researchId === "assets" ? metric.note : selected === "etf" ? "合计要求 SPDR 与 iShares 在同一观测日都有有效持仓，单只缺失时不计算合计。" : selected === "official_reserves" || selected === "china_stock" ? "中国储备 2025-12 起使用 SAFE 手工权威序列；更早历史沿用已保存工作簿。披露日沿已核验的 SAFE 手工记录，不用披露日替代月末统计期。" : selected === "global_stock" ? "历史工作簿与 Wind 补充序列合并，全球观测不借用中国的日期。" : ["epu", "gpr"].includes(selected) ? "完整日历月均值，历史工作簿与 Wind 补充序列合并；不显示未完成月份。" : "使用项目已保存的有效观测。";
     $("source-content").innerHTML = `<div class="source-meta"><p>来源：${sources}。${freshness(metric)}。</p><p>${escape(specific)}</p><p>定义：${escape(metric.note)}${metric.since && finite(metric.delta) ? ` 近期变化比较 ${metric.since} 与 ${metric.date}，${escape(metric.window)}。` : ""}</p><p>本地输入：<code>${escape(metric.file)}</code> · 原始字段 <code>${escape(metric.sourceKey || metric.key)}</code>${metric.transform ? `。展示变换：${escape(metric.transform)}；导出字段 <code>${escape(metric.key)}</code>` : ""}。明细显示最多近 10 年已保存历史，当前明细覆盖 ${coverage}。</p></div><button class="text-button" id="export-series">导出当前指标区间 CSV ↓</button><div class="data-scroll"><table><thead><tr><th>观测日期</th><th>指标值</th><th>单位</th></tr></thead><tbody>${table || '<tr><td colspan="3">当前区间无记录</td></tr>'}</tbody></table></div>`;
     if (goldGrowth) {
@@ -270,8 +299,13 @@
       $("export-series").textContent = "导出当前区间同比对照 CSV ↓";
       $("source-content").querySelector('.source-meta').insertAdjacentHTML('beforeend', `<p>黄金同比原始字段：<code>gold_price</code>（<code>data/market/wind_daily.csv</code>）；月底七天内最后有效报价，同比公式相同，导出字段 <code>gold_yoy_pct</code>。只使用共同完整统计月。</p>`);
     }
+    if (reserveChanges) {
+      $("source-content").querySelector("thead").innerHTML = '<tr><th>观测日期</th><th>储备总量</th><th>月度净增</th><th>单位</th></tr>';
+      $("export-series").textContent = "导出当前区间储备总量与净增 CSV ↓";
+      $("source-content").querySelector('.source-meta').insertAdjacentHTML('beforeend', `<p>${escape(metric.monthlyChange.note)}导出增量字段 <code>${escape(metric.monthlyChange.key)}</code>。</p>`);
+    }
     $("export-series").addEventListener("click", () => {
-      const output = goldGrowth ? [["date", metric.key, "gold_yoy_pct", "unit"], ...rangeRows(metric, detailRange).map((row) => [row[0], finite(row[1]) ? row[1] : "", finite(goldGrowth[row[0]]) ? goldGrowth[row[0]] : "", metric.unit])] : [["date", metric.key, "unit"], ...rangeRows(metric, detailRange).map((row) => [row[0], finite(row[1]) ? row[1] : "", metric.unit])];
+      const output = goldGrowth ? [["date", metric.key, "gold_yoy_pct", "unit"], ...rangeRows(metric, detailRange).map((row) => [row[0], finite(row[1]) ? row[1] : "", finite(goldGrowth[row[0]]) ? goldGrowth[row[0]] : "", metric.unit])] : reserveChanges ? [["date", metric.key, metric.monthlyChange.key, "unit"], ...rangeRows(metric, detailRange).map((row) => [row[0], finite(row[1]) ? row[1] : "", finite(reserveChanges[row[0]]) ? reserveChanges[row[0]] : "", metric.unit])] : [["date", metric.key, "unit"], ...rangeRows(metric, detailRange).map((row) => [row[0], finite(row[1]) ? row[1] : "", metric.unit])];
       const csv = "\uFEFF" + output.map((row) => row.map((cell) => `"${String(cell).replaceAll('"','""')}"`).join(",")).join("\r\n");
       const url = URL.createObjectURL(new Blob([csv], {type:"text/csv;charset=utf-8"}));
       const link = document.createElement("a"); link.href = url; link.download = `${data.snapshotDate}_${metric.name}_${detailRange}.csv`; link.click();
